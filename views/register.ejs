@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('templates/head') %>
+</head>
+<body>
+    <%- include('templates/header') %>
+    <main class="container-fluid">
+        <div class="wrapper fadeInDown">
+            <div class="formContent">
+                <div>
+                    <img src="images/signup.png" alt="Login Page" id="icon" />
+                </div>
+                <form method="POST" action="/register"> 
+                    <%- include('templates/messages') %>
+                    <input type="email" class="form-control" id="floatingInput" name="email" placeholder="Enter your email" required autocomplete="off">
+                    <input type="text" class="form-control" id="floatingName" name="fullname" placeholder="Enter your fullname" required autocomplete="off">
+                    <input type="password" class="form-control" id="floatingPassword" name="password" placeholder="Password" required>
+                    <input type="password" class="form-control" id="floatingCPassword" name="cpassword" placeholder="Confirm Password" required>
+                    <input type="submit" name="submit" value="Register">
+                </form>
+                <div class="formFooter">
+                    <a class="underlineHover" href="/">Already have an account? Login</a>
+                </div>
+            </div>
+        </div>
+    </main>
+    <%- include('templates/footer') %>
+</body>
+</html>

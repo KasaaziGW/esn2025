@@ -41,11 +41,15 @@ mongoose
   .catch((err) => console.error("Could not connect to MongoDB...", err));
 
 app.get("/", (req, res) => {
-  res.render("index");
+  res.render("index", { title: "Login" });
+});
+
+app.get("/register", (req, res) => {
+  res.render("register", { title: "Register" });
 });
 
 // register route
-app.post("/register", (req, res) => {
+app.post("/registerUser", (req, res) => {
   const { email, fullname, password, cpassword } = req.body;
   if (password !== cpassword) {
     req.flash("error", "Passwords do not match!");
