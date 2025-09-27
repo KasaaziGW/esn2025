@@ -1,0 +1,29 @@
+{
+  "name": "esn2025",
+  "version": "1.0.0",
+  "description": "Final semester project for AWSD 2025",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KasaaziGW/esn2025.git"
+  },
+  "keywords": [
+    "ESN2025",
+    "AWSD2025"
+  ],
+  "author": "AWSD2025",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/KasaaziGW/esn2025/issues"
+  },
+  "homepage": "https://github.com/KasaaziGW/esn2025#readme",
+  "dependencies": {
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "mongoose": "^8.18.2",
+    "nodemon": "^3.1.10"
+  }
+}
