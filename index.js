@@ -1,19 +1,28 @@
 const express = require("express");
+const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const flashMessage = require("connect-flash");
 const sessions = require("express-session");
 const Citizen = require("./models/citizen");
+const { Message } = require("./models/message");
 const bcrypt = require("bcryptjs");
 
 const app = express();
+const httpServer = require("http").createServer(app);
+const socketIO = require("socket.io")(httpServer);
+
 const PORT = process.env.PORT || 3000;
+var username;
+
 // setting the view engine to ejs
 app.set("view engine", "ejs");
 // serving static files from the "public" directory
 app.use(express.static("public"));
 
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+// app.use(express.urlencoded({ extended: true }));
+// app.use(express.json());
 
 // setting up the sessions
 app.use(
@@ -32,6 +41,11 @@ app.use(function (req, res, next) {
   next();
 });
 
+// Handle favicon.ico requests
+app.get("/favicon.ico", (req, res) =>
+  res.sendFile(__dirname + "/public/images/logo.png")
+);
+
 // testing connection to MongoDB
 const dbURL =
   "mongodb+srv://kasaazigw_db_user:ssc3XU7MAzo5RkVs@cluster0.mgqmfpv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
@@ -40,8 +54,33 @@ mongoose
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("Could not connect to MongoDB...", err));
 
+// Middleware to check if user is logged in
+function isAuthenticated(req, res, next) {
+  if (req.session && req.session.user) {
+    next();
+  } else {
+    res.redirect("/");
+  }
+}
+
 app.get("/", (req, res) => {
-  res.render("index", { title: "Login" });
+  if (req.session && req.session.user) {
+    res.redirect("/dashboard");
+  } else {
+    res.render("index", { title: "Login" });
+  }
+});
+
+app.get("/dashboard", isAuthenticated, async (req, res) => {
+  const api_url = "https://zenquotes.io/api/random/";
+  const response = await fetch(api_url);
+  var data = await response.json();
+  // console.log(`${data[0]["q"]} - ${data[0]["a"]} - ${data[0]["h"]}`);
+  res.render("dashboard", {
+    title: "Dashboard",
+    user: req.session.user,
+    quote: data,
+  });
 });
 
 app.get("/register", (req, res) => {
@@ -53,32 +92,33 @@ app.post("/registerUser", (req, res) => {
   const { email, fullname, password, cpassword } = req.body;
   if (password !== cpassword) {
     req.flash("error", "Passwords do not match!");
-    res.redirect("/");
+    res.redirect("/register");
   } else {
     // testing if the email already exists
     Citizen.findOne({ email: email })
       .then((citizen) => {
         if (citizen) {
           req.flash("error", `${email} already exists!`);
-          res.redirect("/");
+          res.redirect("/register");
         } else {
           // hashing the password
           bcrypt.hash(password, 10, (err, hash) => {
             if (err) {
               console.error(err);
               req.flash("error", "An error occurred. Please try again!");
-              res.redirect("/");
+              res.redirect("/register");
             } else {
               // create a model to save the data
               let user = new Citizen({
                 email: email,
                 fullname: fullname,
                 password: hash,
+                online: false,
               });
               // saving the data
               user.save();
               req.flash("success", "Registration successful!");
-              res.redirect("/");
+              res.redirect("/register");
             }
           });
         }
@@ -90,16 +130,20 @@ app.post("/registerUser", (req, res) => {
 // login route
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
-  // checking if user exists
   Citizen.findOne({ email: email }).then((citizen) => {
     if (citizen) {
-      // comparing the password
       let hashedPassword = citizen.password;
-      bcrypt.compare(password, hashedPassword, (err, result) => {
+      bcrypt.compare(password, hashedPassword, async (err, result) => {
         if (result) {
-          // req.session.user = citizen.fullname;
+          // Set user online status to true
+          await Citizen.updateOne({ email: email }, { $set: { online: true } });
+          req.session.user = {
+            fullname: citizen.fullname,
+            email: citizen.email,
+          };
+          username = citizen.fullname;
           req.flash("success", `Welcome back, ${citizen.fullname}!`);
-          res.redirect("/");
+          res.redirect("/dashboard");
         } else {
           req.flash("error", "Invalid Username/Password combination!");
           res.redirect("/");
@@ -111,6 +155,76 @@ app.post("/login", (req, res) => {
     }
   });
 });
-app.listen(PORT, () => {
+
+// ESN Directory route
+app.get("/directory", isAuthenticated, async (req, res) => {
+  try {
+    const users = await Citizen.find({});
+    // Use real online status from DB
+    const usersWithStatus = users.map((u) => ({
+      fullname: u.fullname,
+      email: u.email,
+      online: u.online || false,
+    }));
+    res.render("directory", {
+      title: "ESN Directory",
+      user: req.session.user,
+      users: usersWithStatus,
+    });
+  } catch (err) {
+    res.status(500).send("Error loading directory");
+  }
+});
+
+// chat route
+app.get("/public_chat", isAuthenticated, (req, res) => {
+  res.render("public_chat", { title: "Public Chat", user: req.session.user });
+});
+
+// Logout route
+app.get("/logout", (req, res) => {
+  // Set user online status to false before destroying session
+  if (req.session && req.session.user) {
+    Citizen.updateOne(
+      { email: req.session.user.email },
+      { $set: { online: false } }
+    )
+      .then(() => {
+        req.session.destroy(() => {
+          res.redirect("/");
+        });
+      })
+      .catch(() => {
+        req.session.destroy(() => {
+          res.redirect("/");
+        });
+      });
+  } else {
+    req.session.destroy(() => {
+      res.redirect("/");
+    });
+  }
+});
+
+// receiving and emitting a message whenever a user joins
+socketIO.on("connection", () => {
+  socketIO.emit("joined", username);
+});
+
+// saving a message to the database
+app.post("/sendMessage", async (req, res) => {
+  var message = new Message(req.body);
+  await message.save();
+  socketIO.emit("message", req.body);
+  res.sendStatus(200);
+});
+
+// fetching messages from the database
+app.get("/fetchMessages", async (req, res) => {
+  const messages = await Message.find({});
+  res.json(messages);
+});
+
+httpServer.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

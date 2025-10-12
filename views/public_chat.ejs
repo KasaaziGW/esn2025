@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include("templates/head"); %>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js" integrity="sha384-mkQ3/7FUtcGyoppY6bz/PORYoGqOl7/aSUMn2ymDOJcapfS6PHqxhRTMh1RR0Q6+" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f3f3f3;
+        }
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fff;
+            border-bottom: 2px solid #c00;
+            padding: 0.5em 2em 0.5em 1em;
+        }
+        .topbar .logo {
+            font-weight: bold;
+            color: #0074c2;
+            font-size: 1.3em;
+        }
+        .topbar .welcome {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        .topbar .logout {
+            font-weight: bold;
+            color: #0a3d62;
+            text-decoration: underline;
+            font-size: 1.1em;
+        }
+        .container {
+            display: flex;
+            height: calc(100vh - 56px);
+        }
+        .sidebar {
+            background: #c2e6fa;
+            width: 320px;
+            min-width: 220px;
+            max-width: 320px;
+            transition: width 0.3s;
+            font-size: 1.2em;
+            padding-top: 1em;
+            padding-left: 0;
+            position: fixed;
+            top: 56px;
+            left: 0;
+            height: calc(100vh - 56px);
+            z-index: 10;
+        }
+        .container {
+            margin-left: 320px;
+        }
+        .sidebar.collapsed {
+            width: 60px;
+            min-width: 60px;
+            max-width: 60px;
+            overflow: hidden;
+        }
+        .sidebar.collapsed ~ .container {
+            margin-left: 60px;
+        }
+        .sidebar.collapsed {
+            width: 60px;
+            min-width: 60px;
+            max-width: 60px;
+            overflow: hidden;
+        }
+        .sidebar .collapse-btn {
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            color: #0074c2;
+            cursor: pointer;
+            margin-bottom: 1em;
+            margin-left: 16px;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+        .sidebar a {
+            text-decoration: none;
+            color: #0074c2;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: bold;
+            padding-left: 16px;
+            margin-bottom: 1em;
+            transition: background 0.2s, color 0.2s;
+            border-radius: 5px;
+        }
+        .sidebar a.active {
+            background: #ccc;
+            color: #222;
+        }
+        .sidebar a:hover {
+            background: #b3d8f5;
+            color: #0a3d62;
+        }
+        .sidebar li.active {
+            background: #ccc;
+            color: #222;
+            border-radius: 5px;
+        }
+        .sidebar .submenu {
+            margin-left: 32px;
+            font-weight: normal;
+            font-size: 0.95em;
+        }
+        .sidebar.collapsed li {
+            justify-content: center;
+            padding-left: 0;
+        }
+        .sidebar.collapsed span.menu-text {
+            display: none;
+        }
+        .sidebar .fa {
+            min-width: 24px;
+            text-align: center;
+        }
+        .main {
+            flex: 1;
+            background: #f3f3f3;
+            padding: 2em;
+        }
+        button {
+            cursor: pointer;
+            width: 200px;
+            padding: 10px;
+            background-color: #0d07b4;
+        }
+        input[type="text"] {
+            width: 400px;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            color: #333;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            }
+
+            input[type="text"]:focus {
+            border-color: #007bff;
+            outline: none;
+            }
+
+            input::placeholder {
+            color: #aaa;
+            }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <span class="logo">Emergency Social Network [ESN]</span>
+        <span class="welcome">Welcome, <%= user.fullname %></span>
+        <a href="/logout" class="logout">Logout</a>
+    </div>
+    <div class="container">
+        <nav class="sidebar" id="sidebar">
+            <button class="collapse-btn" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
+                        <ul style="padding:0;">
+                                <li>
+                                    <a href="/dashboard" class="active"><i class="fa fa-tachometer-alt"></i> <span class="menu-text">Dashboard</span></a>
+                                </li>
+                                <li>
+                                    <a href="/directory"><i class="fa fa-address-book"></i> <span class="menu-text">ESN Directory</span></a>
+                                </li>
+                                <li>
+                                    <a href="#"><i class="fa fa-comments"></i> <span class="menu-text">Chat</span></a>
+                                    <ul class="submenu">
+                                        <li><a href="/public_chat"><i class="fa fa-globe"></i> <span class="menu-text">Public</span></a></li>
+                                        <li><a href="/private_chat"><i class="fa fa-user-secret"></i> <span class="menu-text">Private</span></a></li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <a href="/share-status"><i class="fa fa-share-square"></i> <span class="menu-text">Share Status</span></a>
+                                </li>
+                        </ul>
+        </nav>
+        <main class="main d-flex flex-nowrap">
+            <div class="d-flex d-flex-column flex-grow-1">
+                <h2>Public Chat Room</h2>
+                <div id="chat-box" class="border rounded p-3 mb-3" style="height: 400px; overflow-y: scroll; background: #fff;">
+                    <!-- Chat messages will appear here -->
+                </div>
+                <form id="chat-form" class="d-flex">
+                    <input type="text" id="username" class="form-control me-2" placeholder="Your Name" value="<%= user.fullname %>" readonly required hidden>
+                    <input type="text" id="message-input" class="form-control me-2" placeholder="Type your message..." required autocomplete="off">
+                    <button type="submit" class="btn btn-primary" id="sendButton">Send Message</button>
+                </form>
+            </div>
+        </main>
+    </div>
+    <script>
+        const socket = io();
+        $(() => {
+            $("#sendButton").click(() => {
+                const fullname = $("#username").val();
+                const sentmessage = $("#message-input").val();
+                const currentTime = getCurrentTime();
+                // alert(fullname + " " + message + " " + currentTime);
+                var message = {
+                    sender : fullname,
+                    message : sentmessage,
+                    sentTime: currentTime
+                }
+                saveMessage(message);
+                $("#message-input").val("");
+            });
+        });
+        fetchMessages();
+        // receive the "joined" event from the server
+        socket.on("joined", (user) => {
+            // alert(user + " has joined the chat");
+            var username = $("#username").val();
+            if(user == username){
+                $("#chat-box").append(`<p class="text-center"><em>You have joined the chat</em></p>`);
+            } else {
+                $("#chat-box").append(`<p class="text-center"><em>${user} has joined the chat</em></p>`);
+            }
+        });
+        socket.on("message", (message) => {
+            var username = $("#username").val();
+            if(message.sender == username){
+                $("#chat-box").append(`<p style="float: right;"><strong>You: </strong> ${message.message} <span style="font-size:0.8em;color:#888;">(${message.sentTime})</span></p>`);
+            } else {
+                $("#chat-box").append(`<p><strong>${message.sender}:</strong> ${message.message} <span style="font-size:0.8em;color:#888;">(${message.sentTime})</span></p>`);
+            }
+            // Auto-scroll to the bottom
+            $("#chat-box").scrollTop($("#chat-box")[0].scrollHeight);
+        });
+
+
+        // Function to get current time in HH:MM format
+        function getCurrentTime() {
+        var today = new Date();
+        var currentDate = [
+            today.getDate(),
+            today.getMonth() + 1,
+            today.getFullYear(),
+        ];
+        var currentTime = [today.getHours(), today.getMinutes(), today.getSeconds()];
+        var suffix = currentTime[0] >= 12 ? "PM" : "AM";
+        currentDate[0] = currentDate[0] < 10 ? "0" + currentDate[0] : currentDate[0];
+        currentDate[1] = currentDate[1] < 10 ? "0" + currentDate[1] : currentDate[1];
+
+        currentTime[0] = currentTime[0] < 10 ? "0" + currentTime[0] : currentTime[0];
+        currentTime[1] = currentTime[1] < 10 ? "0" + currentTime[1] : currentTime[1];
+        currentTime[2] = currentTime[2] < 10 ? "0" + currentTime[2] : currentTime[2];
+
+        return currentDate.join("-") + " " + currentTime.join(":") + " " + suffix;
+        }
+
+        function saveMessage(message){
+            // alert(message.sender + " " + message.message + " " + message.sentTime);
+            $.post("/sendMessage", message);
+        }
+        // function to retrieve messages from the server
+        function fetchMessages() {
+            $.get("/fetchMessages", (data) => {
+                // alert(data);
+                data.forEach((message) => {
+                    var username = $("#username").val();
+                    if(message.sender == username){
+                        $("#chat-box").append(`<p class="float: right"><strong>You: </strong> ${message.message} <span style="font-size:0.8em;color:#888;">(${message.sentTime})</span></p>`);
+                    } else {
+                        $("#chat-box").append(`<p><strong>${message.sender}:</strong> ${message.message} <span style="font-size:0.8em;color:#888;">(${message.sentTime})</span></p>`);
+                    }
+                });
+                // Auto-scroll to the bottom
+                $("#chat-box").scrollTop($("#chat-box")[0].scrollHeight);
+            });
+        }
+    
+        function toggleSidebar() {
+            var sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('collapsed');
+            var container = document.querySelector('.container');
+            if (sidebar.classList.contains('collapsed')) {
+                container.style.marginLeft = '60px';
+            } else {
+                container.style.marginLeft = '320px';
+            }
+        }
+    </script>
+    <%- include('templates/footer') %>
+    
+</body>
+</html>

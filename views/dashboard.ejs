@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('templates/head') %>
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f3f3f3;
+        }
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fff;
+            border-bottom: 2px solid #c00;
+            padding: 0.5em 2em 0.5em 1em;
+        }
+        .topbar .logo {
+            font-weight: bold;
+            color: #0074c2;
+            font-size: 1.3em;
+        }
+        .topbar .welcome {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        .topbar .logout {
+            font-weight: bold;
+            color: #0a3d62;
+            text-decoration: underline;
+            font-size: 1.1em;
+        }
+        .container {
+            display: flex;
+            height: calc(100vh - 56px);
+        }
+        .sidebar {
+            background: #c2e6fa;
+            width: 320px;
+            min-width: 220px;
+            max-width: 320px;
+            transition: width 0.3s;
+            font-size: 1.2em;
+            padding-top: 1em;
+            padding-left: 0;
+            position: fixed;
+            top: 56px;
+            left: 0;
+            height: calc(100vh - 56px);
+            z-index: 10;
+        }
+        .container {
+            margin-left: 320px;
+        }
+        .sidebar.collapsed {
+            width: 60px;
+            min-width: 60px;
+            max-width: 60px;
+            overflow: hidden;
+        }
+        .sidebar.collapsed ~ .container {
+            margin-left: 60px;
+        }
+        .sidebar.collapsed {
+            width: 60px;
+            min-width: 60px;
+            max-width: 60px;
+            overflow: hidden;
+        }
+        .sidebar .collapse-btn {
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            color: #0074c2;
+            cursor: pointer;
+            margin-bottom: 1em;
+            margin-left: 16px;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+        .sidebar a {
+            text-decoration: none;
+            color: #0074c2;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: bold;
+            padding-left: 16px;
+            margin-bottom: 1em;
+            transition: background 0.2s, color 0.2s;
+            border-radius: 5px;
+        }
+        .sidebar a.active {
+            background: #ccc;
+            color: #222;
+        }
+        .sidebar a:hover {
+            background: #b3d8f5;
+            color: #0a3d62;
+        }
+        .sidebar li.active {
+            background: #ccc;
+            color: #222;
+            border-radius: 5px;
+        }
+        .sidebar .submenu {
+            margin-left: 32px;
+            font-weight: normal;
+            font-size: 0.95em;
+        }
+        .sidebar.collapsed li {
+            justify-content: center;
+            padding-left: 0;
+        }
+        .sidebar.collapsed span.menu-text {
+            display: none;
+        }
+        .sidebar .fa {
+            min-width: 24px;
+            text-align: center;
+        }
+        .main {
+            flex: 1;
+            background: #f3f3f3;
+            padding: 2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <span class="logo">Emergency Social Network [ESN]</span>
+        <span class="welcome">Welcome, <%= user.fullname %></span>
+        <a href="/logout" class="logout">Logout</a>
+    </div>
+    <div class="container">
+        <nav class="sidebar" id="sidebar">
+            <button class="collapse-btn" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
+                        <ul style="padding:0;">
+                                <li>
+                                    <a href="/dashboard" class="active"><i class="fa fa-tachometer-alt"></i> <span class="menu-text">Dashboard</span></a>
+                                </li>
+                                <li>
+                                    <a href="/directory"><i class="fa fa-address-book"></i> <span class="menu-text">ESN Directory</span></a>
+                                </li>
+                                <li>
+                                    <a href="#"><i class="fa fa-comments"></i> <span class="menu-text">Chat</span></a>
+                                    <ul class="submenu">
+                                        <li><a href="/public_chat"><i class="fa fa-globe"></i> <span class="menu-text">Public</span></a></li>
+                                        <li><a href="/private_chat"><i class="fa fa-user-secret"></i> <span class="menu-text">Private</span></a></li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <a href="/share-status"><i class="fa fa-share-square"></i> <span class="menu-text">Share Status</span></a>
+                                </li>
+                        </ul>
+        </nav>
+        <main class="main">
+            <div style="display: flex; gap: 2em; flex-wrap: wrap;">
+                <div style="background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 1.5em; min-width: 320px; max-width: 480px; flex: 1;">
+                    <h3>About Emergency Social Network (ESN)</h3>
+                    <p>
+                        ESN 2025 is a platform designed to help communities connect, share status, and communicate during emergencies. It features a directory, public and private chat, and status sharing to improve response and support.
+                    </p>
+                </div>
+                <div style="background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 1.5em; min-width: 320px; max-width: 480px; flex: 1;">
+                    <h3>Daily Emergency Quote</h3>
+                    <div id="quote" style="font-style: italic; color: #0074c2; min-height: 2em;">
+                        <blockquote>
+                            <%= quote[0]["q"] %>  
+                        </blockquote> 
+                        <footer class="text-center"> 
+                            - <%= quote[0]["a"] %>
+                        </footer> 
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        function toggleSidebar() {
+            var sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('collapsed');
+            var container = document.querySelector('.container');
+            if (sidebar.classList.contains('collapsed')) {
+                container.style.marginLeft = '60px';
+            } else {
+                container.style.marginLeft = '320px';
+            }
+        }
+
+        // // Dummy quote loader
+        // document.addEventListener('DOMContentLoaded', function() {
+        //     var quotes = [
+        //         "Preparedness is the key to survival.",
+        //         "Stay calm, stay connected.",
+        //         "Help is a call away.",
+        //         "Community is strength in crisis.",
+        //         "Safety starts with you."
+        //     ];
+        //     var quote = quotes[Math.floor(Math.random() * quotes.length)];
+        //     document.getElementById('quote').textContent = quote;
+        // });
+    </script>
+    <%- include('templates/footer') %>
+</body>
+</html>
