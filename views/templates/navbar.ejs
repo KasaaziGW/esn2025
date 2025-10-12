@@ -1,0 +1,62 @@
+<!-- Modern Collapsible Navbar -->
+<div class="top-navbar">
+    <div class="navbar-brand">
+        <button class="navbar-toggle" onclick="toggleSidebar()" id="sidebarToggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        <span class="navbar-title">Emergency Social Network [ESN]</span>
+    </div>
+    <div class="navbar-user">
+        <span class="welcome-text">Welcome, <%= user.fullname %></span>
+        <a href="/logout" class="logout-btn">
+            <i class="fas fa-sign-out-alt"></i>
+            Logout
+        </a>
+    </div>
+</div>
+
+<nav class="sidebar" id="sidebar">
+    <ul class="sidebar-menu">
+        <li>
+            <a href="/dashboard" class="<%= title === 'Dashboard' ? 'active' : '' %>">
+                <i class="fas fa-tachometer-alt menu-icon"></i>
+                <span class="menu-text">Dashboard</span>
+            </a>
+        </li>
+        <li>
+            <a href="/directory" class="<%= title === 'ESN Directory' ? 'active' : '' %>">
+                <i class="fas fa-address-book menu-icon"></i>
+                <span class="menu-text">ESN Directory</span>
+            </a>
+        </li>
+        <li>
+            <a href="#" onclick="toggleSubmenu(event)" class="<%= title === 'Public Chat' ? 'active' : '' %>">
+                <i class="fas fa-comments menu-icon"></i>
+                <span class="menu-text">Chat</span>
+                <i class="fas fa-chevron-down" style="margin-left: auto; font-size: 0.8rem;"></i>
+            </a>
+            <ul class="submenu" id="chatSubmenu">
+                <li>
+                    <a href="/public_chat" class="<%= title === 'Public Chat' ? 'active' : '' %>">
+                        <i class="fas fa-globe menu-icon"></i>
+                        <span class="menu-text">Public Chat</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/private_chat" class="<%= title === 'Private Chat' ? 'active' : '' %>">
+                        <i class="fas fa-user-secret menu-icon"></i>
+                        <span class="menu-text">Private Chat</span>
+                    </a>
+                </li>
+            </ul>
+        </li>
+        <li>
+            <a href="/share-status" class="<%= title === 'Share Status' ? 'active' : '' %>">
+                <i class="fas fa-share-square menu-icon"></i>
+                <span class="menu-text">Share Status</span>
+            </a>
+        </li>
+    </ul>
+</nav>
+
+<div class="main-content" id="mainContent">

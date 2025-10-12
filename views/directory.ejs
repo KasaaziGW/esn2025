@@ -2,201 +2,308 @@
 <html lang="en">
 <head>
     <%- include('templates/head') %>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background: #f3f3f3;
-        }
-        .topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #fff;
-            border-bottom: 2px solid #c00;
-            padding: 0.5em 2em 0.5em 1em;
-        }
-        .topbar .logo {
-            font-weight: bold;
-            color: #0074c2;
-            font-size: 1.3em;
-        }
-        .topbar .welcome {
-            font-weight: bold;
-            font-size: 1.2em;
-        }
-        .topbar .logout {
-            font-weight: bold;
-            color: #0a3d62;
-            text-decoration: underline;
-            font-size: 1.1em;
-        }
-        .container {
-            display: flex;
-            height: calc(100vh - 56px);
-            margin-left: 320px;
-        }
-        .sidebar {
-            background: #c2e6fa;
-            width: 320px;
-            min-width: 220px;
-            max-width: 320px;
-            transition: width 0.3s;
-            font-size: 1.2em;
-            padding-top: 1em;
-            padding-left: 0;
-            position: fixed;
-            top: 56px;
-            left: 0;
-            height: calc(100vh - 56px);
-            z-index: 10;
-        }
-        .sidebar.collapsed {
-            width: 60px;
-            min-width: 60px;
-            max-width: 60px;
-            overflow: hidden;
-        }
-        .sidebar .collapse-btn {
-            background: none;
-            border: none;
-            font-size: 1.5em;
-            color: #0074c2;
-            cursor: pointer;
-            margin-bottom: 1em;
-            margin-left: 16px;
-        }
-        .sidebar ul {
-            list-style: none;
-            padding: 0;
-        }
-        .sidebar a {
-            text-decoration: none;
-            color: #0074c2;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-weight: bold;
-            padding-left: 16px;
-            margin-bottom: 1em;
-            transition: background 0.2s, color 0.2s;
-            border-radius: 5px;
-        }
-        .sidebar a.active {
-            background: #ccc;
-            color: #222;
-        }
-        .sidebar a:hover {
-            background: #b3d8f5;
-            color: #0a3d62;
-        }
-        .sidebar .submenu {
-            margin-left: 32px;
-            font-weight: normal;
-            font-size: 0.95em;
-        }
-        .sidebar.collapsed span.menu-text {
-            display: none;
-        }
-        .sidebar .fa {
-            min-width: 24px;
-            text-align: center;
-        }
-        .main {
-            flex: 1;
-            background: #f3f3f3;
-            padding: 2em;
-        }
-        .user-list {
-            background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-            padding: 2em;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        .user-item {
-            display: flex;
-            align-items: center;
-            gap: 1em;
-            padding: 0.7em 0;
-            border-bottom: 1px solid #eee;
-        }
-        .user-dot {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 8px;
-        }
-        .user-dot.online {
-            background: #2ecc40;
-        }
-        .user-dot.offline {
-            background: #aaa;
-        }
-        .user-name {
-            font-weight: normal;
-        }
-        .user-name.current {
-            font-weight: bold;
-        }
-    </style>
 </head>
 <body>
-    <div class="topbar">
-        <span class="logo">Emergency Social Network [ESN]</span>
-        <span class="welcome">Welcome, <%= user.fullname %></span>
-        <a href="/logout" class="logout">Logout</a>
-    </div>
-    <div class="container">
-        <nav class="sidebar" id="sidebar">
-            <button class="collapse-btn" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
-            <ul style="padding:0;">
-                <li>
-                  <a href="/dashboard"><i class="fa fa-tachometer-alt"></i> <span class="menu-text">Dashboard</span></a>
-                </li>
-                <li>
-                  <a href="/directory" class="active"><i class="fa fa-address-book"></i> <span class="menu-text">ESN Directory</span></a>
-                </li>
-                <li>
-                  <a href="#"><i class="fa fa-comments"></i> <span class="menu-text">Chat</span></a>
-                  <ul class="submenu">
-                    <li><a href="/chat/public"><i class="fa fa-globe"></i> <span class="menu-text">Public</span></a></li>
-                    <li><a href="/chat/private"><i class="fa fa-user-secret"></i> <span class="menu-text">Private</span></a></li>
-                  </ul>
-                </li>
-                <li>
-                  <a href="/share-status"><i class="fa fa-share-square"></i> <span class="menu-text">Share Status</span></a>
-                </li>
-            </ul>
-        </nav>
-        <main class="main">
-            <div class="user-list">
-                <h3>ESN Directory</h3>
-                <% users.forEach(function(u) { %>
-                    <div class="user-item">
-                        <span class="user-dot <%= u.online ? 'online' : 'offline' %>"></span>
-                        <span class="user-name <%= u.email === user.email ? 'current' : '' %>"><%= u.fullname %></span>
-                        <span style="font-size:0.9em; color:#888;">&lt;<%= u.email %>&gt;</span>
-                    </div>
-                <% }) %>
+    <%- include('templates/navbar') %>
+    
+    <!-- Directory Content -->
+    <div class="directory-content">
+        <div class="page-header">
+            <h2>ESN Directory</h2>
+            <p>Connect with community members and see who's online</p>
+        </div>
+        
+        <div class="directory-stats">
+            <div class="stat-item">
+                <i class="fas fa-users"></i>
+                <span>Total Members: <%= users.length %></span>
             </div>
-        </main>
+            <div class="stat-item">
+                <i class="fas fa-circle online-indicator"></i>
+                <span>Online: <%= users.filter(u => u.online).length %></span>
+            </div>
+        </div>
+        
+        <div class="user-directory">
+            <% users.forEach(function(u) { %>
+                <div class="user-card <%= u.email === user.email ? 'current-user' : '' %>">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-info">
+                        <h4 class="user-name <%= u.email === user.email ? 'current' : '' %>">
+                            <%= u.fullname %>
+                            <% if (u.email === user.email) { %>
+                                <span class="you-badge">You</span>
+                            <% } %>
+                        </h4>
+                        <p class="user-email"><%= u.email %></p>
+                        <div class="user-status">
+                            <span class="status-dot <%= u.online ? 'online' : 'offline' %>"></span>
+                            <span class="status-text <%= u.online ? 'online' : 'offline' %>">
+                                <%= u.online ? 'Online' : 'Offline' %>
+                            </span>
+                        </div>
+                    </div>
+                    <% if (u.online && u.email !== user.email) { %>
+                        <div class="user-actions">
+                            <button class="action-btn" title="Send Message">
+                                <i class="fas fa-comment"></i>
+                            </button>
+                            <button class="action-btn" title="View Profile">
+                                <i class="fas fa-user-circle"></i>
+                            </button>
+                        </div>
+                    <% } %>
+                </div>
+            <% }) %>
+        </div>
     </div>
-    <script>
-        function toggleSidebar() {
-            var sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('collapsed');
-            var container = document.querySelector('.container');
-            if (sidebar.classList.contains('collapsed')) {
-                container.style.marginLeft = '60px';
-            } else {
-                container.style.marginLeft = '320px';
+
+    <style>
+        .directory-content {
+            padding: 2rem;
+            max-height: calc(100vh - 60px);
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        
+        .directory-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .directory-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        .directory-content::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+        }
+        
+        .directory-content::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+        }
+        
+        .page-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .page-header h2 {
+            color: #1f2937;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .page-header p {
+            color: #6b7280;
+            font-size: 1.1rem;
+            margin: 0;
+        }
+        
+        .directory-stats {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            border: 1px solid #e5e7eb;
+        }
+        
+        .stat-item i {
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+        
+        .stat-item span {
+            color: #374151;
+            font-weight: 500;
+        }
+        
+        .online-indicator {
+            color: #10b981 !important;
+        }
+        
+        .user-directory {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .user-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid #e5e7eb;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            position: relative;
+        }
+        
+        .user-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+        
+        .user-card.current-user {
+            border: 2px solid #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+        }
+        
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        
+        .user-info {
+            flex: 1;
+        }
+        
+        .user-name {
+            color: #1f2937;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0 0 0.25rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .user-name.current {
+            color: #667eea;
+        }
+        
+        .you-badge {
+            background: #667eea;
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+        
+        .user-email {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin: 0 0 0.5rem 0;
+        }
+        
+        .user-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .status-dot.online {
+            background: #10b981;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+        }
+        
+        .status-dot.offline {
+            background: #9ca3af;
+        }
+        
+        .status-text {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .status-text.online {
+            color: #10b981;
+        }
+        
+        .status-text.offline {
+            color: #9ca3af;
+        }
+        
+        .user-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+        
+        .action-btn {
+            width: 35px;
+            height: 35px;
+            background: #f3f4f6;
+            border: none;
+            border-radius: 8px;
+            color: #6b7280;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .action-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        @media (max-width: 768px) {
+            .directory-content {
+                padding: 1rem;
+            }
+            
+            .page-header h2 {
+                font-size: 2rem;
+            }
+            
+            .directory-stats {
+                flex-direction: column;
+                align-items: center;
+                gap: 1rem;
+            }
+            
+            .user-directory {
+                grid-template-columns: 1fr;
+            }
+            
+            .user-card {
+                padding: 1rem;
             }
         }
-    </script>
+    </style>
+
+    <script src="js/navbar.js"></script>
     <%- include('templates/footer') %>
 </body>
 </html>
