@@ -4,3 +4,4 @@ Emergency Social Network (ESN) is final semester project for the Advanced Web Sy
 # Project Features
 - Join Community
 - Chat Publicly
+- Pulic Chat
