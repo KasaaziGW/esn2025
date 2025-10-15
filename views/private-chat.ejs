@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include("templates/head"); %>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+    <style>
+        /* -------------------- Layout -------------------- */
+        .chat-content {
+            padding: 2rem;
+            height: calc(100vh - 60px);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            border-radius: 15px;
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            background: #f8fafc;
+        }
+
+        .chat-input-container {
+            padding: 1rem 1.5rem;
+            background: white;
+            flex-shrink: 0;
+        }
+
+        .chat-form { width: 100%; }
+        .input-group {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 1rem 1.25rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 25px;
+            font-size: 1rem;
+            background: #f8fafc;
+            transition: all 0.3s ease;
+            min-height: 50px;
+            max-height: 120px;
+        }
+
+        .send-button {
+            padding: 1rem 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-height: 50px;
+        }
+
+        /* -------------------- Messages -------------------- */
+        .message {
+            margin-bottom: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+        .message.own { align-items: flex-end; }
+        .message.other { align-items: flex-start; }
+
+        .message-content {
+            max-width: 78%;
+            padding: 0.75rem 1rem;
+            border-radius: 15px;
+            word-wrap: break-word;
+            display: inline-block;
+        }
+        .message.own .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+        .message.other .message-content {
+            background: white;
+            color: #1f2937;
+            border: 1px solid #e5e7eb;
+            border-bottom-left-radius: 5px;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .message-sender { font-weight: 600; font-size: 0.9rem; }
+        .message.own .message-sender { color: rgba(255,255,255,0.95); }
+        .message.other .message-sender { color: #374151; }
+
+        /* Timestamp styling (fixed — visible on all backgrounds) */
+        .message-time {
+            font-size: 0.75rem;
+            padding: 0.06rem 0.35rem;
+            border-radius: 6px;
+            line-height: 1;
+            display: inline-block;
+        }
+      
+        .message.other .message-time {
+            color: #374151;            /* darker text */
+            background: rgba(255,255,255,0.65);
+        }
+        
+        .message.own .message-time {
+            color: rgba(255,255,255,0.95); /* bright text */
+            background: rgba(0,0,0,0.20);   /* subtle dark pill */
+        }
+
+        .message-text { line-height: 1.4; }
+
+        .join-notification {
+            text-align: center;
+            color: #6b7280;
+            font-style: italic;
+            font-size: 0.9rem;
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .chat-content { padding: 1rem; }
+            .input-group { flex-direction: column; gap: 0.75rem; }
+            .send-button { width: 100%; justify-content: center; }
+            .message-content { max-width: 85%; }
+        }
+    </style>
+</head>
+<body>
+    <%- include('templates/navbar') %>
+
+    <!-- Hidden inputs for sender and receiver (provided by server when rendering) -->
+    <input type="text" id="username" value="<%= currentUser.fullname %>" data-email="<%= currentUser.email %>" readonly hidden>
+    <input type="hidden" id="receiver-email" value="<%= receiverEmail %>">
+    <input type="hidden" id="receiver-name" value="<%= receiverName %>">
+
+    <div class="chat-content">
+        <!-- Private Chat Messages -->
+        <div class="chat-container">
+            <div id="chat-box" class="chat-messages" aria-live="polite" aria-atomic="true"></div>
+
+            <div class="chat-input-container">
+                <form id="chat-form" class="chat-form">
+                    <div class="input-group">
+                        <input type="text" id="message-input" class="message-input" placeholder="Type your private message..." autocomplete="off" required>
+                        <button type="submit" class="send-button" id="sendButton">
+                            <i class="fas fa-paper-plane"></i> Send
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        const socket = io();
+        const senderName = $("#username").val();
+        const senderEmail = $("#username").data("email");
+        const receiverEmail = $("#receiver-email").val();
+        const receiverName = $("#receiver-name").val();
+
+        // Build deterministic room name (same logic as server)
+        function privateRoomName(a, b) {
+            return [a, b].sort().join("_");
+        }
+        const room = privateRoomName(senderEmail, receiverEmail);
+
+        // Append message helper (used for historic & incoming socket messages)
+        function appendMessage(msg) {
+            // msg: { sender, receiver, message, sentTime }
+            const isOwn = msg.sender === senderEmail;
+            const senderLabel = isOwn ? "You" : (msg.sender === senderEmail ? "You" : (msg.sender === receiverEmail ? receiverName || msg.sender : msg.sender));
+            const time = msg.sentTime || new Date().toLocaleString();
+
+            const html = `
+                <div class="message ${isOwn ? 'own' : 'other'}" data-id="${msg._id || ''}">
+                    <div class="message-header">
+                        <span class="message-sender">${senderLabel}</span>
+                        <span class="message-time">${time}</span>
+                    </div>
+                    <div class="message-content">
+                        <div class="message-text">${escapeHtml(msg.message)}</div>
+                    </div>
+                </div>
+            `;
+            $("#chat-box").append(html);
+        }
+
+        // Small escaping to avoid HTML injection in messages
+        function escapeHtml(text) {
+            return (text + '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // Scroll helper
+        function scrollToBottom() {
+            const chatBox = document.getElementById('chat-box');
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // --- Join the private room immediately after connecting
+        socket.on('connect', () => {
+            socket.emit('joinPrivateRoom', { sender: senderEmail, receiver: receiverEmail });
+        });
+
+        // --- Load historic private messages
+        function fetchPrivateMessages() {
+            $.get("/fetchPrivateMessages", { sender: senderEmail, receiver: receiverEmail }, (data) => {
+                $("#chat-box").empty();
+                data.forEach((m) => appendMessage(m));
+                scrollToBottom();
+            }).fail(() => {
+                console.error("Failed to fetch private messages");
+            });
+        }
+
+    
+        $("#chat-form").submit((e) => {
+            e.preventDefault();
+            const text = $("#message-input").val().trim();
+            if (!text) return;
+
+            const payload = {
+                sender: senderEmail,
+                receiver: receiverEmail,
+                message: text,
+                sentTime: new Date().toLocaleString()
+            };
+
+            // Emit via socket; server will save and emit back to room (so append comes from socket event)
+            socket.emit("privateMessage", payload);
+
+            // Clear input (we wait for server echo to append, preventing duplicates)
+            $("#message-input").val("");
+        });
+
+        // --- Listen for private messages from the server (single source of truth)
+        socket.on("privateMessage", (msg) => {
+            // Only append messages relevant to this pair (should be true because server emits to the room)
+            if ((msg.sender === senderEmail && msg.receiver === receiverEmail) ||
+                (msg.sender === receiverEmail && msg.receiver === senderEmail)) {
+
+                appendMessage(msg);
+                scrollToBottom();
+            }
+        });
+
+     
+        socket.on("joinedRoom", (joinedRoom) => {
+             console.log("Joined room:", joinedRoom);
+        });
+
+        // Load history on page load
+        fetchPrivateMessages();
+
+        // Accessibility: press Enter to send while focusing input
+        $("#message-input").keypress(function (e) {
+            if (e.which === 13 && !e.shiftKey) {
+                e.preventDefault();
+                $("#sendButton").click();
+            }
+        });
+    </script>
+
+    <script src="js/navbar.js"></script>
+    <%- include('templates/footer') %>
+</body>
+</html>

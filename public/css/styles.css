@@ -11,6 +11,59 @@ body {
     font-family: Lexend Deca,sans-serif;
 }
 
+.chat-layout {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  height: calc(100vh - 60px);
+}
+
+.users-sidebar {
+  flex: 1;
+  background: white;
+  border-left: 1px solid #e5e7eb;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+#users-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+#users-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  border-radius: 10px;
+  transition: background 0.2s ease;
+}
+
+#users-list li:hover {
+  background: #f3f4f6;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.status-online { background: #22c55e; }
+.status-offline { background: #9ca3af; }
+
+.chat-icon {
+  cursor: pointer;
+  color: #667eea;
+  font-size: 1.1rem;
+}
+
+
 .navbar {
     margin-top: 0px;
     margin-bottom: -10px;
@@ -197,3 +250,4 @@ input[type=password]:placeholder {
     }
 }
 /* Animation ends here */
+

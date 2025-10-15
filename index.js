@@ -1,3 +1,5 @@
+// index.js (corrected)
+// --------------------
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
@@ -5,14 +7,15 @@ const flashMessage = require("connect-flash");
 const sessions = require("express-session");
 const Citizen = require("./models/citizen");
 const { Message } = require("./models/message");
+const PrivateMessage = require("./models/privateMessage"); // new model you added
 const bcrypt = require("bcryptjs");
 
 const app = express();
 const httpServer = require("http").createServer(app);
-const socketIO = require("socket.io")(httpServer);
+const socketIO = require("socket.io")(httpServer); // use socketIO consistently
 
 const PORT = process.env.PORT || 3000;
-var username;
+var username; // used in some places (kept for backward compatibility)
 
 // setting the view engine to ejs
 app.set("view engine", "ejs");
@@ -21,14 +24,12 @@ app.use(express.static("public"));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-// app.use(express.urlencoded({ extended: true }));
-// app.use(express.json());
 
 // setting up the sessions
 app.use(
   sessions({
     secret: "ESN2025",
-    cookie: { maxAge: 60000 },
+    cookie: { maxAge: 1000 * 60 * 60 * 24 }, // 24 hours
     resave: false,
     saveUninitialized: false,
   })
@@ -63,6 +64,8 @@ function isAuthenticated(req, res, next) {
   }
 }
 
+// ----- Routes -----
+
 app.get("/", (req, res) => {
   if (req.session && req.session.user) {
     res.redirect("/dashboard");
@@ -75,7 +78,6 @@ app.get("/dashboard", isAuthenticated, async (req, res) => {
   const api_url = "https://zenquotes.io/api/random/";
   const response = await fetch(api_url);
   var data = await response.json();
-  // console.log(`${data[0]["q"]} - ${data[0]["a"]} - ${data[0]["h"]}`);
   res.render("dashboard", {
     title: "Dashboard",
     user: req.session.user,
@@ -93,38 +95,39 @@ app.post("/registerUser", (req, res) => {
   if (password !== cpassword) {
     req.flash("error", "Passwords do not match!");
     res.redirect("/register");
-  } else {
-    // testing if the email already exists
-    Citizen.findOne({ email: email })
-      .then((citizen) => {
-        if (citizen) {
-          req.flash("error", `${email} already exists!`);
-          res.redirect("/register");
-        } else {
-          // hashing the password
-          bcrypt.hash(password, 10, (err, hash) => {
-            if (err) {
-              console.error(err);
-              req.flash("error", "An error occurred. Please try again!");
-              res.redirect("/register");
-            } else {
-              // create a model to save the data
-              let user = new Citizen({
-                email: email,
-                fullname: fullname,
-                password: hash,
-                online: false,
-              });
-              // saving the data
-              user.save();
-              req.flash("success", "Registration successful!");
-              res.redirect("/register");
-            }
-          });
-        }
-      })
-      .catch((err) => console.error(err));
+    return;
   }
+  // testing if the email already exists
+  Citizen.findOne({ email: email })
+    .then((citizen) => {
+      if (citizen) {
+        req.flash("error", `${email} already exists!`);
+        res.redirect("/register");
+      } else {
+        // hashing the password
+        bcrypt.hash(password, 10, (err, hash) => {
+          if (err) {
+            console.error(err);
+            req.flash("error", "An error occurred. Please try again!");
+            res.redirect("/register");
+          } else {
+            // create a model to save the data
+            let user = new Citizen({
+              email: email,
+              fullname: fullname,
+              password: hash,
+              online: false,
+              status: "OK",
+            });
+            // saving the data
+            user.save();
+            req.flash("success", "Registration successful!");
+            res.redirect("/register");
+          }
+        });
+      }
+    })
+    .catch((err) => console.error(err));
 });
 
 // login route
@@ -160,11 +163,12 @@ app.post("/login", (req, res) => {
 app.get("/directory", isAuthenticated, async (req, res) => {
   try {
     const users = await Citizen.find({});
-    // Use real online status from DB
+    // Use real online status and status from DB
     const usersWithStatus = users.map((u) => ({
       fullname: u.fullname,
       email: u.email,
       online: u.online || false,
+      status: u.status || "OK",
     }));
     res.render("directory", {
       title: "ESN Directory",
@@ -176,7 +180,7 @@ app.get("/directory", isAuthenticated, async (req, res) => {
   }
 });
 
-// chat route
+// public chat view
 app.get("/public_chat", isAuthenticated, (req, res) => {
   res.render("public_chat", { title: "Public Chat", user: req.session.user });
 });
@@ -206,25 +210,164 @@ app.get("/logout", (req, res) => {
   }
 });
 
-// receiving and emitting a message whenever a user joins
-socketIO.on("connection", () => {
-  socketIO.emit("joined", username);
-});
-
-// saving a message to the database
+// saving a public message to the database
 app.post("/sendMessage", async (req, res) => {
-  var message = new Message(req.body);
-  await message.save();
-  socketIO.emit("message", req.body);
-  res.sendStatus(200);
+  try {
+    var message = new Message(req.body);
+    await message.save();
+    socketIO.emit("message", req.body);
+    res.sendStatus(200);
+  } catch (err) {
+    console.error("Error saving public message:", err);
+    res.sendStatus(500);
+  }
 });
 
-// fetching messages from the database
+// fetching public messages from the database
 app.get("/fetchMessages", async (req, res) => {
-  const messages = await Message.find({});
-  res.json(messages);
+  try {
+    const messages = await Message.find({});
+    res.json(messages);
+  } catch (err) {
+    console.error("Error fetching messages:", err);
+    res.status(500).json({ error: "Error fetching messages" });
+  }
 });
 
+// Endpoint to get all users with status
+app.get("/getUsers", isAuthenticated, async (req, res) => {
+  try {
+    const users = await Citizen.find({}, "fullname email online status");
+    res.json(users);
+  } catch (err) {
+    console.error("Error fetching users:", err);
+    res.status(500).json({ error: "Error fetching users" });
+  }
+});
+
+
+
+app.get("/private-chat", isAuthenticated, (req, res) => {
+  const { email, name } = req.query || {};
+  const currentUser = req.session.user; 
+
+  res.render("private-chat", {
+    title: "Private Chat",
+    user: currentUser,         
+    currentUser: currentUser,
+    receiverEmail: email || "",
+    receiverName: name || ""
+  });
+});
+
+
+// Fetch private messages between two users
+app.get("/fetchPrivateMessages", isAuthenticated, async (req, res) => {
+  try {
+    const { sender, receiver } = req.query;
+    const messages = await PrivateMessage.find({
+      $or: [
+        { sender: sender, receiver: receiver },
+        { sender: receiver, receiver: sender }
+      ]
+    }).sort({ _id: 1 });
+    res.json(messages);
+  } catch (err) {
+    console.error("Error fetching private messages:", err);
+    res.status(500).json({ error: "Error fetching private messages" });
+  }
+});
+
+// Save a private message
+app.post("/sendPrivateMessage", isAuthenticated, async (req, res) => {
+  try {
+    const { sender, receiver, message, sentTime } = req.body;
+    const newMsg = new PrivateMessage({ sender, receiver, message, sentTime });
+    await newMsg.save();
+
+    // Emit to the private room (room name is deterministic)
+    const room = [sender, receiver].sort().join("_");
+    socketIO.to(room).emit("privateMessage", { sender, receiver, message, sentTime });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Error saving private message:", err);
+    res.status(500).json({ error: "Error sending private message" });
+  }
+});
+
+
+// ---------------------- Single consolidated Socket.IO handler --------------------
+const onlineUsers = {}; 
+
+socketIO.on("connection", (socket) => {
+  console.log("Socket connected:", socket.id);
+
+  // 'joined' — when client emits they joined (public chat
+  socket.on("joined", (username) => {
+    
+    socketIO.emit("joined", username);
+  });
+
+  // public message from client
+  socket.on("message", (message) => {
+    socketIO.emit("message", message);
+  });
+
+  // status update from client
+  socket.on("updateStatus", async (data) => {
+    // data: { email, status }
+    try {
+      await Citizen.updateOne({ email: data.email }, { $set: { status: data.status } });
+      const user = await Citizen.findOne({ email: data.email }, "fullname status");
+      if (user) {
+        socketIO.emit("statusUpdated", { fullname: user.fullname, status: user.status, email: data.email });
+      } else {
+        socketIO.emit("statusUpdated", { email: data.email, status: data.status });
+      }
+    } catch (err) {
+      console.error("Error handling updateStatus:", err);
+    }
+  });
+
+ socket.on("joinPrivateRoom", ({ sender, receiver }) => {
+  const room = [sender, receiver].sort().join("_");
+  socket.join(room);
+  socket.emit("joinedRoom", room); // confirm to the joining socket
+});
+
+
+socket.on("privateMessage", async (message) => {
+  try {
+    const { sender, receiver, message: text, sentTime } = message;
+    // Save to DB
+    const saved = new PrivateMessage({
+      sender,
+      receiver,
+      message: text,
+      sentTime
+    });
+    await saved.save();
+
+    // Prepare payload
+    const payload = {
+      sender: saved.sender,
+      receiver: saved.receiver,
+      message: saved.message,
+      sentTime: saved.sentTime,
+      _id: saved._id
+    };
+
+    // Emit to the private room
+    const room = [sender, receiver].sort().join("_");
+    socketIO.to(room).emit("privateMessage", payload);
+  } catch (err) {
+    console.error("privateMessage socket handler error:", err);
+  }
+});
+}); // closes socketIO.on("connection")
+
+// start server
 httpServer.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
