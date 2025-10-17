@@ -107,3 +107,4 @@ function smoothScrollToTop() {
     behavior: "smooth",
   });
 }
+

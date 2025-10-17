@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <%- include('templates/head') %>
+
 </head>
 <body>
     <%- include('templates/navbar') %>
@@ -42,6 +43,9 @@
                             <span class="status-dot <%= u.online ? 'online' : 'offline' %>"></span>
                             <span class="status-text <%= u.online ? 'online' : 'offline' %>">
                                 <%= u.online ? 'Online' : 'Offline' %>
+                            </span>
+                            <span class="status-text <%= u?.status?.current_state || 'undefined' %>">
+                                  <%- getStatusBadge(u?.status?.current_state || 'undefined') %>
                             </span>
                         </div>
                     </div>
@@ -300,6 +304,10 @@
             .user-card {
                 padding: 1rem;
             }
+        }
+
+        .undefined {
+            color: rgb(183, 181, 181)
         }
     </style>
 

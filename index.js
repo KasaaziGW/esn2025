@@ -1,11 +1,12 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 const flashMessage = require("connect-flash");
 const sessions = require("express-session");
+
 const Citizen = require("./models/citizen");
 const { Message } = require("./models/message");
-const bcrypt = require("bcryptjs");
 
 const app = express();
 const httpServer = require("http").createServer(app);
@@ -35,6 +36,22 @@ app.use(
 );
 
 app.use(flashMessage());
+
+
+const  getStatusBadge = function(status) {
+  switch(status) {
+    case 'ok':
+      return '<span class="badge bg-success text-white"><i class="fa-regular fa-check-circle"></i> OK</span>';
+    case 'help':
+      return '<span class="badge bg-warning text-white"><i class="fas fa-warning"></i> Help</span>';
+    case 'emergency':
+      return '<span class="badge bg-danger text-white"><i class="fas fa-ambulance"></i> Emergency</span>';
+    default:
+      return '<span class="badge bg-secondary"> Undefined</span>';
+  } 
+
+}
+
 // setting up the flash messages middleware
 app.use(function (req, res, next) {
   res.locals.message = req.flash();
@@ -45,6 +62,7 @@ app.use(function (req, res, next) {
 app.get("/favicon.ico", (req, res) =>
   res.sendFile(__dirname + "/public/images/logo.png")
 );
+
 
 // testing connection to MongoDB
 const dbURL =
@@ -165,11 +183,13 @@ app.get("/directory", isAuthenticated, async (req, res) => {
       fullname: u.fullname,
       email: u.email,
       online: u.online || false,
+      status: u.status || {current_state:"undefined",timestamp:null},
     }));
     res.render("directory", {
       title: "ESN Directory",
       user: req.session.user,
       users: usersWithStatus,
+      getStatusBadge
     });
   } catch (err) {
     res.status(500).send("Error loading directory");
@@ -222,8 +242,30 @@ app.post("/sendMessage", async (req, res) => {
 // fetching messages from the database
 app.get("/fetchMessages", async (req, res) => {
   const messages = await Message.find({});
+  console.log("Fetched messages:", messages);
   res.json(messages);
 });
+
+app.get("/share-status", isAuthenticated, (req, res) => {
+  res.render("share_status", { title: "Share Status", user: req.session.user });
+});
+
+
+app.post("/setStatus", async (req, res) => {
+  console.log("session user:", req.session.user);
+  const { email } = req.session.user;
+  const { status } = req.body;
+
+  const new_status = { current_state: status, timestamp: new Date() };
+
+   await Citizen.updateOne({ email: email }, { $set: { status:new_status }});
+     
+  req.session.user.status=new_status;
+
+  res.sendStatus(200);
+  
+});
+
 
 httpServer.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

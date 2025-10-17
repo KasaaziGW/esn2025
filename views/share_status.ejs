@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('templates/head') %>
+
+</head>
+<body>
+    <%- include('templates/navbar') %>
+    
+    <!-- Directory Content -->
+    <div class="directory-content">
+        <div class="page-header">
+            <h2>Share Status</h2>
+            <p>Update your status </p>
+        </div>
+
+        <select id="statusSelect" onchange="updateStatus(event)" class="status-select">
+            <option value="undefined" <%= user?.status?.current_state === 'undefined' ? 'selected' : '' %>>Undefined</option>
+            <option value="ok" <%= user?.status?.current_state === 'ok' ? 'selected' : '' %>>OK</option>
+            <option value="emergency" <%= user?.status?.current_state === 'emergency' ? 'selected' : '' %>>Emergency</option>
+            <option value="help" <%= user?.status?.current_state === 'help' ? 'selected' : '' %>>Help</option>
+        </select>
+
+        
+    </div>
+
+      <script>
+        function updateStatus(event){
+            console.log("Status changed to: " + event.target.value);
+           $.post("/setStatus", {status: event.target.value}, function(data){
+               console.log("Status updated successfully.", data);
+           });
+        }
+    </script>
+
+   
+    <script src="js/navbar.js"></script>
+    <%- include('templates/footer') %>
+</body>
+</html>
