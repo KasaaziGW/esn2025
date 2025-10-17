@@ -248,6 +248,12 @@
             .message-content {
                 max-width: 85%;
             }
+
+            .custom-text{
+                font-size: 8pt;
+                text-transform: capitalize;
+            }
+
         }
     </style>
     <script>
@@ -298,9 +304,11 @@
                     <div class="message-header">
                         <span class="message-sender">${isOwnMessage ? 'You' : message.sender}</span>
                         <span class="message-time">${message.sentTime}</span>
+                       
                     </div>
                     <div class="message-content">
                         <div class="message-text">${message.message}</div>
+                         <div style="font-size:6pt; color:${isOwnMessage ?'white':'grey'}; text-transform:capitalize;"> ${(message?.sender_status)?'Status: '.message?.sender_status?.current_state:''}</div>
                     </div>
                 </div>
             `;
@@ -345,9 +353,10 @@
                             <div class="message-header">
                                 <span class="message-sender">${isOwnMessage ? 'You' : message.sender}</span>
                                 <span class="message-time">${message.sentTime}</span>
-                            </div>
+                             </div>
                             <div class="message-content">
                                 <div class="message-text">${message.message}</div>
+                                <div style="font-size:6pt; color:${isOwnMessage ?'white':'grey'}; text-transform:capitalize;"> Status: <strong>${message?.sender_status?.current_state || 'undefined'}<strong></div>
                             </div>
                         </div>
                     `;

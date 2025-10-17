@@ -158,6 +158,7 @@ app.post("/login", (req, res) => {
           req.session.user = {
             fullname: citizen.fullname,
             email: citizen.email,
+            status: citizen.status
           };
           username = citizen.fullname;
           req.flash("success", `Welcome back, ${citizen.fullname}!`);
@@ -198,7 +199,7 @@ app.get("/directory", isAuthenticated, async (req, res) => {
 
 // chat route
 app.get("/public_chat", isAuthenticated, (req, res) => {
-  res.render("public_chat", { title: "Public Chat", user: req.session.user });
+  res.render("public_chat", { title: "Public Chat", user: req.session.user,getStatusBadge });
 });
 
 // Logout route
@@ -234,6 +235,7 @@ socketIO.on("connection", () => {
 // saving a message to the database
 app.post("/sendMessage", async (req, res) => {
   var message = new Message(req.body);
+  message.sender_status=req.session.user.status;
   await message.save();
   socketIO.emit("message", req.body);
   res.sendStatus(200);
