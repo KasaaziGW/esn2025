@@ -71,15 +71,47 @@ app.get("/", (req, res) => {
   }
 });
 
-app.get("/dashboard", isAuthenticated, async (req, res) => {
+app.get("/dashboard", isAuthenticated, (req, res) => {
+  const https = require('https');
   const api_url = "https://zenquotes.io/api/random/";
-  const response = await fetch(api_url);
-  var data = await response.json();
-  // console.log(`${data[0]["q"]} - ${data[0]["a"]} - ${data[0]["h"]}`);
-  res.render("dashboard", {
-    title: "Dashboard",
-    user: req.session.user,
-    quote: data,
+  
+  https.get(api_url, (apiRes) => {
+    let data = '';
+    
+    apiRes.on('data', (chunk) => {
+      data += chunk;
+    });
+    
+    apiRes.on('end', () => {
+      try {
+        const quote = JSON.parse(data);
+        res.render("dashboard", {
+          title: "Dashboard",
+          user: req.session.user,
+          quote: quote,
+        });
+      } catch (err) {
+        // Fallback quote if API fails
+        res.render("dashboard", {
+          title: "Dashboard",
+          user: req.session.user,
+          quote: [{
+            q: "Preparation is the key to emergency response.",
+            a: "ESN 2025",
+          }],
+        });
+      }
+    });
+  }).on('error', (err) => {
+    // Fallback quote if request fails
+    res.render("dashboard", {
+      title: "Dashboard",
+      user: req.session.user,
+      quote: [{
+        q: "Preparation is the key to emergency response.",
+        a: "ESN 2025",
+      }],
+    });
   });
 });
 
@@ -181,6 +213,79 @@ app.get("/public_chat", isAuthenticated, (req, res) => {
   res.render("public_chat", { title: "Public Chat", user: req.session.user });
 });
 
+// Search route
+app.get("/search", isAuthenticated, (req, res) => {
+  res.render("search", { title: "Search", user: req.session.user });
+});
+
+// Search API endpoint
+app.get("/api/search", isAuthenticated, async (req, res) => {
+  const { context, term, page = 1 } = req.query;
+  const limit = 10;
+  const skip = (page - 1) * limit;
+  let results = [];
+  let hasMore = false;
+
+  try {
+    switch(context) {
+      case 'citizens':
+        // Search citizens by username (fullname)
+        const citizenResults = await Citizen.find({
+          fullname: { $regex: term, $options: 'i' }
+        })
+        .sort({ online: -1, fullname: 1 }) // Online first, then alphabetical
+        .select('fullname online status')
+        .skip(skip)
+        .limit(limit + 1); // Get one extra to check if there are more
+
+        hasMore = citizenResults.length > limit;
+        results = citizenResults.slice(0, limit);
+        break;
+
+      case 'status':
+        // Search citizens by status
+        if (['OK', 'Help', 'Emergency'].includes(term.toUpperCase())) {
+          const statusResults = await Citizen.find({
+            status: term.toUpperCase()
+          })
+          .sort({ online: -1, fullname: 1 })
+          .select('fullname online status')
+          .skip(skip)
+          .limit(limit + 1);
+
+          hasMore = statusResults.length > limit;
+          results = statusResults.slice(0, limit);
+        }
+        break;
+
+      case 'public-messages':
+        // Search public messages
+        const messageResults = await Message.find({
+          message: { $regex: term, $options: 'i' }
+        })
+        .sort({ _id: -1 }) // Latest first
+        .skip(skip)
+        .limit(limit + 1);
+
+        hasMore = messageResults.length > limit;
+        results = messageResults.slice(0, limit);
+        break;
+
+      case 'private-messages':
+        // For private messages (placeholder for future implementation)
+        // This would need a PrivateMessage model and proper filtering
+        results = [];
+        hasMore = false;
+        break;
+    }
+
+    res.json({ results, hasMore });
+  } catch (error) {
+    console.error('Search error:', error);
+    res.status(500).json({ error: 'An error occurred while searching' });
+  }
+});
+
 // Logout route
 app.get("/logout", (req, res) => {
   // Set user online status to false before destroying session
@@ -225,6 +330,17 @@ app.get("/fetchMessages", async (req, res) => {
   res.json(messages);
 });
 
-httpServer.listen(PORT, () => {
+// Start server
+const server = httpServer.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
+}).on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use. Please try these solutions:\n` +
+      '1. Kill the process using the port:\n' +
+      '   - Run: netstat -ano | findstr :3000\n' +
+      '   - Then: taskkill /PID <PID> /F\n' +
+      '2. Or change the PORT in index.js to a different number\n' +
+      '3. Or wait a few seconds and try again, the port might free up');
+  }
+  process.exit(1);
 });
