@@ -1,0 +1,93 @@
+<%- include('layouts/partials/top-files') %>
+<%- include('layouts/partials/sidebar', { user: user, activePage: 'communities' }) %>
+<%- include('layouts/partials/header') %>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="breadcrumb-content">
+        <div class="breadcrumb-content-left">
+          <h4 class="breadcrumb-title">Communities</h4>
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+              <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+              <li class="breadcrumb-item active" aria-current="page">Communities</li>
+            </ol>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Completion Alert -->
+  <div id="profileCompletionAlert" class="alert alert-warning" style="display: none;">
+    <div class="d-flex align-items-center">
+      <i data-feather="alert-triangle" class="mg-r-10"></i>
+      <div>
+        <h6 class="mg-b-0">Complete Your Profile</h6>
+        <p class="mg-b-0">Please complete your profile by setting your region and district to access communities.</p>
+        <a href="/users/profile" class="btn btn-sm btn-primary mg-t-5">Complete Profile</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- My Community Card -->
+  <div id="myCommunityCard" class="card mg-b-20" style="display: none;">
+    <div class="card-header">
+      <h6 class="mg-b-0">My Community</h6>
+    </div>
+    <div class="card-body">
+      <div id="myCommunityContent">
+        <!-- Content will be loaded here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Available Communities -->
+  <div class="card mg-b-20">
+    <div class="card-header">
+      <h6 class="mg-b-0">Available Communities</h6>
+      <div class="card-header-right">
+        <button id="refreshCommunities" class="btn btn-sm btn-outline-primary">
+          <i data-feather="refresh-cw"></i> Refresh
+        </button>
+      </div>
+    </div>
+    <div class="card-body">
+      <!-- Loading State -->
+      <div id="communitiesLoading" class="text-center py-4">
+        <div class="spinner-border text-primary" role="status">
+          <span class="sr-only">Loading...</span>
+        </div>
+        <p class="mg-t-10">Loading communities...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div id="communitiesEmpty" class="text-center py-5" style="display: none;">
+        <i data-feather="users" class="mg-b-20" style="width: 48px; height: 48px; color: #6c757d;"></i>
+        <h5>No Communities Available</h5>
+        <p class="text-muted">There are no communities available in your current region and district.</p>
+      </div>
+
+      <!-- Communities List - Using connections template style -->
+      <div id="communitiesList" class="row row-xs mg-b-25 profile-list">
+        <!-- Communities will be loaded here -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Sweet Alert is used for community join/leave modals instead of Bootstrap modals -->
+
+<%- include('layouts/partials/bottom-files') %>
+
+<script>
+// User data from server
+window.currentUser = <%- JSON.stringify(user).replace(/</g, '\\u003c') %>;
+// JWT token for API requests
+window.authToken = '<%- token %>';
+</script>
+
+<script src="/assets/component-logic-js/communities.js?v=<%= Date.now() %>"></script>
+
+<%- include('layouts/partials/footer') %>

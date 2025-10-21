@@ -1,0 +1,283 @@
+<%- include('layouts/partials/top-files') %>
+<%- include('layouts/partials/sidebar', { user: user, activePage: 'alerts' }) %>
+
+<%- include('layouts/partials/header') %>
+
+<div class="content-body">
+    <div class="container pd-x-0 tx-13">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb breadcrumb-style1 mg-b-5">
+                <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Emergency Alerts</li>
+            </ol>
+        </nav>
+        
+        <div class="d-sm-flex align-items-center justify-content-between mg-b-25">
+            <div>
+                <p class="tx-color-03 mg-b-0">Today's emergency announcements and alerts</p>
+            </div>
+            <div class="d-none d-md-block">
+                <button class="btn btn-sm pd-x-15 btn-primary btn-uppercase" onclick="refreshAlerts()">
+                    <i data-feather="refresh-cw" class="wd-10 mg-r-5"></i> Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- Emergency Alerts Section -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="card-title mg-b-0">Today's Emergency Alerts</h6>
+                        <div class="card-options">
+                            <span class="badge badge-danger" id="alertCount">0 alerts</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Loading State -->
+                        <div id="loadingAlerts" class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
+                            <p class="mg-t-10">Loading emergency alerts...</p>
+                        </div>
+
+                        <!-- No Alerts State -->
+                        <div id="noAlerts" class="text-center py-5" style="display: none;">
+                            <i data-feather="shield-check" class="wd-48 ht-48 tx-success mg-b-20"></i>
+                            <h5 class="mg-b-10">No Emergency Alerts</h5>
+                            <p class="tx-color-03">There are no emergency alerts for today. Stay safe!</p>
+                        </div>
+
+                        <!-- Alerts List -->
+                        <div id="alertsList" style="display: none;">
+                            <!-- Alerts will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View All Announcements Link -->
+        <div class="row mg-t-20">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h6 class="mg-b-10">View All Announcements</h6>
+                        <p class="tx-color-03 mg-b-20">See all community announcements including non-emergency posts</p>
+                        <a href="/announcements" class="btn btn-outline-primary">
+                            <i data-feather="message-square" class="wd-10 mg-r-5"></i>
+                            View All Announcements
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('layouts/partials/footer') %>
+<script>
+// Global variables
+let alerts = [];
+
+// Load emergency alerts on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadEmergencyAlerts();
+});
+
+// Load emergency alerts from API
+async function loadEmergencyAlerts() {
+    try {
+        showLoading();
+        console.log('Loading emergency alerts...');
+        
+        const response = await fetch('/api/announcements/emergency/today');
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Response data:', data);
+        
+        if (data.success) {
+            alerts = data.data.alerts || [];
+            displayAlerts();
+        } else {
+            showError('Failed to load emergency alerts: ' + (data.message || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error loading emergency alerts:', error);
+        showError('Error loading emergency alerts: ' + error.message);
+    }
+}
+
+// Display alerts in the UI
+function displayAlerts() {
+    const alertsList = document.getElementById('alertsList');
+    const noAlerts = document.getElementById('noAlerts');
+    const alertCount = document.getElementById('alertCount');
+    
+    if (alerts.length === 0) {
+        hideLoading();
+        noAlerts.style.display = 'block';
+        alertsList.style.display = 'none';
+        alertCount.textContent = '0 alerts';
+        return;
+    }
+    
+    // Update alert count
+    alertCount.textContent = `${alerts.length} alert${alerts.length !== 1 ? 's' : ''}`;
+    
+    // Generate alerts HTML
+    let alertsHTML = '';
+    alerts.forEach(alert => {
+        const severityClass = getSeverityClass(alert.severity);
+        const severityIcon = getSeverityIcon(alert.severity);
+        const timeAgo = getTimeAgo(alert.createdAt);
+        
+        alertsHTML += `
+            <div class="media mg-b-20">
+                <div class="media-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h6 class="mg-b-5">${escapeHtml(alert.title)}</h6>
+                            <div class="d-flex align-items-center mg-b-10">
+                                <span class="badge ${severityClass} mg-r-10">
+                                    <i data-feather="${severityIcon}" class="wd-10 mg-r-2"></i>
+                                    ${alert.severity.toUpperCase()}
+                                </span>
+                                <span class="badge badge-outline-secondary mg-r-10">${alert.emergencyType}</span>
+                                <span class="tx-color-03 tx-12">${timeAgo}</span>
+                            </div>
+                        </div>
+                        <div class="mg-l-15">
+                            <a href="/announcements/${alert.slug}" class="btn btn-sm btn-primary">
+                                <i data-feather="external-link" class="wd-10 mg-r-2"></i>
+                                Show More
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    alertsList.innerHTML = alertsHTML;
+    hideLoading();
+    alertsList.style.display = 'block';
+    noAlerts.style.display = 'none';
+    
+    // Refresh feather icons
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+}
+
+// Get severity class for styling
+function getSeverityClass(severity) {
+    switch (severity) {
+        case 'critical': return 'badge-danger';
+        case 'high': return 'badge-warning';
+        case 'medium': return 'badge-info';
+        case 'low': return 'badge-secondary';
+        default: return 'badge-secondary';
+    }
+}
+
+// Get severity icon
+function getSeverityIcon(severity) {
+    switch (severity) {
+        case 'critical': return 'alert-triangle';
+        case 'high': return 'alert-circle';
+        case 'medium': return 'info';
+        case 'low': return 'shield';
+        default: return 'shield';
+    }
+}
+
+// Get time ago string
+function getTimeAgo(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    return `${diffInDays}d ago`;
+}
+
+// Show loading state
+function showLoading() {
+    document.getElementById('loadingAlerts').style.display = 'block';
+    document.getElementById('alertsList').style.display = 'none';
+    document.getElementById('noAlerts').style.display = 'none';
+}
+
+// Hide loading state
+function hideLoading() {
+    document.getElementById('loadingAlerts').style.display = 'none';
+}
+
+// Show no community state
+function showNoCommunity() {
+    hideLoading();
+    const alertsList = document.getElementById('alertsList');
+    const noAlerts = document.getElementById('noAlerts');
+    
+    alertsList.innerHTML = `
+        <div class="text-center py-5">
+            <i data-feather="users" class="wd-48 ht-48 tx-warning mg-b-20"></i>
+            <h5 class="mg-b-10">No Community Assigned</h5>
+            <p class="tx-color-03 mg-b-20">You need to join a community to view emergency alerts.</p>
+            <a href="/communities" class="btn btn-primary">
+                <i data-feather="users" class="wd-10 mg-r-5"></i>
+                Join a Community
+            </a>
+        </div>
+    `;
+    alertsList.style.display = 'block';
+    noAlerts.style.display = 'none';
+    
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+}
+
+// Show error state
+function showError(message) {
+    hideLoading();
+    const alertsList = document.getElementById('alertsList');
+    alertsList.innerHTML = `
+        <div class="alert alert-danger" role="alert">
+            <i data-feather="alert-circle" class="wd-16 mg-r-5"></i>
+            ${message}
+        </div>
+    `;
+    alertsList.style.display = 'block';
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+}
+
+// Refresh alerts
+function refreshAlerts() {
+    loadEmergencyAlerts();
+}
+
+// Escape HTML to prevent XSS
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>
+
+<%- include('layouts/partials/bottom-files') %>

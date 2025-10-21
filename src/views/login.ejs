@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Twitter -->
+    <meta name="twitter:site" content="@emergencysocial">
+    <meta name="twitter:creator" content="@emergencysocial">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Emergency Social Network">
+    <meta name="twitter:description" content="Connect and coordinate during emergencies">
+    <meta name="twitter:image" content="/assets/img/esn.png">
+
+    <!-- Facebook -->
+    <meta property="og:url" content="http://localhost:5000">
+    <meta property="og:title" content="Emergency Social Network">
+    <meta property="og:description" content="Connect and coordinate during emergencies">
+    <meta property="og:image" content="/assets/img/esn.png">
+    <meta property="og:image:secure_url" content="/assets/img/esn.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="600">
+
+    <!-- Meta -->
+    <meta name="description" content="Emergency Social Network - Connect and coordinate during emergencies">
+    <meta name="author" content="Emergency Social Network Team">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="/assets/img/favicon.png">
+
+    <title>Emergency Social Network - Sign In</title>
+
+    <!-- vendor css -->
+    <link href="/lib/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+    <link href="/lib/ionicons/css/ionicons.min.css" rel="stylesheet">
+    <link href="/lib/remixicon/fonts/remixicon.css" rel="stylesheet">
+
+    <!-- DashForge CSS -->
+    <link rel="stylesheet" href="/assets/css/dashforge.css?v=<%= Date.now() %>">
+    <link rel="stylesheet" href="/assets/css/dashforge.auth.css">
+
+    <!-- libphonenumber-js for phone validation -->
+    <script src="https://unpkg.com/libphonenumber-js@1.12.23/bundle/libphonenumber-js.min.js"></script>
+</head>
+<body>
+
+    <header class="navbar navbar-header navbar-header-fixed">
+        <a href="#" id="mainMenuOpen" class="burger-menu"><i data-feather="menu"></i></a>
+        <div class="navbar-brand">
+            <a href="/" class="df-logo">
+                <img src="/assets/img/esn.png" alt="ESN" class="img-fluid" style="height: 32px;">
+                Emergency<span>Social</span> Network
+            </a>
+        </div><!-- navbar-brand -->
+        <div id="navbarMenu" class="navbar-menu-wrapper">
+            <div class="navbar-menu-header">
+                <a href="/" class="df-logo">
+                    <img src="/assets/img/esn.png" alt="ESN" class="img-fluid" style="height: 32px;">
+                    Emergency<span>Social</span> Network
+                </a>
+                <a id="mainMenuClose" href="#"><i data-feather="x"></i></a>
+            </div><!-- navbar-menu-header -->
+        </div><!-- navbar-menu-wrapper -->
+        <div class="navbar-right">
+            <a href="/register" class="btn btn-sm btn-outline-primary">Sign Up</a>
+        </div><!-- navbar-right -->
+    </header><!-- navbar -->
+
+    <div class="content content-fixed content-auth">
+        <div class="container">
+            <div class="d-flex align-items-center justify-content-center ht-100p">
+                <div class="sign-wrapper wd-100p" style="max-width: 400px;">
+                    <div class="wd-100p">
+                        <h3 class="tx-color-01 mg-b-5">Sign In</h3>
+                        <p class="tx-color-03 tx-16 mg-b-40">Welcome back! Please sign in to continue.</p>
+
+                        <!-- Alert container for messages -->
+                        <div id="alertContainer"></div>
+
+                        <form id="loginForm" method="POST" action="/api/auth/login">
+            <div class="form-group">
+                <label id="identifierLabel">Username, Email, or Phone number</label>
+                <input type="text" class="form-control" id="identifier" name="identifier" 
+                       placeholder="Enter your username, email, or phone number" required autocomplete="username">
+                <small class="form-text text-muted" id="identifierHelp">Use your username, email address, or phone number</small>
+            </div>
+                            <div class="form-group">
+                                <div class="d-flex justify-content-between mg-b-5">
+                                    <label class="mg-b-0-f">Password</label>
+                                    <a href="#" class="tx-13" id="forgotPasswordLink">Forgot password?</a>
+                                </div>
+                                <input type="password" class="form-control" id="password" name="password" 
+                                       placeholder="Enter your password" required autocomplete="current-password">
+                            </div>
+                            <div class="form-group">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="rememberMe" name="rememberMe">
+                                    <label class="form-check-label" for="rememberMe">Remember me</label>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-brand-02 w-100" id="loginBtn">
+                                <span class="btn-text">Sign In</span>
+                                <span class="btn-loading" style="display: none;">
+                                    <i class="fas fa-spinner fa-spin"></i> Signing In...
+                                </span>
+                            </button>
+                        </form>
+
+                        <div class="tx-13 mg-t-20 tx-center">
+                            Don't have an account? <a href="/register" class="tx-13">Sign up for an account</a>
+                        </div>
+                    </div>
+                </div><!-- sign-wrapper -->
+            </div><!-- d-flex -->
+        </div><!-- container -->
+    </div><!-- content -->
+
+    <footer class="footer">
+        <div>
+            <span>&copy; 2025 Emergency Social Network. All rights reserved.</span>
+        </div>
+        <div>
+            <nav class="nav">
+                <a href="/privacy" class="nav-link">Privacy</a>
+                <a href="/terms" class="nav-link">Terms</a>
+                <a href="/help" class="nav-link">Help</a>
+            </nav>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="/lib/jquery/jquery.min.js"></script>
+    <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="/lib/feather-icons/feather.min.js"></script>
+    
+    <!-- Login form logic -->
+    <script src="/assets/component-logic-js/login.js?v=<%= Date.now() %>"></script>
+</body>
+</html>

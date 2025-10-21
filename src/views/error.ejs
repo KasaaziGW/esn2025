@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Meta -->
+    <meta name="description" content="Emergency Social Network - Error">
+    <meta name="author" content="Emergency Social Network">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="/assets/img/esn.png">
+
+    <title><%= title %> - Emergency Social Network</title>
+
+    <!-- vendor css -->
+    <link href="/lib/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+    <link href="/lib/ionicons/css/ionicons.min.css" rel="stylesheet">
+    <link href="/lib/remixicon/fonts/remixicon.css" rel="stylesheet">
+
+    <!-- DashForge CSS -->
+    <link rel="stylesheet" href="/assets/css/dashforge.css?v=<%= Date.now() %>">
+    <link rel="stylesheet" href="/assets/css/dashforge.auth.css">
+</head>
+<body>
+
+    <header class="navbar navbar-header navbar-header-fixed">
+        <a href="#" id="mainMenuOpen" class="burger-menu"><i data-feather="menu"></i></a>
+        <div class="navbar-brand">
+            <a href="/" class="df-logo">
+                <img src="/assets/img/esn.png" alt="ESN" class="img-fluid" style="height: 32px;">
+                Emergency<span>Social</span> Network
+            </a>
+        </div><!-- navbar-brand -->
+    </header><!-- navbar -->
+
+    <div class="content content-fixed content-auth">
+        <div class="container">
+            <div class="d-flex align-items-center justify-content-center ht-100p">
+                <div class="sign-wrapper wd-100p" style="max-width: 500px;">
+                    <div class="wd-100p text-center">
+                        <div class="mg-b-30">
+                            <i data-feather="alert-triangle" class="wd-60 ht-60 tx-danger"></i>
+                        </div>
+                        <h3 class="tx-color-01 mg-b-5"><%= title %></h3>
+                        <p class="tx-color-03 tx-16 mg-b-40"><%= message %></p>
+
+                        <div class="d-flex justify-content-center">
+                            <a href="/dashboard" class="btn btn-primary mg-r-10">Go to Dashboard</a>
+                            <a href="/" class="btn btn-outline-primary">Go Home</a>
+                        </div>
+                    </div>
+                </div><!-- sign-wrapper -->
+            </div><!-- d-flex -->
+        </div><!-- container -->
+    </div><!-- content -->
+
+    <footer class="footer">
+        <div>
+            <span>&copy; 2025 Emergency Social Network. All rights reserved.</span>
+        </div>
+        <div>
+            <nav class="nav">
+                <a href="/privacy" class="nav-link">Privacy</a>
+                <a href="/terms" class="nav-link">Terms</a>
+                <a href="/help" class="nav-link">Help</a>
+            </nav>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="/lib/jquery/jquery.min.js"></script>
+    <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="/lib/feather-icons/feather.min.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            'use strict';
+            feather.replace();
+        });
+    </script>
+</body>
+</html>

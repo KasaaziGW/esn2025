@@ -1,0 +1,541 @@
+<%- include('layouts/partials/top-files') %>
+<%- include('layouts/partials/sidebar', { user: user, activePage: 'profile' }) %>
+
+<%- include('layouts/partials/header') %>
+
+<div class="content-body">
+  <div class="container pd-x-0">
+    
+    <!-- Breadcrumb -->
+    <%- include('./layouts/partials/breadcrumb', { homeUrl: '/dashboard', homeText: 'Dashboard', currentPageText: 'My Profile' }) %>
+    
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mg-b-20 mg-lg-b-25 mg-xl-b-30">
+      <div>
+        <h4 class="mg-b-0 tx-spacing--1">My Profile</h4>
+        <p class="tx-color-03 mg-b-0">Manage your personal information and account settings</p>
+      </div>
+      <div class="d-none d-md-block">
+        <button class="btn btn-sm pd-x-15 btn-primary btn-uppercase" onclick="saveProfile()">
+          <i data-feather="save" class="wd-10 mg-r-5"></i> Save Changes
+        </button>
+      </div>
+    </div>
+
+    <!-- Coordinator Request Section -->
+    <% if (user.role === 'citizen' && user.community) { %>
+      <div class="card mg-b-20">
+        <div class="card-body">
+          <h6 class="card-title">
+            <i data-feather="users" class="wd-16 mg-r-5"></i>
+            Community Leadership
+          </h6>
+          <p class="card-text tx-color-03">
+            Want to help coordinate your community? Apply to become a community coordinator to post announcements and help manage community activities.
+          </p>
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <% if (user.coordinatorRequest) { %>
+                <% if (user.coordinatorRequest.status === 'pending') { %>
+                  <span class="badge badge-warning">
+                    <i data-feather="clock" class="wd-12 mg-r-5"></i>
+                    Request Pending Review
+                  </span>
+                <% } else if (user.coordinatorRequest.status === 'approved') { %>
+                  <span class="badge badge-success">
+                    <i data-feather="check-circle" class="wd-12 mg-r-5"></i>
+                    Request Approved
+                  </span>
+                <% } else if (user.coordinatorRequest.status === 'rejected') { %>
+                  <span class="badge badge-danger">
+                    <i data-feather="x-circle" class="wd-12 mg-r-5"></i>
+                    Request Rejected
+                  </span>
+                <% } %>
+              <% } else { %>
+                <span class="tx-color-03">No coordinator request submitted</span>
+              <% } %>
+            </div>
+            <% if (!user.coordinatorRequest || user.coordinatorRequest.status === 'rejected') { %>
+              <button type="button" class="btn btn-outline-primary" onclick="showCoordinatorRequestForm()">
+                <i data-feather="user-plus" class="wd-12 mg-r-5"></i>
+                Request Coordinator Role
+              </button>
+            <% } %>
+          </div>
+        </div>
+      </div>
+      <% } %>
+
+    <!-- Profile Form -->
+    <div class="row">
+      <!-- Left Sidebar - Profile Info -->
+      <div class="col-lg-4">
+        <div class="card">
+          <div class="card-body text-center">
+            <center>
+              <div class="avatar avatar-xxl mg-b-20 position-relative">
+                <img src="<%= user.avatarUrl || '/assets/img/avatar.webp' %>" class="rounded-circle" alt="Profile Picture" id="profileAvatar">
+              </div>
+            </center>
+            
+            <input type="file" id="avatarUpload" accept="image/*" style="display: none;" onchange="handleAvatarUpload(this)">
+            <div class="mg-b-10">
+              <button type="button" class="btn btn-sm btn-outline-primary" onclick="document.getElementById('avatarUpload').click()">
+                <i data-feather="upload" class="wd-12 mg-r-5"></i> Upload Photo
+              </button>
+              <% if (user.avatarUrl) { %>
+              <button type="button" class="btn btn-sm btn-outline-danger mg-l-5" onclick="removeAvatar()">
+                <i data-feather="trash-2" class="wd-12 mg-r-5"></i> Remove
+              </button>
+              <% } %>
+            </div>
+            <!-- Upload Progress -->
+            <div id="uploadProgress" class="mg-b-10" style="display: none;">
+              <div class="progress ht-4">
+                <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+              </div>
+              <small class="tx-12 tx-color-03">Uploading...</small>
+            </div>
+            <h5 class="mg-b-5"><%= user.displayName || (user.firstName && user.lastName ? user.firstName + ' ' + user.lastName : user.username) %></h5>
+            <p class="tx-color-03 mg-b-20">@<%= user.username %></p>
+            
+            <!-- Profile Completion -->
+            <div class="mg-b-20">
+              <label class="tx-12 tx-color-03 mg-b-5">Profile Completion</label>
+              <div class="progress ht-4 mg-b-5">
+                <div class="progress-bar bg-primary" role="progressbar" 
+                     data-width="<%= (user.region && user.district && user.firstName && user.lastName && user.phone) ? '100' : '60' %>"></div>
+              </div>
+              <span class="tx-12 tx-color-03"><%= (user.region && user.district && user.firstName && user.lastName && user.phone) ? 'Complete' : 'Incomplete' %></span>
+            </div>
+            
+            <!-- Quick Stats -->
+            <div class="row text-center mg-b-20">
+              <div class="col-4">
+                <h6 class="tx-18 mg-b-0">0</h6>
+                <span class="tx-12 tx-color-03">Alerts</span>
+              </div>
+              <div class="col-4">
+                <h6 class="tx-18 mg-b-0">0</h6>
+                <span class="tx-12 tx-color-03">Contacts</span>
+              </div>
+              <div class="col-4">
+                <h6 class="tx-18 mg-b-0">0</h6>
+                <span class="tx-12 tx-color-03">Groups</span>
+              </div>
+            </div>
+            
+            <!-- Account Information -->
+            <div class="mg-b-20">
+              <label class="tx-12 tx-color-03 mg-b-10 d-block">Account Information</label>
+              
+              <!-- Account Status -->
+              <div class="d-flex align-items-center justify-content-between mg-b-10">
+                <span class="tx-13 tx-color-02">Status:</span>
+                <span class="badge <%= user.isActive ? 'bg-success' : 'bg-danger' %>">
+                  <i data-feather="<%= user.isActive ? 'user-check' : 'user-x' %>" class="wd-10 mg-r-5"></i>
+                  <%= user.isActive ? 'Active' : 'Inactive' %>
+                </span>
+              </div>
+              
+              <!-- Role -->
+              <div class="d-flex align-items-center justify-content-between mg-b-10">
+                <span class="tx-13 tx-color-02">Role:</span>
+                <span class="badge bg-primary">
+                  <i data-feather="shield" class="wd-10 mg-r-5"></i>
+                  <%= user.role.charAt(0).toUpperCase() + user.role.slice(1) %>
+                </span>
+              </div>
+              
+              <!-- Member Since -->
+              <div class="d-flex align-items-center justify-content-between mg-b-10">
+                <span class="tx-13 tx-color-02">Member Since:</span>
+                <span class="tx-13 tx-color-03"><%= user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A' %></span>
+              </div>
+              
+              <!-- Last Updated -->
+              <div class="d-flex align-items-center justify-content-between">
+                <span class="tx-13 tx-color-02">Last Updated:</span>
+                <span class="tx-13 tx-color-03"><%= user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : 'N/A' %></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Main Content - Profile Form -->
+      <div class="col-lg-8">
+        <form id="profileForm">
+          <!-- Basic Information -->
+
+          <div class="card mg-b-20">
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label">First Name <span class="tx-danger">*</span></label>
+                    <input type="text" class="form-control" name="firstName" value="<%= user.firstName || '' %>" required>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label">Last Name <span class="tx-danger">*</span></label>
+                    <input type="text" class="form-control" name="lastName" value="<%= user.lastName || '' %>" required>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label">Display Name</label>
+                    <input type="text" class="form-control" name="displayName" value="<%= user.displayName || '' %>">
+                    <small class="form-text text-muted">How you want to be known to others</small>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input type="text" class="form-control" value="<%= user.username %>" readonly>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label">Bio</label>
+                <textarea class="form-control" name="bio" rows="3" placeholder="Tell us about yourself..."><%= user.bio || '' %></textarea>
+              </div>
+            
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label">Email Address <span class="tx-danger">*</span></label>
+                    <input type="email" class="form-control" name="email" value="<%= user.email || '' %>" required>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label">Phone Number <span class="tx-danger">*</span></label>
+                    <input type="tel" class="form-control" name="phone" value="<%= user.phone || '' %>" required>
+                  </div>
+                </div>
+              
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label">Current Status</label>
+                    <select class="form-control" name="currentStatus">
+                      <option value="safe" <%= user.currentStatus === 'safe' ? 'selected' : '' %>>Safe</option>
+                      <option value="help_needed" <%= user.currentStatus === 'help_needed' ? 'selected' : '' %>>Need Help</option>
+                      <option value="emergency" <%= user.currentStatus === 'emergency' ? 'selected' : '' %>>Emergency</option>
+                      <option value="unavailable" <%= user.currentStatus === 'unavailable' ? 'selected' : '' %>>Unavailable</option>
+                    </select>
+                  </div>
+                </div>
+            
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label">Region <span class="tx-danger">*</span></label>
+                    <select class="form-control" name="region" id="regionSelect" required>
+                      <option value="">Select Region</option>
+                      <% if (user.region) { %>
+                        <option value="<%= user.region.name %>" selected><%= user.region.name %></option>
+                      <% } %>
+                      <!-- Additional regions will be populated by JavaScript -->
+                    </select>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label">District <span class="tx-danger">*</span></label>
+                    <select class="form-control" name="district" id="districtSelect" required>
+                      <option value="">Select District</option>
+                      <% if (user.district) { %>
+                        <option value="<%= user.district.name %>" selected><%= user.district.name %></option>
+                      <% } %>
+                    </select>
+                  </div>
+                </div>
+              
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label">Latitude</label>
+                    <input type="number" class="form-control" name="latitude" step="any" 
+                           value="<%= user.location && user.location.coordinates ? user.location.coordinates[1] : '' %>" 
+                           placeholder="e.g., -1.2921">
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label">Longitude</label>
+                    <input type="number" class="form-control" name="longitude" step="any" 
+                           value="<%= user.location && user.location.coordinates ? user.location.coordinates[0] : '' %>" 
+                           placeholder="e.g., 36.8219">
+                  </div>
+                </div>
+              
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label">Emergency Alert Frequency</label>
+                    <select class="form-control" name="emergencySettings[alertFrequency]">
+                      <option value="immediate" <%= user.emergencySettings && user.emergencySettings.alertFrequency === 'immediate' ? 'selected' : '' %>>Immediate</option>
+                      <option value="hourly" <%= user.emergencySettings && user.emergencySettings.alertFrequency === 'hourly' ? 'selected' : '' %>>Hourly</option>
+                      <option value="daily" <%= user.emergencySettings && user.emergencySettings.alertFrequency === 'daily' ? 'selected' : '' %>>Daily</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label">Location Sharing</label>
+                    <select class="form-control" name="emergencySettings[locationSharing]">
+                      <option value="always" <%= user.emergencySettings && user.emergencySettings.locationSharing === 'always' ? 'selected' : '' %>>Always</option>
+                      <option value="emergency_only" <%= user.emergencySettings && user.emergencySettings.locationSharing === 'emergency_only' ? 'selected' : '' %>>Emergency Only</option>
+                      <option value="never" <%= user.emergencySettings && user.emergencySettings.locationSharing === 'never' ? 'selected' : '' %>>Never</option>
+                    </select>
+                  </div>
+                </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label class="form-label">Tags (comma-separated)</label>
+                  <input type="text" class="form-control" name="tags" 
+                        value="<%= user.tags ? user.tags.join(', ') : '' %>" 
+                        placeholder="e.g., emergency responder, medical, volunteer">
+                  <small class="form-text text-muted">Add tags to help others find you based on your skills or interests</small>
+                </div>
+              </div>
+            </div>
+            </div>
+          </div>
+          
+          <!-- Emergency Contacts -->
+          <div class="card mg-b-20">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h6 class="tx-13 tx-spacing-1 tx-uppercase tx-semibold mg-b-0">
+                <i data-feather="phone-call" class="wd-16 mg-r-5"></i> Emergency Contacts
+              </h6>
+              <button type="button" class="btn btn-sm btn-outline-primary" onclick="addEmergencyContact()">
+                <i data-feather="plus" class="wd-12 mg-r-5"></i> Add Contact
+              </button>
+            </div>
+            <div class="card-body">
+              <div id="emergencyContacts">
+                <% if (user.emergencyContacts && user.emergencyContacts.length > 0) { %>
+                  <% user.emergencyContacts.forEach((contact, index) => { %>
+                    <div class="emergency-contact-item mg-b-15">
+                      <div class="row">
+                        <div class="col-md-4">
+                          <input type="text" class="form-control" name="emergencyContacts[<%= index %>][name]" 
+                                  value="<%= contact.name %>" placeholder="Contact Name" required>
+                        </div>
+                        <div class="col-md-4">
+                          <input type="tel" class="form-control" name="emergencyContacts[<%= index %>][phone]" 
+                                  value="<%= contact.phone %>" placeholder="Phone Number" required>
+                        </div>
+                        <div class="col-md-3">
+                          <select class="form-control" name="emergencyContacts[<%= index %>][priority]">
+                            <option value="1" <%= contact.priority === 1 ? 'selected' : '' %>>Priority 1</option>
+                            <option value="2" <%= contact.priority === 2 ? 'selected' : '' %>>Priority 2</option>
+                            <option value="3" <%= contact.priority === 3 ? 'selected' : '' %>>Priority 3</option>
+                            <option value="4" <%= contact.priority === 4 ? 'selected' : '' %>>Priority 4</option>
+                            <option value="5" <%= contact.priority === 5 ? 'selected' : '' %>>Priority 5</option>
+                          </select>
+                        </div>
+                        <div class="col-md-1">
+                          <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeEmergencyContact(this)">
+                            <i data-feather="trash-2" class="wd-12"></i>x
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  <% }); %>
+                <% } else { %>
+                  <div class="text-center py-4">
+                    <i data-feather="phone-call" class="wd-48 ht-48 tx-color-03 mg-b-15"></i>
+                    <p class="tx-color-03 mg-b-0">No emergency contacts added yet</p>
+                    <small class="tx-color-03">Add at least one emergency contact for your safety</small>
+                  </div>
+                <% } %>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Form Actions -->
+          <div class="card">
+            <div class="card-body text-center">
+              <button type="button" class="btn btn-primary mg-r-10" onclick="saveProfile()">
+                <i data-feather="save" class="wd-12 mg-r-5"></i> Save Changes
+              </button>
+              <button type="button" class="btn btn-outline-secondary" onclick="resetForm()">
+                <i data-feather="refresh-cw" class="wd-12 mg-r-5"></i> Reset
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Coordinator Request Modal -->
+<div class="modal fade" id="coordinatorRequestModal" tabindex="-1" role="dialog" aria-labelledby="coordinatorRequestModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="coordinatorRequestModalLabel">
+          <i data-feather="user-plus" class="wd-16 mg-r-5"></i>
+          Request Coordinator Role
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form id="coordinatorRequestForm" enctype="multipart/form-data">
+        <div class="modal-body">
+          <div class="alert alert-info">
+            <i data-feather="info" class="wd-16 mg-r-5"></i>
+            As a community coordinator, you'll be able to post announcements and help manage community activities. Please provide the following information to support your application.
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="position" class="form-label">Position in Society or Organization *</label>
+                <input type="text" class="form-control" id="position" name="position" required 
+                      placeholder="e.g., Community Leader, Gov't Official, Head of Sch.">
+                <small class="form-text text-muted">Your current role or position that qualifies you for community coordination</small>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="organization" class="form-label">Organization or Institution *</label>
+                <input type="text" class="form-control" id="organization" name="organization" required 
+                      placeholder="e.g., Red Cross, Local Government, NGO">
+                <small class="form-text text-muted">The organization or institution you represent</small>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="requestDetails" class="form-label">Request Details *</label>
+            <textarea class="form-control" id="requestDetails" name="requestDetails" rows="4" required 
+                      placeholder="Please explain why you want to become a coordinator and how you can contribute to the community..."></textarea>
+            <small class="form-text text-muted">Describe your experience, qualifications, and how you plan to help the community</small>
+          </div>
+          
+          <div class="form-group">
+            <label for="attachment" class="form-label">Supporting Document (Optional)</label>
+            <div class="custom-file">
+              <input type="file" class="custom-file-input" id="attachment" name="attachment" 
+                     accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+              <label class="custom-file-label" for="attachment">Choose file...</label>
+            </div>
+            <small class="form-text text-muted">Upload any supporting documents (PDF, Word, or image files)</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <i data-feather="send" class="wd-12 mg-r-5"></i>
+            Submit Request
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('layouts/partials/footer') %>
+<!-- Pass user data to JavaScript via data attributes -->
+<div id="user-data" 
+     data-user-id="<%= user.id %>"
+     data-username="<%= user.username %>"
+     data-role="<%= user.role %>"
+     data-region="<%= user.region ? user.region.name : "" %>"
+     data-district="<%= user.district ? user.district.name : "" %>"
+     data-avatar-url="<%= user.avatarUrl || "/assets/img/avatar.webp" %>"
+     data-location='<%= JSON.stringify(user.location || {}) %>'
+     data-emergency-contacts='<%= JSON.stringify(user.emergencyContacts || []) %>'
+     style="display: none;"></div>
+
+<script>
+    // Safely extract user data from data attributes
+    const userDataEl = document.getElementById('user-data');
+    window.currentUser = {
+        id: userDataEl.dataset.userId,
+        username: userDataEl.dataset.username,
+        role: userDataEl.dataset.role,
+        region: userDataEl.dataset.region,
+        district: userDataEl.dataset.district,
+        avatarUrl: userDataEl.dataset.avatarUrl,
+        location: JSON.parse(userDataEl.dataset.location || '{}'),
+        emergencyContacts: JSON.parse(userDataEl.dataset.emergencyContacts || '[]')
+    };
+    
+    // Coordinator Request Functions
+    function showCoordinatorRequestForm() {
+        $('#coordinatorRequestModal').modal('show');
+    }
+    
+    // Handle file input change
+    $('#attachment').on('change', function() {
+        const fileName = $(this).val().split('\\').pop();
+        $(this).next('.custom-file-label').html(fileName || 'Choose file...');
+    });
+    
+    // Handle coordinator request form submission
+    $('#coordinatorRequestForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        
+        // Show loading state
+        const submitBtn = $(this).find('button[type="submit"]');
+        const originalText = submitBtn.html();
+        submitBtn.html('<i data-feather="loader" class="wd-12 mg-r-5"></i>Submitting...');
+        submitBtn.prop('disabled', true);
+        
+        $.ajax({
+            url: '/api/coordinator-requests',
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                console.log('Coordinator request submitted:', response);
+                
+                // Show success message
+                Swal.fire({
+                    title: 'Request Submitted!',
+                    text: 'Your coordinator request has been submitted successfully. You will be notified once it\'s reviewed.',
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#28a745'
+                }).then(() => {
+                    // Close modal and reload page to show updated status
+                    $('#coordinatorRequestModal').modal('hide');
+                    location.reload();
+                });
+            },
+            error: function(xhr) {
+                console.error('Coordinator request error:', xhr);
+                
+                const errorMessage = xhr.responseJSON?.message || 'Failed to submit coordinator request. Please try again.';
+                
+                Swal.fire({
+                    title: 'Error',
+                    text: errorMessage,
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            },
+            complete: function() {
+                // Reset button state
+                submitBtn.html(originalText);
+                submitBtn.prop('disabled', false);
+            }
+        });
+    });
+</script>
+
+<!-- Include the user profile JavaScript -->
+<script src="/assets/component-logic-js/user-profile.js"></script>
+
+<%- include('layouts/partials/bottom-files') %>

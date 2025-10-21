@@ -1,0 +1,277 @@
+
+<%- include('layouts/partials/top-files') %>
+<%- include('layouts/partials/sidebar', { user: user, activePage: 'dashboard' }) %>
+
+<%- include('layouts/partials/header') %>
+
+<div class="content-body">
+  <div class="container pd-x-0">
+
+  <div class="d-sm-flex align-items-center justify-content-between mg-b-20 mg-lg-b-25 mg-xl-b-30">
+    <div>
+      <%- include('./layouts/partials/breadcrumb', { homeUrl: '/dashboard', homeText: 'Dashboard', currentPageText: 'Overview' }) %>
+      <h4 class="mg-b-0 tx-spacing--1">Welcome back, <%= user.displayName || user.username %>!</h4>
+    </div>
+    <div class="d-none d-md-block">
+      <button class="btn btn-sm pd-x-15 btn-white btn-uppercase mg-l-5">
+        <i data-feather="phone" class="wd-10 mg-r-5"></i> Emergency
+      </button>
+      <button class="btn btn-sm pd-x-15 btn-primary btn-uppercase mg-l-5">
+        <i data-feather="help-circle" class="wd-10 mg-r-5"></i> Help
+      </button>
+    </div>
+  </div>
+    <!-- Profile Completion Guidance -->
+    <% 
+      // Check if profile is complete - all required fields must exist and not be empty
+      // Check for either fullName OR (firstName AND lastName) for name completion
+      const hasName = user.fullName || (user.firstName && user.lastName);
+      const isProfileComplete = user.region && user.district && hasName && user.phone && 
+                                user.region !== '' && user.district !== '' && 
+                                user.phone !== '' &&
+                                user.region !== null && user.district !== null &&
+                                user.phone !== null;
+    %>
+    <% if (!isProfileComplete) { %>
+      <div class="row mg-t-20">
+        <div class="col-lg-12">
+          <div class="alert alert-warning" role="alert">
+            <div class="d-flex align-items-center">
+              <i data-feather="alert-triangle" class="mg-r-10"></i>
+              <div class="flex-grow-1">
+                <h6 class="mg-b-5">Complete Your Profile</h6>
+                <p class="mg-b-0">To access communities and participate in emergency activities, please complete your profile by setting your region, district, and personal information.</p>
+                <div class="mg-t-10">
+                  <a href="/users/profile" class="btn btn-sm btn-primary">Complete Profile</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% } else if (!hasJoinedCommunity) { %>
+      <!-- Community Membership Guidance -->
+      <div class="row mg-t-20">
+        <div class="col-lg-12">
+          <div class="alert alert-info" role="alert">
+            <div class="d-flex align-items-center">
+              <i data-feather="users" class="mg-r-10"></i>
+              <div class="flex-grow-1">
+                <h6 class="mg-b-5">Join a Community</h6>
+                <p class="mg-b-0">To access announcements, chats, and emergency features, you need to join a community in your region (<%= user.region ? user.region.name : 'your selected region' %>) and district (<%= user.district ? user.district.name : 'your selected district' %>).</p>
+                <div class="mg-t-10">
+                  <a href="/communities" class="btn btn-sm btn-primary">Browse Communities</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% } %>
+
+  <!-- Dashboard Cards -->
+  <div class="row row-xs">
+    <!-- Active Alerts -->
+    <div class="col-sm-6 col-lg-3">
+      <div class="card card-body">
+        <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Active Alerts</h6>
+        <div class="d-flex d-lg-block d-xl-flex align-items-end">
+          <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1" id="activeAlerts"><%= dashboardData.activeAlerts || 0 %></h3>
+          <p class="tx-11 tx-color-03 mg-b-0 mg-l-5 mg-lg-l-0 mg-xl-l-5">
+            <%= dashboardData.activeAlerts > 0 ? 'Critical' : 'All Clear' %>
+          </p>
+        </div>
+      </div>
+    </div><!-- col -->
+
+    <!-- Today's Alerts -->
+    <div class="col-sm-6 col-lg-3 mg-t-10 mg-sm-t-0">
+      <div class="card card-body">
+        <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Today's Alerts</h6>
+        <div class="d-flex d-lg-block d-xl-flex align-items-end">
+          <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1" id="todayAlerts"><%= dashboardData.todayAlerts || 0 %></h3>
+          <p class="tx-11 tx-color-03 mg-b-0 mg-l-5 mg-lg-l-0 mg-xl-l-5">emergency alerts</p>
+        </div>
+      </div>
+    </div><!-- col -->
+
+    <!-- Community Members -->
+    <div class="col-sm-6 col-lg-3 mg-t-10 mg-lg-t-0">
+      <div class="card card-body">
+        <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Community Members</h6>
+        <div class="d-flex d-lg-block d-xl-flex align-items-end">
+          <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1" id="totalMembers"><%= dashboardData.totalMembers || 0 %></h3>
+          <p class="tx-11 tx-color-03 mg-b-0 mg-l-5 mg-lg-l-0 mg-xl-l-5">
+            <%= dashboardData.newMembersToday || 0 %> new today
+          </p>
+        </div>
+      </div>
+    </div><!-- col -->
+
+    <!-- Emergency Contacts -->
+    <div class="col-sm-6 col-lg-3 mg-t-10 mg-lg-t-0">
+      <div class="card card-body">
+        <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Emergency Contacts</h6>
+        <div class="d-flex d-lg-block d-xl-flex align-items-end">
+          <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1" id="emergencyContacts"><%= dashboardData.emergencyContacts || 0 %></h3>
+          <p class="tx-11 tx-color-03 mg-b-0 mg-l-5 mg-lg-l-0 mg-xl-l-5">Quick access</p>
+        </div>
+      </div>
+    </div><!-- col -->
+  </div><!-- row -->
+
+  <!-- Coordinator-only cards -->
+  <% if (user.role === 'coordinator') { %>
+  <div class="row row-xs mg-t-10">
+    <div class="col-sm-6 col-lg-6">
+      <div class="card card-body">
+        <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Assigned Incidents</h6>
+        <div class="d-flex align-items-end">
+          <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1"><%= dashboardData.assignedIncidents || 0 %></h3>
+          <p class="tx-11 tx-color-03 mg-b-0 mg-l-5">priority tasks</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-6 mg-t-10 mg-sm-t-0">
+      <div class="card card-body">
+        <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Coordination Tasks</h6>
+        <div class="d-flex align-items-end">
+          <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1"><%= dashboardData.coordinationTasks || 0 %></h3>
+          <p class="tx-11 tx-color-03 mg-b-0 mg-l-5">pending</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- Admin-only system overview cards -->
+  <% if (user.role === 'admin') { %>
+  <div class="row row-xs mg-t-10">
+    <div class="col-sm-6 col-lg-3">
+      <div class="card card-body">
+        <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Total Users</h6>
+        <div class="d-flex align-items-end">
+          <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1"><%= dashboardData.totalUsers || 0 %></h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3 mg-t-10 mg-sm-t-0">
+      <div class="card card-body">
+        <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">Active Users</h6>
+        <div class="d-flex align-items-end">
+          <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1"><%= dashboardData.activeUsers || 0 %></h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3 mg-t-10 mg-lg-t-0">
+      <div class="card card-body">
+        <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">System Uptime</h6>
+        <div class="d-flex align-items-end">
+          <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1"><%= dashboardData.systemUptime || '—' %></h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3 mg-t-10 mg-lg-t-0">
+      <div class="card card-body">
+        <h6 class="tx-uppercase tx-11 tx-spacing-1 tx-color-02 tx-semibold mg-b-8">System Health</h6>
+        <div class="d-flex align-items-end">
+          <h3 class="tx-normal tx-rubik mg-b-0 mg-r-5 lh-1"><%= dashboardData.systemHealth || '—' %></h3>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- Recent Alerts and Announcements -->
+  <div class="row row-xs mg-t-10">
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header pd-y-20 d-md-flex align-items-center justify-content-between">
+          <h6 class="mg-b-0">Recent Emergency Alerts</h6>
+          <a href="/alerts" class="btn btn-sm btn-outline-primary">View All</a>
+        </div>
+        <div class="card-body pd-0">
+          <% if (dashboardData.recentAlerts && dashboardData.recentAlerts.length > 0) { %>
+            <div class="table-responsive">
+              <table class="table table-dashboard mg-b-0">
+                <thead>
+                  <tr>
+                    <th>Alert</th>
+                    <th>Type</th>
+                    <th>Severity</th>
+                    <th>Status</th>
+                    <th>Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% dashboardData.recentAlerts.forEach(alert => { %>
+                    <tr>
+                      <td class="tx-medium">
+                        <a href="/announcements/<%= alert.id %>" class="tx-color-01"><%= alert.title %></a>
+                      </td>
+                      <td class="tx-color-03"><%= alert.type %></td>
+                      <td>
+                        <span class="badge badge-<%= alert.severity === 'critical' ? 'danger' : alert.severity === 'high' ? 'warning' : 'info' %>">
+                          <%= alert.severity %>
+                        </span>
+                      </td>
+                      <td>
+                        <span class="badge badge-<%= alert.status === 'active' ? 'danger' : 'success' %>">
+                          <%= alert.status %>
+                        </span>
+                      </td>
+                      <td class="tx-color-03"><%= alert.time %></td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+          <% } else { %>
+            <div class="text-center pd-y-40">
+              <i data-feather="shield" class="wd-48 mg-b-10 tx-color-03"></i>
+              <h6 class="mg-b-5">No Recent Alerts</h6>
+              <p class="tx-color-03 mg-b-0">All clear! No emergency alerts in your community.</p>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-lg-4 mg-t-10">
+      <div class="card">
+        <div class="card-header pd-y-20 d-md-flex align-items-center justify-content-between">
+          <h6 class="mg-b-0">Recent Announcements</h6>
+        </div>
+        <div class="card-body">
+          <% if (dashboardData.recentAnnouncements && dashboardData.recentAnnouncements.length > 0) { %>
+            <% dashboardData.recentAnnouncements.forEach(announcement => { %>
+              <div class="media mg-b-15">
+                <div class="avatar avatar-sm mg-r-10">
+                  <i data-feather="megaphone" class="wd-16 ht-16"></i>
+                </div>
+                <div class="media-body">
+                  <h6 class="mg-b-5">
+                    <a href="/announcements/<%= announcement.id %>" class="tx-color-01"><%= announcement.title %></a>
+                  </h6>
+                  <p class="tx-12 tx-color-03 mg-b-0"><%= announcement.body %></p>
+                  <small class="tx-color-03"><%= announcement.time %> by <%= announcement.createdBy %></small>
+                </div>
+              </div>
+            <% }); %>
+          <% } else { %>
+            <div class="text-center pd-y-20">
+              <i data-feather="megaphone" class="wd-32 mg-b-10 tx-color-03"></i>
+              <p class="tx-color-03 mg-b-0">No recent announcements</p>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div><!-- row -->
+
+
+  </div>
+</div>
+
+<%- include('layouts/partials/footer') %>
+<%- include('layouts/partials/bottom-files') %>

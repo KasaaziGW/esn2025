@@ -1,0 +1,159 @@
+<!-- Socket.io Client -->
+<script src="/socket.io/socket.io.js"></script>
+
+<!-- Initialize Feather Icons and Socket.io -->
+<script>
+    // Wait for DOM to be ready before initializing feather icons
+    if (typeof $ !== 'undefined') {
+        $(document).ready(function() {
+            try {
+                if (typeof feather !== 'undefined') {
+                    feather.replace();
+                }
+            } catch (error) {
+                console.warn('Feather icons initialization failed:', error);
+            }
+        });
+    } else {
+        // Fallback if jQuery is not loaded yet
+        setTimeout(function() {
+            if (typeof $ !== 'undefined') {
+                $(document).ready(function() {
+                    try {
+                        if (typeof feather !== 'undefined') {
+                            feather.replace();
+                        }
+                    } catch (error) {
+                        console.warn('Feather icons initialization failed:', error);
+                    }
+                });
+            }
+        }, 100);
+    }
+
+    // Initialize Socket.io for real-time features
+    let socket;
+    let heartbeatInterval;
+    let pingInterval;
+    
+    try {
+        // Only initialize socket connection if user is logged in
+        <% if (user) { %>
+        socket = io({
+            auth: {
+                userId: '<%= user._id %>'
+            }
+        });
+        <% } else { %>
+        console.log('No user session - skipping Socket.io connection');
+        <% } %>
+
+        <% if (user) { %>
+        // Send user activity heartbeat every 2 minutes
+        heartbeatInterval = setInterval(() => {
+            if (socket && socket.connected) {
+                socket.emit('userActivity');
+            }
+        }, 2 * 60 * 1000); // 2 minutes
+
+        // Send ping every 10 seconds to keep connection alive
+        pingInterval = setInterval(() => {
+            if (socket && socket.connected) {
+                socket.emit('ping');
+            }
+        }, 10 * 1000); // 10 seconds
+
+        // Send activity on user interaction
+        if (typeof $ !== 'undefined') {
+            $(document).on('click keypress scroll', function() {
+                if (socket && socket.connected) {
+                    socket.emit('userActivity');
+                }
+            });
+        }
+
+        // Socket.io disconnect event handler
+        socket.on('disconnect', function(reason) {
+            console.log('Socket.io disconnected:', reason);
+        });
+
+        // Cleanup on page unload
+        if (typeof $ !== 'undefined') {
+            $(window).on('beforeunload', function() {
+                console.log('Page unloading - cleaning up...');
+                if (heartbeatInterval) {
+                    clearInterval(heartbeatInterval);
+                }
+                if (pingInterval) {
+                    clearInterval(pingInterval);
+                }
+                if (socket && socket.connected) {
+                    console.log('Disconnecting Socket.io on page unload...');
+                    socket.disconnect();
+                }
+            });
+        }
+
+        // Global logout handler for sidebar logout links
+        if (typeof $ !== 'undefined') {
+            $(document).on('click', 'a[href="/logout"]', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                if (confirm('Are you sure you want to sign out?')) {
+                    console.log('Logout initiated - disconnecting Socket.io');
+                    
+                    // Disconnect Socket.io connection before logout
+                    if (socket && socket.connected) {
+                        console.log('Disconnecting Socket.io...');
+                        socket.disconnect();
+                    }
+                    
+                    // Perform logout
+                    $.ajax({
+                        url: '/api/auth/logout',
+                        method: 'POST',
+                        success: function(response) {
+                            console.log('Logout successful, redirecting...');
+                            localStorage.clear();
+                            sessionStorage.clear();
+                            // Set a flag to prevent automatic redirects
+                            sessionStorage.setItem('justLoggedOut', 'true');
+                            // Use server response redirect or default to login
+                            const redirectUrl = response.redirectTo || '/login';
+                            window.location.href = redirectUrl;
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Logout error:', error);
+                            localStorage.clear();
+                            sessionStorage.clear();
+                            sessionStorage.setItem('justLoggedOut', 'true');
+                            window.location.href = '/login';
+                        }
+                    });
+                }
+            });
+        }
+        <% } %>
+
+    } catch (error) {
+        console.warn('Socket.io initialization failed:', error);
+    }
+
+    // Profile Completion Script - Just disable links, no notifications
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle profile-required links
+        const profileRequiredLinks = document.querySelectorAll('.profile-required-link');
+        
+        profileRequiredLinks.forEach(link => {
+            // Add visual indicator for incomplete profile
+            if (link.href === '#') {
+                link.style.opacity = '0.6';
+                link.style.cursor = 'not-allowed';
+                link.title = link.getAttribute('data-message');
+            }
+        });
+    });
+</script>
+</body>
+</html>

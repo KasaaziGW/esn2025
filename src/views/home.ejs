@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Meta -->
+    <meta name="description" content="Emergency Social Network - Stay Connected, Stay Safe">
+    <meta name="author" content="Ainedembe Denis, Namusoke Olivia">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="/assets/img/favicon.png">
+
+    <title><%= title %> - Stay Connected, Stay Safe</title>
+
+    <!-- vendor css -->
+    <link href="/lib/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+
+    <!-- DashForge CSS -->
+    <link rel="stylesheet" href="/assets/css/dashforge.css?v=<%= Date.now() %>">
+    <link rel="stylesheet" href="/assets/css/dashforge.landing.css">
+    <link rel="stylesheet" href="/assets/css/custom-landing.css">
+    
+</head>
+<body class="home-body">
+
+    <!-- Header -->
+    <header class="navbar navbar-header navbar-header-fixed bd-b-0">
+        <a href="#" id="mainMenuOpen" class="burger-menu"><i data-feather="menu"></i></a>
+        <div class="navbar-brand">
+            <a href="/" class="df-logo">E<span>S</span>N</a>
+        </div><!-- navbar-brand -->
+        <div id="navbarMenu" class="navbar-menu-wrapper">
+            <div class="navbar-menu-header">
+                <a href="/" class="df-logo">Emergency<span>Social</span> Network</a>
+                <a id="mainMenuClose" href="#"><i data-feather="x"></i></a>
+            </div><!-- navbar-menu-header -->
+            <ul class="nav navbar-menu">
+                <li class="nav-label pd-l-15 pd-lg-l-25 d-lg-none">Main Navigation</li>
+                <li class="nav-item">
+                    <a href="/" class="nav-link"><i data-feather="home"></i> Home</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/api-docs" class="nav-link"><i data-feather="book"></i> API Docs</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/about" class="nav-link"><i data-feather="info"></i> About</a>
+                </li>
+            </ul>
+        </div><!-- navbar-menu-wrapper -->
+        <div class="navbar-right">
+            <a href="/login" class="btn btn-primary btn-sm">Login</a>
+            <a href="/register" target="_blank" class="btn btn-outline-primary btn-sm">Register</a>
+        </div><!-- navbar-right -->
+    </header><!-- navbar -->
+
+
+    <!-- Features Section -->
+    <div class="content content-components mg-t-50">
+        <div class="container">
+            <!-- Hero Welcome Section -->
+            <div class="row justify-content-center">
+                <div class="col-lg-10 col-xl-8 text-center mg-b-50 mg-t-50">
+                    <div class="hero-welcome-section">
+                        <!-- Main Title -->
+                        <h1 class="df-title mg-b-20">Welcome to the Emergency Social Network Platform</h1>
+                        
+                        <!-- Subtitle with highlights -->
+                        <h4 class="tx-inverse tx-normal mg-b-25">
+                            Stay connected with your community during emergencies with our 
+                            <span class="tx-primary tx-semibold">real-time</span> alert system and 
+                            <span class="tx-success tx-semibold">secure</span> communication platform.
+                        </h4>
+                        
+                        <!-- Description -->
+                        <p class="df-lead tx-18 tx-color-02 mg-b-30">
+                            Everything you need to stay safe and connected during emergencies
+                        </p>
+                        
+                        <!-- Feature highlights -->
+                        <div class="d-flex justify-content-center flex-wrap gap-3 mg-b-30">
+                            <div class="badge badge-outline-primary badge-lg">
+                                <i data-feather="bell" class="wd-16 ht-16 mg-r-5"></i>
+                                Real-time Alerts
+                            </div>
+                            <div class="badge badge-outline-success badge-lg">
+                                <i data-feather="users" class="wd-16 ht-16 mg-r-5"></i>
+                                Community Network
+                            </div>
+                            <div class="badge badge-outline-warning badge-lg">
+                                <i data-feather="map-pin" class="wd-16 ht-16 mg-r-5"></i>
+                                Location Tracking
+                            </div>
+                            <div class="badge badge-outline-info badge-lg">
+                                <i data-feather="message-circle" class="wd-16 ht-16 mg-r-5"></i>
+                                Instant Chat
+                            </div>
+                        </div>
+                        
+                        <!-- Call to Action Buttons -->
+                        <div class="d-flex justify-content-center gap-3 flex-wrap">
+                            <a href="/register" class="btn btn-primary btn-lg">
+                                <i data-feather="user-plus" class="wd-16 ht-16 mg-r-5"></i>
+                                Join Now - Free
+                            </a>
+                            <a href="/api-docs" class="btn btn-outline-primary btn-lg">
+                                <i data-feather="book-open" class="wd-16 ht-16 mg-r-5"></i>
+                                Explore API
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section Divider -->
+            <div class="row">
+                <div class="col-12">
+                    <hr class="mg-y-40">
+                    <div class="text-center mg-b-30">
+                        <h3 class="tx-18 tx-uppercase tx-spacing-1 tx-color-02 mg-b-0">Platform Features</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="row tx-14">
+                <div class="col-sm-6 col-lg-4">
+                    <div class="bg-white bd pd-20 pd-lg-30 ht-sm-300 d-flex flex-column justify-content-end">
+                        <div class="mg-b-25"><i data-feather="alert-circle" class="wd-50 ht-50 tx-primary"></i></div>
+                        <h5 class="tx-inverse mg-b-20">Emergency Alerts</h5>
+                        <p class="mg-b-20">Receive real-time emergency notifications and alerts for your area.</p>
+                    </div>
+                </div><!-- col-4 -->
+                <div class="col-sm-6 col-lg-4 mg-t-20 mg-sm-t-0">
+                    <div class="bg-white bd pd-20 pd-lg-30 ht-sm-300 d-flex flex-column justify-content-end">
+                        <div class="mg-b-25"><i data-feather="users" class="wd-50 ht-50 tx-success"></i></div>
+                        <h5 class="tx-inverse mg-b-20">Community Network</h5>
+                        <p class="mg-b-20">Connect with your neighbors and local community members.</p>
+                    </div>
+                </div><!-- col-4 -->
+                <div class="col-sm-6 col-lg-4 mg-t-20 mg-lg-t-0">
+                    <div class="bg-white bd pd-20 pd-lg-30 ht-sm-300 d-flex flex-column justify-content-end">
+                        <div class="mg-b-25"><i data-feather="map-pin" class="wd-50 ht-50 tx-warning"></i></div>
+                        <h5 class="tx-inverse mg-b-20">Location Tracking</h5>
+                        <p class="mg-b-20">Share your location during emergencies for faster assistance.</p>
+                    </div>
+                </div><!-- col-4 -->
+                <div class="col-sm-6 col-lg-4 mg-t-20 mg-sm-t-25">
+                    <div class="bg-white bd pd-20 pd-lg-30 ht-sm-300 d-flex flex-column justify-content-end">
+                        <div class="mg-b-25"><i data-feather="message-circle" class="wd-50 ht-50 tx-info"></i></div>
+                        <h5 class="tx-inverse mg-b-20">Real-time Chat</h5>
+                        <p class="mg-b-20">Communicate instantly with your community during emergencies.</p>
+                    </div>
+                </div><!-- col-4 -->
+                <div class="col-sm-6 col-lg-4 mg-t-20 mg-sm-t-25">
+                    <div class="bg-white bd pd-20 pd-lg-30 ht-sm-300 d-flex flex-column justify-content-end">
+                        <div class="mg-b-25"><i data-feather="clipboard" class="wd-50 ht-50 tx-danger"></i></div>
+                        <h5 class="tx-inverse mg-b-20">Incident Reporting</h5>
+                        <p class="mg-b-20">Report incidents and emergencies quickly and efficiently.</p>
+                    </div>
+                </div><!-- col-4 -->
+                <div class="col-sm-6 col-lg-4 mg-t-20 mg-sm-t-25">
+                    <div class="bg-white bd pd-20 pd-lg-30 ht-sm-300 d-flex flex-column justify-content-end">
+                        <div class="mg-b-25"><i data-feather="phone" class="wd-50 ht-50 tx-secondary"></i></div>
+                        <h5 class="tx-inverse mg-b-20">Emergency Contacts</h5>
+                        <p class="mg-b-20">Manage your emergency contacts and notify them instantly.</p>
+                    </div>
+                </div><!-- col-4 -->
+            </div><!-- row -->
+        </div><!-- container -->
+    </div><!-- content -->
+
+    <!-- Footer -->
+    <footer class="content-footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6">
+                    <div>
+                        <span>&copy; 2024 Emergency Social Network. </span>
+                        <span>Made with <i data-feather="heart" class="tx-danger" style="width: 16px; height: 16px;"></i> for community safety</span>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div>
+                        <nav class="nav">
+                            <a href="/api-docs" target="_blank" class="nav-link">API Documentation</a>
+                            <a href="/privacy" target="_blank" class="nav-link">Privacy Policy</a>
+                            <a href="/terms" target="_blank" class="nav-link">Terms of Service</a>
+                            <a href="/support" target="_blank" class="nav-link">Get Help</a>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer><!-- content-footer -->
+
+    <!-- JavaScript -->
+    <script src="/lib/jquery/jquery.min.js"></script>
+    <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="/lib/feather-icons/feather.min.js"></script>
+    <script src="/lib/perfect-scrollbar/perfect-scrollbar.min.js"></script>
+    <script src="/assets/js/dashforge.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            'use strict'
+
+            // Initialize Feather icons
+            feather.replace();
+
+            // Initialize tooltips
+            $('[data-toggle="tooltip"]').tooltip();
+
+            // Mobile menu functionality
+            $('#mainMenuOpen').on('click', function(e) {
+                e.preventDefault();
+                $('#navbarMenu').addClass('show');
+            });
+
+            $('#mainMenuClose').on('click', function(e) {
+                e.preventDefault();
+                $('#navbarMenu').removeClass('show');
+            });
+
+            // Close mobile menu when clicking outside
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('#navbarMenu, #mainMenuOpen').length) {
+                    $('#navbarMenu').removeClass('show');
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>

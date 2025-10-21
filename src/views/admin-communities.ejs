@@ -1,0 +1,330 @@
+<%- include('layouts/partials/top-files') %>
+<%- include('layouts/partials/sidebar', { user: user, activePage: 'admin-communities' }) %>
+<%- include('layouts/partials/header') %>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="breadcrumb-content">
+        <div class="breadcrumb-content-left">
+          <h4 class="breadcrumb-title">Community Management</h4>
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+              <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+              <li class="breadcrumb-item active" aria-current="page">Community Management</li>
+            </ol>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab Navigation - Using justified tabs style -->
+  <div class="card mg-b-20">
+    <div class="card-header">
+      <ul class="nav nav-tabs nav-justified" id="adminTabs" role="tablist">
+        <li class="nav-item">
+          <a class="nav-link active" id="communities-tab" data-bs-toggle="tab" href="#communities" role="tab">
+            <i data-feather="users"></i> Communities
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="regions-tab" data-bs-toggle="tab" href="#regions" role="tab">
+            <i data-feather="map"></i> Regions & Districts
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Tab Content -->
+  <div class="tab-content" id="adminTabContent" style="min-height: 400px;">
+    
+    <!-- Communities Tab -->
+    <div class="tab-pane fade show active" id="communities" role="tabpanel" style="display: block;">
+      <div class="card mg-b-20">
+        <div class="card-header">
+          <h6 class="mg-b-0">Communities</h6>
+          <div class="card-header-right">
+            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createCommunityModal">
+              <i data-feather="plus"></i> Create Community
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <!-- Communities List -->
+          <div id="communitiesList">
+            <!-- Communities will be loaded here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Regions & Districts Tab -->
+    <div class="tab-pane fade" id="regions" role="tabpanel">
+      <div class="row">
+        <!-- Regions Management -->
+        <div class="col-lg-6">
+          <div class="card mg-b-20">
+            <div class="card-header">
+              <h6 class="mg-b-0">Regions</h6>
+              <div class="card-header-right">
+                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createRegionModal">
+                  <i data-feather="plus"></i> Add Region
+                </button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div id="regionsList">
+                <!-- Regions will be loaded here -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Districts Management -->
+        <div class="col-lg-6">
+          <div class="card mg-b-20">
+            <div class="card-header">
+              <h6 class="mg-b-0">Districts</h6>
+              <div class="card-header-right">
+                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createDistrictModal">
+                  <i data-feather="plus"></i> Add District
+                </button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div id="districtsList">
+                <!-- Districts will be loaded here -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Create Community Modal -->
+<div class="modal fade" id="createCommunityModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Create Community</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="createCommunityForm">
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label class="form-label">Community Name <span class="tx-danger">*</span></label>
+                <input type="text" class="form-control" name="name" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label class="form-label">Region <span class="tx-danger">*</span></label>
+                <select class="form-control" name="region" id="communityRegionSelect" required>
+                  <option value="">Select Region</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label class="form-label">District <span class="tx-danger">*</span></label>
+                <select class="form-control" name="district" id="communityDistrictSelect" required>
+                  <option value="">Select District</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label class="form-label">Status</label>
+                <select class="form-control" name="isActive">
+                  <option value="true">Active</option>
+                  <option value="false">Inactive</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea class="form-control" name="description" rows="3"></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Banner Image</label>
+            <input type="file" class="form-control" name="banner" accept="image/*" id="createBannerInput">
+            <small class="form-text text-muted">Upload a banner image for the community (optional)</small>
+            <!-- Banner preview -->
+            <div id="createBannerPreview" class="mt-2" style="display: none;">
+              <label class="form-label">Banner Preview:</label>
+              <img id="createBannerImage" src="" alt="Banner Preview" class="img-fluid" style="max-height: 150px; border-radius: 5px;">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Community</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Create Region Modal -->
+<div class="modal fade" id="createRegionModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Create Region</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="createRegionForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Region Name <span class="tx-danger">*</span></label>
+            <input type="text" class="form-control" name="name" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea class="form-control" name="description" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Region</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Create District Modal -->
+<div class="modal fade" id="createDistrictModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Create District</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="createDistrictForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">District Name <span class="tx-danger">*</span></label>
+            <input type="text" class="form-control" name="name" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Region <span class="tx-danger">*</span></label>
+            <select class="form-control" name="region" id="districtRegionSelect" required>
+              <option value="">Select Region</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea class="form-control" name="description" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create District</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Community Modal -->
+<div class="modal fade" id="editCommunityModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Community</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="editCommunityForm">
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label class="form-label">Community Name <span class="tx-danger">*</span></label>
+                <input type="text" class="form-control" name="name" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label class="form-label">Region <span class="tx-danger">*</span></label>
+                <select class="form-control" name="region" id="editCommunityRegionSelect" required>
+                  <option value="">Select Region</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label class="form-label">District <span class="tx-danger">*</span></label>
+                <select class="form-control" name="district" id="editCommunityDistrictSelect" required>
+                  <option value="">Select District</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label class="form-label">Status</label>
+                <select class="form-control" name="isActive">
+                  <option value="true">Active</option>
+                  <option value="false">Inactive</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea class="form-control" name="description" rows="3"></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Banner Image</label>
+            <input type="file" class="form-control" name="banner" accept="image/*" id="editBannerInput">
+            <small class="form-text text-muted">Upload a banner image for the community (optional)</small>
+            <!-- Current banner preview -->
+            <div id="editCurrentBannerPreview" class="mt-2" style="display: none;">
+              <label class="form-label">Current Banner:</label>
+              <img id="editCurrentBannerImage" src="" alt="Current Banner" class="img-fluid" style="max-height: 150px; border-radius: 5px;">
+            </div>
+            <!-- New banner preview -->
+            <div id="editNewBannerPreview" class="mt-2" style="display: none;">
+              <label class="form-label">New Banner Preview:</label>
+              <img id="editNewBannerImage" src="" alt="New Banner Preview" class="img-fluid" style="max-height: 150px; border-radius: 5px;">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" onclick="updateCommunity()">Update Community</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('layouts/partials/bottom-files') %>
+
+<script>
+// User data from server
+window.currentUser = <%- JSON.stringify(user).replace(/</g, '\\u003c') %>;
+// JWT token for API requests
+window.authToken = '<%- token %>';
+</script>
+
+<script src="/assets/component-logic-js/admin-communities.js?v=<%= Date.now() %>"></script>
+
+<%- include('layouts/partials/footer') %>

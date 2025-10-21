@@ -1,0 +1,107 @@
+<%- include('layouts/partials/top-files') %>
+<%- include('layouts/partials/sidebar', { user: user, activePage: 'announcements' }) %>
+
+<%- include('layouts/partials/header') %>
+
+<div class="content-body">
+    <div class="container pd-x-0 tx-13">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb breadcrumb-style1 mg-b-5">
+                <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Announcements</li>
+            </ol>
+        </nav>
+        
+        <div class="d-sm-flex align-items-center justify-content-between mg-b-25">
+            <div>
+                <p class="tx-color-03 mg-b-0" id="communityDescription">Loading community information...</p>
+            </div>
+            <div class="d-none d-md-block">
+                <button class="btn btn-sm pd-x-15 btn-primary btn-uppercase" onclick="refreshAnnouncements()">
+                    <i data-feather="refresh-cw" class="wd-10 mg-r-5"></i> Refresh
+                </button>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8 col-xl-9">
+                <!-- Search and Filter Controls -->
+                <div class="row mg-b-25">
+                    <div class="col-md-4 col-lg-4">
+                        <div class="search-form">
+                            <input type="text" id="searchInput" class="form-control" placeholder="Search ...">
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-lg-2"></div>
+                    <div class="col-md-3 col-lg-2">
+                        <select id="sortBy" class="form-control">
+                            <option value="createdAt">Sort by Date</option>
+                            <option value="title">Sort by Title</option>
+                            <option value="severity">Sort by Priority</option>
+                            <option value="viewCount">Sort by Views</option>
+                            <option value="forwardCount">Sort by Forwards</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 col-lg-2">
+                        <select id="sortOrder" class="form-control">
+                            <option value="desc">Newest First</option>
+                            <option value="asc">Oldest First</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Announcements Grid -->
+                <div class="row row-sm" id="announcementsGrid">
+                    <div class="col-12 text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                        <p class="mg-t-10">Loading announcements...</p>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div class="row mg-t-30">
+                    <div class="col-md-6">
+                        <div id="paginationInfo" class="text-muted">
+                            <!-- Pagination info will be inserted here -->
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <nav aria-label="Announcements pagination">
+                            <ul id="pagination" class="pagination justify-content-end">
+                                <!-- Pagination buttons will be inserted here -->
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div><!-- col -->
+
+            <div class="col-sm-7 col-md-5 col-lg-4 col-xl-3 mg-t-40 mg-lg-t-0">
+                <div class="d-flex align-items-center justify-content-between mg-b-20">
+                    <h6 class="tx-13 tx-spacing-1 tx-uppercase tx-semibold mg-b-0">Quick Stats</h6>
+                </div>
+                <div id="announcementStats">
+                    <div class="spinner-border spinner-border-sm" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <p class="mg-t-10">Loading statistics...</p>
+                </div>
+
+                <h6 class="tx-13 tx-spacing-1 tx-uppercase tx-semibold mg-t-50 mg-b-15">Filter by Type</h6>
+                <nav class="nav nav-classic tx-13">
+                    <a href="#" class="nav-link" id="filterAll"><span>All Announcements</span> <span class="badge" id="badgeAll">0</span></a>
+                    <a href="#" class="nav-link" id="filterGeneral"><span>General</span> <span class="badge" id="badgeGeneral">0</span></a>
+                    <a href="#" class="nav-link" id="filterEmergencyType"><span>Emergency</span> <span class="badge" id="badgeEmergency">0</span></a>
+                    <a href="#" class="nav-link" id="filterPinnedType"><span>Pinned</span> <span class="badge" id="badgePinned">0</span></a>
+                </nav>
+            </div><!-- col -->
+        </div><!-- row -->
+    </div><!-- container -->
+</div><!-- content-body -->
+
+<%- include('layouts/partials/footer') %>
+
+<script src="/assets/component-logic-js/announcements.js?v=<%= Date.now() %>"></script>
+
+<%- include('layouts/partials/bottom-files') %>

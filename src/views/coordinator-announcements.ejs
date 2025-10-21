@@ -1,0 +1,352 @@
+<%- include('layouts/partials/top-files') %>
+<%- include('layouts/partials/sidebar', { user: user, activePage: 'coordinator-announcements' }) %>
+<%- include('layouts/partials/header') %>
+
+<div class="content-body">
+  <div class="container pd-x-0">
+    
+    <!-- Breadcrumb -->
+    <%- include('./layouts/partials/breadcrumb', { homeUrl: '/dashboard', homeText: 'Dashboard', currentPageText: 'Announcements' }) %>
+    
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mg-b-20 mg-lg-b-25 mg-xl-b-30">
+      <div>
+        <h4 class="mg-b-0 tx-spacing--1">Community Announcements</h4>
+         <p class="tx-color-03" id="communityDescription">Loading community information...</p>
+      </div>
+          <div class="d-none d-md-block">
+              <button class="btn btn-sm pd-x-15 btn-secondary btn-uppercase mg-r-5" onclick="testSweetAlert2()">
+                  <i data-feather="alert-circle" class="wd-10 mg-r-5"></i> Test Modal
+              </button>
+              <button class="btn btn-sm pd-x-15 btn-primary btn-uppercase" onclick="showCreateAnnouncementModal()">
+                  <i data-feather="save" class="wd-10 mg-r-5"></i> Create Announcement
+              </button>
+          </div>
+    </div>
+
+
+  <div class="row">
+    <div class="col-lg-12">
+      <!-- Announcements Table -->
+      <div class="card">
+        <div class="card-body">
+          <!-- Search and Filters -->
+          <div class="row mb-3">
+            <div class="col-md-5">
+              <div class="input-group">
+                <input type="text" class="form-control" id="searchInput" placeholder="Search announcements...">
+              </div>
+            </div>
+            <div class="col-md-3">
+              <select class="form-control" id="sortBy">
+                <option value="createdAt">Sort by Date</option>
+                <option value="title">Sort by Title</option>
+                <option value="severity">Sort by Severity</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <select class="form-control" id="sortOrder">
+                <option value="desc">Newest First</option>
+                <option value="asc">Oldest First</option>
+              </select>
+            </div>
+
+            <div class="col-md-1">
+              <div class="input-group-append">
+                <button class="btn btn-outline-secondary" type="button" onclick="searchAnnouncements()">
+                  Search
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Table -->
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead style="background-color: rgb(42, 42, 250) !important; color: white !important;">
+                <tr>
+                  <th>Title</th>
+                  <th>Type</th>
+                  <th>Priority</th>
+                  <th>Author</th>
+                  <th>Created</th>
+                  <th>Attachments</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="announcementsTableBody">
+                <tr>
+                  <td colspan="8" class="text-center py-4">
+                    <div class="spinner-border spinner-border-sm" role="status">
+                      <span class="sr-only">Loading...</span>
+                    </div>
+                    Loading announcements...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <!-- Pagination -->
+          <div class="row align-items-center mt-3">
+            <div class="col-md-6">
+              <div class="dataTables_info" id="announcementsInfo">
+                Showing 0 to 0 of 0 entries
+              </div>
+            </div>
+            <div class="col-md-6">
+              <nav aria-label="Announcements pagination">
+                <ul class="pagination pagination-sm justify-content-end mb-0" id="pagination">
+                  <!-- Pagination will be inserted here -->
+                </ul>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Create Announcement Modal -->
+<div class="modal fade" id="createAnnouncementModal" tabindex="-1" role="dialog" aria-labelledby="createAnnouncementModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="createAnnouncementModalLabel">
+          <i data-feather="megaphone" class="wd-16 mg-r-5"></i>
+          Create Community Announcement
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form id="createAnnouncementForm" enctype="multipart/form-data">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="announcementTitle" class="form-label">Title *</label>
+            <input type="text" class="form-control" id="announcementTitle" name="title" required 
+                   placeholder="Enter announcement title...">
+          </div>
+          
+          <div class="form-group">
+            <label for="announcementBody" class="form-label">Message *</label>
+            <textarea class="form-control" id="announcementBody" name="body" rows="4" required 
+                      placeholder="Enter your announcement message..."></textarea>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="announcementType" class="form-label">Type</label>
+                <select class="form-control" id="announcementType" name="type">
+                  <option value="general">General Announcement</option>
+                  <option value="emergency">Emergency Alert</option>
+                  <option value="event">Event Notice</option>
+                  <option value="update">Community Update</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="announcementPriority" class="form-label">Priority</label>
+                <select class="form-control" id="announcementPriority" name="priority">
+                  <option value="low">Low</option>
+                  <option value="medium" selected>Medium</option>
+                  <option value="high">High</option>
+                  <option value="critical">Critical</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Emergency Type Field (shown only when Emergency Alert is selected) -->
+          <div class="row" id="emergencyTypeRow" style="display: none;">
+            <div class="col-md-12">
+              <div class="form-group">
+                <label for="emergencyType" class="form-label">Emergency Type</label>
+                <select class="form-control" id="emergencyType" name="emergencyType">
+                  <option value="medical">Medical Emergency</option>
+                  <option value="fire">Fire Emergency</option>
+                  <option value="security">Security Alert</option>
+                  <option value="natural_disaster">Natural Disaster</option>
+                  <option value="infrastructure">Infrastructure Issue</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="announcementAttachments" class="form-label">Attachments (Optional)</label>
+            <div class="custom-file">
+              <input type="file" class="custom-file-input" id="announcementAttachments" name="attachments" multiple
+                     accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+              <label class="custom-file-label" for="announcementAttachments">Choose files...</label>
+            </div>
+            <small class="form-text text-muted">You can upload multiple files (PDF, Word, or image files)</small>
+          </div>
+          
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="pinAnnouncement" name="pinned">
+            <label class="form-check-label" for="pinAnnouncement">
+              Pin this announcement to the top
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <i data-feather="send" class="wd-12 mg-r-5"></i>
+            Post Announcement
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Forward Announcement Modal -->
+<div class="modal fade" id="forwardAnnouncementModal" tabindex="-1" role="dialog" aria-labelledby="forwardAnnouncementModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="forwardAnnouncementModalLabel">
+          <i data-feather="share-2" class="wd-16 mg-r-5"></i>
+          Forward Announcement
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-info">
+          <i data-feather="info" class="wd-16 mg-r-5"></i>
+          Choose where to forward this announcement:
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Forward to:</label>
+          <div class="form-check">
+            <input type="radio" class="form-check-input" id="forwardToPublic" name="forwardTo" value="public" checked>
+            <label class="form-check-label" for="forwardToPublic">
+              <strong>Public Chat</strong> - Visible to all community members
+            </label>
+          </div>
+          <div class="form-check">
+            <input type="radio" class="form-check-input" id="forwardToPrivate" name="forwardTo" value="private">
+            <label class="form-check-label" for="forwardToPrivate">
+              <strong>Private Chat</strong> - Send as private message to specific users
+            </label>
+          </div>
+        </div>
+        
+        <div id="privateChatOptions" style="display: none;">
+          <div class="form-group">
+            <label for="selectedUsers" class="form-label">Select Users</label>
+            <select class="form-control" id="selectedUsers" name="selectedUsers" multiple>
+              <!-- Users will be loaded dynamically -->
+            </select>
+            <small class="form-text text-muted">Hold Ctrl/Cmd to select multiple users</small>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="confirmForwardBtn">
+          <i data-feather="send" class="wd-12 mg-r-5"></i>
+          Forward
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+</div>
+<%- include('layouts/partials/footer') %>
+
+<script src="/assets/component-logic-js/coordinator-announcements.js?v=<%= Date.now() %>"></script>
+
+<!-- Edit Announcement Modal -->
+<div class="modal fade" id="editAnnouncementModal" tabindex="-1" aria-labelledby="editAnnouncementModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editAnnouncementModalLabel">Edit Announcement</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editAnnouncementForm">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group mg-b-15">
+                                <label for="editTitle" class="form-label">Title <span class="text-danger">*</span></label>
+                                <input type="text" id="editTitle" class="form-control" placeholder="Enter announcement title" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group mg-b-15">
+                                <label for="editBody" class="form-label">Message <span class="text-danger">*</span></label>
+                                <textarea id="editBody" class="form-control" rows="4" placeholder="Enter announcement message" required></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mg-b-15">
+                                <label for="editSeverity" class="form-label">Priority</label>
+                                <select id="editSeverity" class="form-control">
+                                    <option value="low">Low</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="high">High</option>
+                                    <option value="critical">Critical</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mg-b-15">
+                                <label for="editStatus" class="form-label">Status</label>
+                                <select id="editStatus" class="form-control">
+                                    <option value="active">Active</option>
+                                    <option value="resolved">Resolved</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mg-b-15">
+                                <div class="form-check">
+                                    <input type="checkbox" id="editIsEmergency" class="form-check-input">
+                                    <label for="editIsEmergency" class="form-check-label">Emergency Announcement</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mg-b-15">
+                                <div class="form-check">
+                                    <input type="checkbox" id="editPinned" class="form-check-input">
+                                    <label for="editPinned" class="form-check-label">Pin to Top</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveEditChanges">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('layouts/partials/bottom-files') %>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Meta -->
+    <meta name="description" content="Emergency Social Network - Connect, Alert, and Coordinate during emergencies">
+    <meta name="author" content="Emergency Social Network">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="/assets/img/esn.png">
+
+    <title>Emergency Social Network - Stay Connected During Emergencies</title>
+
+    <!-- vendor css -->
+    <link href="/lib/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+    <link href="/lib/ionicons/css/ionicons.min.css" rel="stylesheet">
+    <link href="/lib/remixicon/fonts/remixicon.css" rel="stylesheet">
+
+    <!-- DashForge CSS -->
+    <link rel="stylesheet" href="/assets/css/dashforge.css?v=<%= Date.now() %>">
+    <link rel="stylesheet" href="/assets/css/dashforge.landing.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="/">
+                <img src="/assets/img/esn.png" alt="Emergency Social Network" height="40" class="me-2">
+                <span class="fw-bold text-primary">Emergency Social Network</span>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#features">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#about">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contact">Contact</a>
+                    </li>
+                    <li class="nav-item ms-2">
+                        <a class="btn btn-outline-primary" href="/login">Sign In</a>
+                    </li>
+                    <li class="nav-item ms-2">
+                        <a class="btn btn-primary" href="/register">Get Started</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section bg-gradient-primary py-5" style="background: #c5c5c5">
+        <div class="container">
+            <div class="row align-items-center min-vh-75">
+                <div class="col-lg-6">
+                    <h1 class="display-4 fw-bold mb-4">Stay Connected During Emergencies</h1>
+                    <p class="lead mb-4" style="color: black;">Emergency Social Network helps communities coordinate, share critical information, and support each other during emergencies and disasters.</p>
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="/register" class="btn btn-light btn-lg">Join Now</a>
+                        <a href="#features" class="btn btn-outline-light btn-lg">Learn More</a>
+                    </div>
+                </div>
+                <div class="col-lg-6 text-center" >
+                    <img src="/assets/img/esn.png" style="border-radius: 20px;" alt="Emergency Response" class="img-fluid" style="max-height: 400px;">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-5">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="display-5 fw-bold">Key Features</h2>
+                <p class="lead text-muted">Everything you need to stay informed and connected during emergencies</p>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                                <i class="fas fa-bullhorn fa-2x text-primary"></i>
+                            </div>
+                            <h5 class="fw-bold">Emergency Alerts</h5>
+                            <p class="text-muted">Receive real-time emergency notifications and alerts from local authorities and emergency services.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                                <i class="fas fa-users fa-2x text-success"></i>
+                            </div>
+                            <h5 class="fw-bold">Community Coordination</h5>
+                            <p class="text-muted">Connect with neighbors and community members to coordinate assistance and share resources.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                                <i class="fas fa-map-marked-alt fa-2x text-info"></i>
+                            </div>
+                            <h5 class="fw-bold">Location Services</h5>
+                            <p class="text-muted">Share your location and find nearby emergency services, shelters, and safe zones.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                                <i class="fas fa-phone fa-2x text-warning"></i>
+                            </div>
+                            <h5 class="fw-bold">Emergency Contacts</h5>
+                            <p class="text-muted">Quick access to emergency contacts and the ability to share your status with family and friends.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                                <i class="fas fa-comments fa-2x text-danger"></i>
+                            </div>
+                            <h5 class="fw-bold">Real-time Communication</h5>
+                            <p class="text-muted">Chat with emergency coordinators and community members during crisis situations.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <div class="bg-secondary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                                <i class="fas fa-shield-alt fa-2x text-secondary"></i>
+                            </div>
+                            <h5 class="fw-bold">Secure & Reliable</h5>
+                            <p class="text-muted">Built with security and reliability in mind to ensure your information is safe and accessible when you need it most.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="bg-light py-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-12" style="text-align: center;">
+                    <p class="lead mb-4">During emergencies, communication is critical. Our platform bridges the gap between emergency services, community coordinators, and citizens to ensure everyone stays informed and safe.</p>
+                    
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-5 bg-primary text-white">
+        <div class="container text-center">
+            <h2 class="display-5 fw-bold mb-4">Ready to Get Started?</h2>
+            <p class="lead mb-4">Join thousands of community members who are prepared for emergencies</p>
+            <a href="/register" class="btn btn-light btn-lg me-3">Create Account</a>
+            <a href="/login" class="btn btn-outline-light btn-lg">Sign In</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2024 Emergency Social Network. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-white me-3">Privacy Policy</a>
+                    <a href="#" class="text-white me-3">Terms of Service</a>
+                    <a href="#" class="text-white">Contact</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="/lib/jquery/jquery.min.js"></script>
+    <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="/lib/feather-icons/feather.min.js"></script>
+    <script src="/lib/ionicons/ionicons/ionicons.esm.js" type="module"></script>
+    
+    <script src="/assets/js/dashforge.js"></script>
+    
+    <script>
+        // Initialize feather icons
+        feather.replace();
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

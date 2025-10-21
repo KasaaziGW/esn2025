@@ -1,0 +1,1165 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Twitter -->
+    <meta name="twitter:site" content="@themepixels">
+    <meta name="twitter:creator" content="@themepixels">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="DashForge">
+    <meta name="twitter:description" content="Responsive Bootstrap 5 Dashboard Template">
+    <meta name="twitter:image" content="../../../../dashforge/img/dashforge-social.html">
+
+    <!-- Facebook -->
+    <meta property="og:url" content="http://themepixels.me/dashforge">
+    <meta property="og:title" content="DashForge">
+    <meta property="og:description" content="Responsive Bootstrap 5 Dashboard Template">
+
+    <meta property="og:image" content="../../../../dashforge/img/dashforge-social.html">
+    <meta property="og:image:secure_url" content="../../../../dashforge/img/dashforge-social.html">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="600">
+
+    <!-- Meta -->
+    <meta name="description" content="Responsive Bootstrap 5 Dashboard Template">
+    <meta name="author" content="ThemePixels">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="../../assets/img/favicon.png">
+
+    <title>DashForge Responsive Bootstrap 5 Dashboard Template</title>
+
+    <!-- vendor css -->
+    <link href="../../lib/%40fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+    <!-- <link href="../../lib/ionicons/css/ionicons.min.css" rel="stylesheet"> -->
+    <link href="../../lib/remixicon/fonts/remixicon.css" rel="stylesheet">
+
+    <!-- DashForge CSS -->
+    <link rel="stylesheet" href="../../assets/css/dashforge.css">
+    <link rel="stylesheet" href="../../assets/css/dashforge.chat.css">
+  <style>
+    /* WhatsApp-like message bubbles */
+    .message-bubble {
+        max-width: 70%;
+        min-width: fit-content;
+        width: fit-content;
+        padding: 8px 12px;
+        border-radius: 18px;
+        margin: 2px 0;
+        position: relative;
+        word-wrap: break-word;
+        display: inline-block;
+    }
+
+    .own-message {
+        background-color: #dcf8c6;
+        color: #000;
+        margin-left: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+    }
+
+    .other-message {
+        background-color: #ffffff;
+        color: #000;
+        border: 1px solid #e5e5e5;
+        margin-right: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .message-time {
+        font-size: 11px;
+        color: #999;
+        margin-top: 4px;
+        text-align: right;
+    }
+
+    .own-message .message-time {
+        text-align: right;
+    }
+
+    .other-message .message-time {
+        text-align: left;
+    }
+
+    .message-content p {
+        margin: 0;
+        line-height: 1.4;
+    }
+    
+    /* Ensure proper alignment for message containers */
+    .media-body.text-end {
+        display: flex;
+        justify-content: flex-end;
+    }
+    
+    .media-body:not(.text-end) {
+        display: flex;
+        justify-content: flex-start;
+    }
+
+    /* Date dividers */
+    .chat-group-divider {
+        text-align: center;
+        margin: 20px 0;
+        position: relative;
+    }
+
+    .chat-group-divider::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background-color: #e5e5e5;
+        z-index: 1;
+    }
+
+    .chat-group-divider span {
+        background-color: #f8f9fa;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        color: #666;
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Online status indicators */
+    .avatar-online::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 8px;
+        height: 8px;
+        background-color: #4caf50;
+        border: 2px solid #fff;
+        border-radius: 50%;
+    }
+
+    .avatar-offline::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 8px;
+        height: 8px;
+        background-color: #ccc;
+        border: 2px solid #fff;
+        border-radius: 50%;
+    }
+  </style>
+  </head>
+  <body class="app-chat">
+
+    <%- include('layouts/partials/sidebar', { user: user, activePage: 'private-chat' }) %>
+
+    <div class="content ht-100v pd-0">
+      <div class="content-header">
+        <div class="content-search">
+          <i data-feather="search"></i>
+          <input type="search" class="form-control" placeholder="Search">
+        </div>
+        <nav class="nav">
+          <a href="#" class="nav-link"><i data-feather="help-circle"></i></a>
+          <a href="#" class="nav-link"><i data-feather="grid"></i></a>
+          <a href="#" class="nav-link"><i data-feather="align-left"></i></a>
+        </nav>
+      </div><!-- content-header -->
+
+      <div class="content-body pd-0">
+        <div class="chat-wrapper chat-wrapper-two">
+
+          <div class="chat-sidebar">
+
+            <div class="chat-sidebar-header">
+              <a href="#" data-bs-toggle="dropdown" class="dropdown-link">
+                <div class="d-flex align-items-center">
+                  <div class="avatar avatar-sm mg-r-8"><span class="avatar-initial rounded-circle">T</span></div>
+                  <span class="tx-color-01 tx-semibold">TeamName</span>
+                </div>
+              </a>
+            </div><!-- chat-sidebar-header -->
+
+            <!-- start sidebar body -->
+            <div class="chat-sidebar-body">
+
+              <div class="flex-fill pd-y-20 pd-x-10 bd-t">
+                <div class="d-flex justify-content-between align-items-center mg-b-10">
+                  <p class="tx-10 tx-uppercase tx-medium tx-color-03 tx-sans tx-spacing-1 pd-l-10 mg-b-0">Direct Messages</p>
+                  <button class="btn btn-sm btn-primary" onclick="startNewChat()">
+                    <i data-feather="plus" class="wd-14"></i>
+                  </button>
+                </div>
+                <div id="privateChats" class="chat-msg-list">
+                  <!-- Private chats will be loaded here -->
+                </div>
+              </div>
+              
+              <div class="flex-fill pd-y-20 pd-x-10 bd-t">
+                <p class="tx-10 tx-uppercase tx-medium tx-color-03 tx-sans tx-spacing-1 pd-l-10 mg-b-10">Community Members</p>
+                <div id="communityMembers" class="chat-msg-list">
+                  <!-- Community members will be loaded here -->
+                </div>
+              </div>
+            </div><!-- chat-sidebar-body -->
+
+            <div class="chat-sidebar-footer">
+              <div class="d-flex align-items-center">
+                <h6 class="tx-semibold mg-b-0"></h6>
+              </div>
+              <div class="d-flex align-items-center">
+                <a href="#"><i data-feather="mic"></i></a>
+                <a href="#"><i data-feather="settings"></i></a>
+              </div>
+            </div><!-- chat-sidebar-footer -->
+
+          </div><!-- chat-sidebar -->
+
+          <div class="chat-content">
+            <div class="chat-content-header">
+              <div id="chatTitle" class="d-none">
+                <div class="d-flex align-items-center">
+                  <div class="avatar avatar-sm avatar-online mg-r-8">
+                    <span class="avatar-initial rounded-circle">U</span>
+                  </div>
+                  <h6 class="mg-b-0">Select a chat to start messaging</h6>
+                </div>
+              </div>
+              <div class="d-flex">
+                <nav id="chatNav" class="d-none">
+                  <a href="#" data-bs-toggle="tooltip" title="Call User"><i data-feather="phone"></i></a>
+                  <a href="#" data-bs-toggle="tooltip" title="User Details"><i data-feather="info"></i></a>
+                  <a href="#" data-bs-toggle="tooltip" title="Add to Favorites"><i data-feather="star"></i></a>
+                  <a href="#" data-bs-toggle="tooltip" title="Flag User"><i data-feather="flag"></i></a>
+                </nav>
+                <nav class="mg-sm-l-10">
+                  <a href="#" data-bs-toggle="tooltip" title="Chat Settings" data-placement="left"><i data-feather="more-vertical"></i></a>
+                </nav>
+              </div>
+            </div><!-- chat-content-header -->
+
+            <div class="chat-content-body">
+              <div id="chatMessages" class="chat-group">
+                <div class="text-center text-muted pd-y-40">
+                  <i data-feather="message-square" class="wd-48 mg-b-10"></i>
+                  <h6>Welcome to Private Chat</h6>
+                  <p class="tx-color-03">Select a user from the sidebar to start a conversation</p>
+                </div>
+              </div>
+            </div><!-- chat-content-body -->
+
+            <div class="chat-sidebar-right">
+              <div class="pd-y-20 pd-x-10">
+                <div class="tx-10 tx-uppercase tx-medium tx-color-03 tx-sans tx-spacing-1 pd-l-10">Members List</div>
+                <div class="chat-member-list">
+                  <a href="#" class="media">
+                    <div class="avatar avatar-sm avatar-online"><span class="avatar-initial rounded-circle">b</span></div>
+                    <div class="media-body mg-l-10">
+                      <h6 class="mg-b-0">dfbot</h6>
+                    </div><!-- media-body -->
+                  </a><!-- media -->
+                  <a href="#" class="media">
+                    <div class="avatar avatar-sm avatar-online"><img src="../../assets/img/img6.jpg" class="rounded-circle" alt=""></div>
+                    <div class="media-body mg-l-10">
+                      <h6 class="mg-b-0">situmay</h6>
+                    </div><!-- media-body -->
+                  </a><!-- media -->
+                  <a href="#" class="media">
+                    <div class="avatar avatar-sm avatar-offline"><img src="../../assets/img/img7.jpg" class="rounded-circle" alt=""></div>
+                    <div class="media-body mg-l-10">
+                      <h6 class="mg-b-0">acantones</h6>
+                    </div><!-- media-body -->
+                  </a><!-- media -->
+                  <a href="#" class="media">
+                    <div class="avatar avatar-sm avatar-offline"><img src="../../assets/img/img8.jpg" class="rounded-circle" alt=""></div>
+                    <div class="media-body mg-l-10">
+                      <h6 class="mg-b-0">rlabares</h6>
+                    </div><!-- media-body -->
+                  </a><!-- media -->
+                  <a href="#" class="media">
+                    <div class="avatar avatar-sm avatar-online"><img src="../../assets/img/img9.jpg" class="rounded-circle" alt=""></div>
+                    <div class="media-body mg-l-10">
+                      <h6 class="mg-b-0">h.owen</h6>
+                    </div><!-- media-body -->
+                  </a><!-- media -->
+                  <a href="#" class="media">
+                    <div class="avatar avatar-xs avatar-online"><span class="avatar-initial rounded-circle">k</span></div>
+                    <div class="media-body mg-l-10">
+                      <h6 class="mg-b-0">k.billie</h6>
+                    </div><!-- media-body -->
+                  </a><!-- media -->
+                  <a href="#" class="media">
+                    <div class="avatar avatar-sm avatar-online"><img src="../../assets/img/img10.jpg" class="rounded-circle" alt=""></div>
+                    <div class="media-body mg-l-10">
+                      <h6 class="mg-b-0">m.audrey</h6>
+                    </div><!-- media-body -->
+                  </a><!-- media -->
+                  <a href="#" class="media">
+                    <div class="avatar avatar-sm avatar-online"><span class="avatar-initial rounded-circle">m</span></div>
+                    <div class="media-body mg-l-10">
+                      <h6 class="mg-b-0">macasindil</h6>
+                    </div><!-- media-body -->
+                  </a><!-- media -->
+                  <a href="#" class="media">
+                    <div class="avatar avatar-sm avatar-online"><img src="../../assets/img/img6.jpg" class="rounded-circle" alt=""></div>
+                    <div class="media-body mg-l-10">
+                      <h6 class="mg-b-0">e.ocaba</h6>
+                    </div><!-- media-body -->
+                  </a><!-- media -->
+                  <a href="#" class="media">
+                    <div class="avatar avatar-sm avatar-online"><span class="avatar-initial rounded-circle">k</span></div>
+                    <div class="media-body mg-l-10">
+                      <h6 class="mg-b-0">avendula</h6>
+                    </div><!-- media-body -->
+                  </a><!-- media -->
+                </div><!-- chat-msg-list -->
+              </div>
+            </div><!-- chat-sidebar-right -->
+
+            <div id="chatFooter" class="chat-content-footer d-none">
+              <a href="#" data-bs-toggle="tooltip" title="Add File" class="chat-plus" onclick="triggerFileUpload()">
+                <i data-feather="plus"></i>
+              </a>
+              <input type="text" id="messageInput" class="form-control align-self-center bd-0" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
+              <nav>
+                <a href="#" data-bs-toggle="tooltip" title="Add Image"><i data-feather="image"></i></a>
+                <a href="#" data-bs-toggle="tooltip" title="Add Emoji"><i data-feather="smile"></i></a>
+                <a href="#" data-bs-toggle="tooltip" title="Send Message" id="sendButton"><i data-feather="send"></i></a>
+              </nav>
+            </div><!-- chat-content-footer -->
+            
+            <!-- Hidden file input -->
+            <input type="file" id="fileUpload" style="display: none;" accept="image/*,.pdf,.doc,.docx,.txt">
+          </div><!-- chat-content -->
+        </div><!-- chat-wrapper -->
+      </div>
+    </div><!-- content -->
+
+    <div class="modal fade effect-scale" id="modalCreateChannel" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+        <div class="modal-content">
+          <div class="modal-body pd-20">
+            <button type="button" class="close pos-absolute t-15 r-15" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true"><i data-feather="x" class="wd-20"></i></span>
+            </button>
+
+            <h6 class="tx-uppercase tx-spacing-1 tx-semibold mg-b-20">Create Channel</h6>
+            <input type="text" class="form-control" placeholder="Channel name" value="">
+          </div>
+          <div class="modal-footer pd-x-20 pd-b-20 pd-t-0 bd-t-0">
+            <button type="button" class="btn btn-secondary tx-13" data-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary tx-13">Create</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- New Chat Modal -->
+    <div class="modal fade effect-scale" id="modalNewChat" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-body pd-20 pd-sm-30">
+            <button type="button" class="close pos-absolute t-20 r-20" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true"><i data-feather="x" class="wd-20"></i></span>
+            </button>
+
+            <h6 class="tx-18 tx-sm-20 mg-b-5">Start New Chat</h6>
+            <p class="tx-color-03 mg-b-20">Select a user from your community to start a private conversation</p>
+            <div class="form-group">
+              <label class="form-label">Select User</label>
+              <select id="newChatUser" class="form-control">
+                <option value="">Choose a user...</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer pd-x-20 pd-b-20 pd-t-0 bd-t-0">
+            <button type="button" class="btn btn-secondary tx-13" data-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary tx-13" onclick="createNewChat()">Start Chat</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%- include('layouts/partials/footer') %>
+    <script src="../../assets/js/dashforge.chat.js"></script>
+
+    <script>
+      $(function(){
+        'use strict'
+
+        window.darkMode = function(){
+          $('.btn-white').addClass('btn-dark').removeClass('btn-white');
+        }
+
+        window.lightMode = function() {
+          $('.btn-dark').addClass('btn-white').removeClass('btn-dark');
+        }
+
+        var hasMode = typeof Cookies !== 'undefined' ? Cookies.get('df-mode') : null;
+        if(hasMode === 'dark') {
+          darkMode();
+        } else {
+          lightMode();
+        }
+      })
+    </script>
+
+<script>
+    // socket is already declared in bottom-files.ejs
+    let currentChatId = null;
+    let currentChatUser = null;
+    let chatMessages = [];
+    
+    // Initialize page
+    $(document).ready(function() {
+        console.log('=== PRIVATE CHAT PAGE INITIALIZED ===');
+        console.log('User ID:', '<%= user._id || user.id %>');
+        console.log('Socket.IO available:', typeof io !== 'undefined');
+        
+        // Initialize Socket.IO
+        initSocket();
+        
+        // Load community members
+        loadCommunityMembers();
+        
+        // Load existing private chats
+        loadPrivateChats();
+        
+        // Try to restore last active chat from localStorage
+        restoreLastActiveChat();
+        
+        // If no chat is restored, show welcome message
+        setTimeout(() => {
+            if (!currentChatId) {
+                showWelcomeMessage();
+            }
+        }, 1000);
+        
+        // Initialize tooltips
+        $('[data-bs-toggle="tooltip"]').tooltip();
+        
+        // Add click handler for message input
+        $('#messageInput').on('keypress', function(e) {
+            if (e.which === 13) { // Enter key
+                sendMessage();
+            }
+        });
+        
+        // Add click handler for send button (if it exists)
+        $(document).on('click', '#sendButton', function() {
+            sendMessage();
+        });
+    });
+    
+    // Initialize Socket.IO connection
+    function initSocket() {
+        if (typeof io === 'undefined') {
+            console.error('Socket.IO not loaded');
+            return;
+        }
+        
+        // Use the global socket from bottom-files.ejs or create new one
+        socket = window.socket;
+        if (!socket) {
+            socket = io({
+                auth: {
+                    userId: '<%= user._id || user.id %>'
+                }
+            });
+            window.socket = socket;
+        }
+        
+        socket.on('connect', () => {
+            console.log('Socket connected:', socket.id);
+        });
+        
+        socket.on('disconnect', () => {
+            console.log('Socket disconnected');
+        });
+        
+        socket.on('newMessage', (message) => {
+            // Fix the comparison - message.chat can be either a string or an object
+            const messageChatId = typeof message.chat === 'string' ? message.chat : message.chat._id;
+            
+            if (messageChatId === currentChatId) {
+                // Check if message is not already displayed
+                const messageExists = $(`[data-message-id="${message._id}"]`).length > 0;
+                if (!messageExists) {
+                    displayMessage(message);
+                    scrollToBottom();
+                }
+            }
+            // Update chat list to show latest message
+            if (message.chat) {
+                const chatId = typeof message.chat === 'string' ? message.chat : message.chat._id;
+                updateChatListItem(chatId, message.content, message.createdAt);
+            }
+        });
+        
+        socket.on('typing', (data) => {
+            console.log('Typing indicator:', data);
+            // Handle typing indicators if needed
+        });
+        
+        // Handle user online/offline status
+        socket.on('userOnline', (userId) => {
+            updateUserStatus(userId, true);
+        });
+        
+        socket.on('userOffline', (userId) => {
+            updateUserStatus(userId, false);
+        });
+    }
+    
+    // Load community members for starting new chats
+    function loadCommunityMembers() {
+        $.ajax({
+            url: '/api/community-access/members',
+            method: 'GET',
+            success: function(response) {
+                console.log('Community members loaded:', response);
+                if (response.data && response.data.members) {
+                    renderCommunityMembers(response.data.members);
+                    populateNewChatDropdown(response.data.members);
+                } else {
+                    console.log('No community members found');
+                    $('#communityMembers').html('<p class="text-muted">No community members found</p>');
+                }
+            },
+            error: function(xhr) {
+                console.error('Failed to load community members:', xhr);
+                $('#communityMembers').html('<p class="text-danger">Failed to load community members</p>');
+            }
+        });
+    }
+    
+    // Render community members in sidebar
+    function renderCommunityMembers(members) {
+        const container = $('#communityMembers');
+        container.empty();
+        
+        members.forEach(member => {
+            const isOnline = member.isOnline || false;
+            const avatarClass = isOnline ? 'avatar-online' : 'avatar-offline';
+            const lastSeen = member.lastSeenAt ? formatTime(member.lastSeenAt) : 'Never';
+            
+            container.append(`
+                <a href="#" class="media" data-member-id="${member._id}" onclick="startChatWithUser('${member._id}', '${member.displayName || member.username}')">
+                    <div class="avatar avatar-sm ${avatarClass}">
+                        ${member.avatarUrl ? 
+                            `<img src="${member.avatarUrl}" class="rounded-circle" alt="${member.displayName || member.username}">` :
+                            `<span class="avatar-initial rounded-circle">${(member.displayName || member.username || 'U').charAt(0).toUpperCase()}</span>`
+                        }
+                    </div>
+                    <div class="media-body mg-l-10">
+                        <h6 class="mg-b-0">${member.displayName || member.username}</h6>
+                        <small class="d-block tx-color-04">${lastSeen}</small>
+                    </div>
+                </a>
+            `);
+        });
+        
+        feather.replace();
+    }
+    
+    // Populate new chat dropdown
+    function populateNewChatDropdown(members) {
+        const dropdown = $('#newChatUser');
+        dropdown.empty().append('<option value="">Choose a user...</option>');
+        
+        members.forEach(member => {
+            dropdown.append(`<option value="${member._id}">${member.displayName || member.username}</option>`);
+        });
+    }
+    
+    // Load existing private chats
+    function loadPrivateChats() {
+        $.ajax({
+            url: '/api/chats/private',
+            method: 'GET',
+            success: function(response) {
+                console.log('Private chats loaded:', response);
+                if (response.data && response.data.chats) {
+                    renderPrivateChats(response.data.chats);
+                } else {
+                    console.log('No private chats found');
+                    $('#privateChats').html('<p class="text-muted">No private chats yet</p>');
+                }
+            },
+            error: function(xhr) {
+                console.error('Failed to load private chats:', xhr);
+                $('#privateChats').html('<p class="text-danger">Failed to load private chats</p>');
+            }
+        });
+    }
+    
+    // Render private chats in sidebar
+    function renderPrivateChats(chats) {
+        const container = $('#privateChats');
+        container.empty();
+        
+        chats.forEach(chat => {
+            const otherUser = chat.participants.find(p => p._id !== '<%= user._id || user.id %>');
+            if (otherUser) {
+                const unreadCount = chat.unreadCount || 0;
+                const lastMessage = chat.lastMessage || 'No messages yet';
+                const lastMessageTime = chat.lastMessageAt ? formatTime(chat.lastMessageAt) : '';
+                
+                container.append(`
+                    <a href="#" class="nav-link" data-user-id="${otherUser._id}" onclick="openChat('${chat._id}', '${otherUser.displayName || otherUser.username}', '${otherUser._id}')">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar avatar-sm mg-r-8">
+                                ${otherUser.avatarUrl ? 
+                                    `<img src="${otherUser.avatarUrl}" class="rounded-circle" alt="${otherUser.displayName || otherUser.username}">` :
+                                    `<span class="avatar-initial rounded-circle">${(otherUser.displayName || otherUser.username || 'U').charAt(0).toUpperCase()}</span>`
+                                }
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mg-b-0">${otherUser.displayName || otherUser.username}</h6>
+                                <small class="d-block tx-color-04">${lastMessage}</small>
+                            </div>
+                            ${unreadCount > 0 ? `<span class="badge text-bg-danger">${unreadCount}</span>` : ''}
+                        </div>
+                    </a>
+                `);
+            }
+        });
+        
+        feather.replace();
+    }
+    
+    // Start new chat modal
+    function startNewChat() {
+        $('#modalNewChat').modal('show');
+    }
+    
+    // Create new chat
+    function createNewChat() {
+        const userId = $('#newChatUser').val();
+        if (!userId) {
+            alert('Please select a user');
+            return;
+        }
+        
+        $.ajax({
+            url: '/api/chats/private',
+            method: 'POST',
+            data: { recipientId: userId },
+            success: function(response) {
+                console.log('New chat created:', response);
+                if (response.data && response.data.chat) {
+                    const chat = response.data.chat;
+                    const otherUser = chat.participants.find(p => p._id !== '<%= user._id || user.id %>');
+                    if (otherUser) {
+                        openChat(chat._id, otherUser.displayName || otherUser.username, otherUser._id);
+                        loadPrivateChats(); // Refresh chat list
+                    }
+                }
+                $('#modalNewChat').modal('hide');
+            },
+            error: function(xhr) {
+                console.error('Failed to create new chat:', xhr);
+                alert('Failed to create new chat');
+            }
+        });
+    }
+    
+    // Start chat with user from community members list
+    function startChatWithUser(userId, userName) {
+        console.log('Starting chat with user:', { userId, userName });
+        
+        // Clear previous chat content immediately and show loading message
+        $('#chatMessages').empty().html(`
+            <div class="text-center text-muted pd-y-40">
+                <i data-feather="message-square" class="wd-48 mg-b-10"></i>
+                <h6>Starting conversation with @${userName}</h6>
+                <p class="tx-color-03">Please wait...</p>
+            </div>
+        `);
+        feather.replace();
+        
+        // Check if chat already exists
+        $.ajax({
+            url: `/api/chats/private/with/${userId}`,
+            method: 'GET',
+            success: function(response) {
+                console.log('Chat check response:', response);
+                if (response.data && response.data.chat) {
+                    console.log('Existing chat found:', response.data.chat._id);
+                    openChat(response.data.chat._id, userName, userId);
+                } else {
+                    console.log('No existing chat, creating new one');
+                    // Create new chat
+                    $.ajax({
+                        url: '/api/chats/private',
+                        method: 'POST',
+                        data: { recipientId: userId },
+                        success: function(response) {
+                            console.log('New chat created:', response);
+                            if (response.data && response.data.chat) {
+                                openChat(response.data.chat._id, userName, userId);
+                                loadPrivateChats(); // Refresh chat list
+                            }
+                        },
+                        error: function(xhr) {
+                            console.error('Failed to create chat:', xhr);
+                            alert('Failed to create chat. Please try again.');
+                        }
+                    });
+                }
+            },
+            error: function(xhr) {
+                console.error('Failed to check existing chat:', xhr);
+                alert('Failed to check for existing chat. Please try again.');
+            }
+        });
+    }
+    
+    // Open chat with user
+    function openChat(chatId, userName, userId) {
+        console.log('Opening chat:', { chatId, userName, userId });
+        currentChatId = chatId;
+        currentChatUser = { id: userId, name: userName };
+        
+        // Clear previous chat content immediately and show loading message
+        $('#chatMessages').empty().html(`
+            <div class="text-center text-muted pd-y-40">
+                <i data-feather="message-square" class="wd-48 mg-b-10"></i>
+                <h6>Loading conversation with @${userName}</h6>
+                <p class="tx-color-03">Please wait...</p>
+            </div>
+        `);
+        feather.replace();
+        
+        // Update UI
+        $('#chatTitle').removeClass('d-none').find('h6').text(`@${userName}`);
+        $('#chatNav').removeClass('d-none');
+        $('#chatFooter').removeClass('d-none');
+        
+        // Join socket room
+        if (socket && socket.connected) {
+            socket.emit('joinChat', { chatId: chatId });
+            console.log('Joined chat room:', chatId);
+        }
+        
+        // Load chat messages
+        loadChatMessages(chatId);
+        
+        // Mark as active in sidebar
+        $('.media').removeClass('active');
+        $(`a[onclick*="${chatId}"]`).addClass('active');
+        
+        // Save active chat to localStorage
+        saveActiveChat(chatId, userName, userId);
+        
+        console.log('Chat opened successfully');
+    }
+    
+    // Load chat messages
+    function loadChatMessages(chatId) {
+        $.ajax({
+            url: `/api/chats/${chatId}/messages`,
+            method: 'GET',
+            success: function(response) {
+                console.log('Chat messages loaded:', response);
+                if (response.data && Array.isArray(response.data)) {
+                    // Response.data is directly the messages array
+                    chatMessages = response.data;
+                    renderMessages(response.data);
+                    scrollToBottom();
+                } else if (response.data && response.data.messages) {
+                    // Response.data has a messages property
+                    chatMessages = response.data.messages;
+                    renderMessages(response.data.messages);
+                    scrollToBottom();
+                } else {
+                    console.log('No messages found');
+                    $('#chatMessages').html(`
+                        <div class="text-center text-muted pd-y-40">
+                            <i data-feather="message-square" class="wd-48 mg-b-10"></i>
+                            <h6>No messages yet</h6>
+                            <p class="tx-color-03">Start the conversation!</p>
+                        </div>
+                    `);
+                    feather.replace();
+                }
+            },
+            error: function(xhr) {
+                console.error('Failed to load chat messages:', xhr);
+            }
+        });
+    }
+    
+    // Render messages
+    function renderMessages(messages) {
+        console.log('renderMessages called with:', messages);
+        console.log('Messages count:', messages ? messages.length : 0);
+        const container = $('#chatMessages');
+        console.log('Container element:', container);
+        container.empty();
+        
+        if (messages.length === 0) {
+            container.html(`
+                <div class="text-center text-muted pd-y-40">
+                    <i data-feather="message-square" class="wd-48 mg-b-10"></i>
+                    <h6>No messages yet</h6>
+                    <p class="tx-color-03">Start the conversation!</p>
+                </div>
+            `);
+            feather.replace();
+            return;
+        }
+        
+        let currentDate = null;
+        
+        messages.forEach((message, index) => {
+            const messageDate = new Date(message.createdAt).toDateString();
+            const isOwnMessage = message.sender._id === '<%= user._id || user.id %>';
+            
+            // Add date divider if needed
+            if (currentDate !== messageDate) {
+                currentDate = messageDate;
+                container.append(`<div class="chat-group-divider"><span>${formatDate(message.createdAt)}</span></div>`);
+            }
+            
+            // Message content
+            let messageContent = '';
+            if (message.type === 'image') {
+                messageContent = `<img src="${message.content}" class="img-fluid rounded mg-b-10" style="max-width: 200px;" alt="Image">`;
+            } else if (message.type === 'file') {
+                messageContent = `<a href="${message.content}" target="_blank" class="d-flex align-items-center"><i data-feather="file" class="mg-r-5"></i>File attachment</a>`;
+            } else {
+                messageContent = `<p>${escapeHtml(message.content)}</p>`;
+            }
+            
+            const messageHtml = `
+                <div class="media ${isOwnMessage ? 'justify-content-end' : ''}" data-message-id="${message._id}">
+                    ${!isOwnMessage ? `
+                        <div class="avatar avatar-sm avatar-online mg-r-10" onclick="viewUserProfile('${message.sender._id}', '${message.sender.displayName || message.sender.username}')" style="cursor: pointer;">
+                            ${message.sender.avatarUrl ? 
+                                `<img src="${message.sender.avatarUrl}" class="rounded-circle" alt="${message.sender.displayName || message.sender.username}">` :
+                                `<span class="avatar-initial rounded-circle">${(message.sender.displayName || message.sender.username || 'U').charAt(0).toUpperCase()}</span>`
+                            }
+                        </div>
+                    ` : ''}
+                    <div class="media-body ${isOwnMessage ? 'text-end' : ''}">
+                        <div class="message-bubble ${isOwnMessage ? 'own-message' : 'other-message'}">
+                            <div class="message-content">${messageContent}</div>
+                            <div class="message-time">${formatTime12Hour(message.createdAt)}</div>
+                        </div>
+                    </div>
+                    ${isOwnMessage ? `
+                        <div class="avatar avatar-sm avatar-online mg-l-10">
+                            ${message.sender.avatarUrl ? 
+                                `<img src="${message.sender.avatarUrl}" class="rounded-circle" alt="${message.sender.displayName || message.sender.username}">` :
+                                `<span class="avatar-initial rounded-circle">${(message.sender.displayName || message.sender.username || 'U').charAt(0).toUpperCase()}</span>`
+                            }
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            container.append(messageHtml);
+        });
+        
+        console.log('Messages rendered, final container HTML length:', container.html().length);
+        console.log('Container children count:', container.children().length);
+        feather.replace();
+    }
+    
+    // Display new message
+    function displayMessage(message) {
+        const container = $('#chatMessages');
+        const isOwnMessage = message.sender._id === '<%= user._id || user.id %>';
+        
+        // Clear welcome message if it exists
+        container.find('.text-center').remove();
+        
+        let messageContent = '';
+        if (message.type === 'image') {
+            messageContent = `<img src="${message.content}" class="img-fluid rounded mg-b-10" style="max-width: 200px;" alt="Image">`;
+        } else if (message.type === 'file') {
+            messageContent = `<a href="${message.content}" target="_blank" class="d-flex align-items-center"><i data-feather="file" class="mg-r-5"></i>File attachment</a>`;
+        } else {
+            messageContent = `<p>${escapeHtml(message.content)}</p>`;
+        }
+        
+        const messageHtml = `
+            <div class="media ${isOwnMessage ? 'justify-content-end' : ''}" data-message-id="${message._id}">
+                ${!isOwnMessage ? `
+                    <div class="avatar avatar-sm avatar-online mg-r-10" onclick="viewUserProfile('${message.sender._id}', '${message.sender.displayName || message.sender.username}')" style="cursor: pointer;">
+                        ${message.sender.avatarUrl ? 
+                            `<img src="${message.sender.avatarUrl}" class="rounded-circle" alt="${message.sender.displayName || message.sender.username}">` :
+                            `<span class="avatar-initial rounded-circle">${(message.sender.displayName || message.sender.username || 'U').charAt(0).toUpperCase()}</span>`
+                        }
+                    </div>
+                ` : ''}
+                <div class="media-body ${isOwnMessage ? 'text-end' : ''}">
+                    <div class="message-bubble ${isOwnMessage ? 'own-message' : 'other-message'}">
+                        <div class="message-content">${messageContent}</div>
+                        <div class="message-time">${formatTime12Hour(message.createdAt)}</div>
+                    </div>
+                </div>
+                ${isOwnMessage ? `
+                    <div class="avatar avatar-sm avatar-online mg-l-10">
+                        ${message.sender.avatarUrl ? 
+                            `<img src="${message.sender.avatarUrl}" class="rounded-circle" alt="${message.sender.displayName || message.sender.username}">` :
+                            `<span class="avatar-initial rounded-circle">${(message.sender.displayName || message.sender.username || 'U').charAt(0).toUpperCase()}</span>`
+                        }
+                    </div>
+                ` : ''}
+            </div>
+        `;
+        
+        container.append(messageHtml);
+        feather.replace();
+        scrollToBottom();
+    }
+    
+    // Send message
+    function sendMessage() {
+        const input = $('#messageInput');
+        const content = input.val().trim();
+        
+        console.log('Attempting to send message:', { content, currentChatId, currentChatUser });
+        
+        if (!content) {
+            // Don't send empty messages - add visual feedback
+            input.focus();
+            return;
+        }
+        
+        if (!currentChatId) {
+            console.log('No chat selected');
+            alert('Please select a chat first');
+            return;
+        }
+        
+        if (socket && socket.connected) {
+            console.log('Sending via Socket.IO');
+            socket.emit('privateMessage', {
+                recipientId: currentChatUser.id,
+                content: content,
+                type: 'text'
+            });
+        } else {
+            console.log('Socket not connected, using REST API');
+            // Fallback to REST API
+            $.ajax({
+                url: `/api/chats/${currentChatId}/messages`,
+                method: 'POST',
+                data: { content: content, type: 'text' },
+                success: function(response) {
+                    console.log('Message sent via REST:', response);
+                    if (response.data && response.data.message) {
+                        displayMessage(response.data.message);
+                        scrollToBottom();
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Failed to send message:', xhr);
+                    alert('Failed to send message. Please try again.');
+                }
+            });
+        }
+        
+        input.val('');
+    }
+    
+    // Handle key press
+    function handleKeyPress(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            sendMessage();
+        }
+    }
+    
+    // Trigger file upload
+    function triggerFileUpload() {
+        $('#fileUpload').click();
+    }
+    
+    // Handle file upload
+    $('#fileUpload').on('change', function(e) {
+        const file = e.target.files[0];
+        if (!file || !currentChatId) return;
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        $.ajax({
+            url: `/api/chats/${currentChatId}/messages`,
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                console.log('File sent:', response);
+                if (response.data && response.data.message) {
+                    displayMessage(response.data.message);
+                    scrollToBottom();
+                }
+                $('#fileUpload').val('');
+            },
+            error: function(xhr) {
+                console.error('Failed to send file:', xhr);
+                alert('Failed to send file');
+            }
+        });
+    });
+    
+    // Update chat list item
+    function updateChatListItem(chatId, lastMessage, lastMessageTime) {
+        const chatLink = $(`a[onclick*="${chatId}"]`);
+        if (chatLink.length) {
+            chatLink.find('.flex-grow-1 small').text(lastMessage);
+        }
+    }
+    
+    // Scroll to bottom
+    function scrollToBottom() {
+        const container = $('.chat-content-body');
+        container.scrollTop(container[0].scrollHeight);
+    }
+    
+    // Utility functions
+    function formatTime(dateString) {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diff = now - date;
+        
+        if (diff < 60000) return 'Just now';
+        if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+        if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+        return date.toLocaleDateString();
+    }
+    
+    // Format time in 12-hour format (07:17 PM)
+    function formatTime12Hour(date) {
+        const messageDate = new Date(date);
+        return messageDate.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        });
+    }
+    
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        
+        if (date.toDateString() === today.toDateString()) {
+            return 'Today';
+        } else if (date.toDateString() === yesterday.toDateString()) {
+            return 'Yesterday';
+        } else {
+            return date.toLocaleDateString();
+        }
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // View user profile
+    function viewUserProfile(userId, userName) {
+        // Open profile in a new tab or modal
+        window.open(`/profile/${userId}`, '_blank');
+    }
+    
+    // Update user online/offline status
+    function updateUserStatus(userId, isOnline) {
+        // Update status in chat list
+        const userElements = $(`.media[data-user-id="${userId}"]`);
+        userElements.find('.avatar').removeClass('avatar-online avatar-offline')
+            .addClass(isOnline ? 'avatar-online' : 'avatar-offline');
+        
+        // Update status in community members list
+        const memberElements = $(`.media[data-member-id="${userId}"]`);
+        memberElements.find('.avatar').removeClass('avatar-online avatar-offline')
+            .addClass(isOnline ? 'avatar-online' : 'avatar-offline');
+        
+        // Update status in chat header if current chat user
+        if (currentChatUser && currentChatUser.id === userId) {
+            const headerAvatar = $('#chatTitle .avatar');
+            headerAvatar.removeClass('avatar-online avatar-offline')
+                .addClass(isOnline ? 'avatar-online' : 'avatar-offline');
+        }
+    }
+    
+    // Save active chat to localStorage
+    function saveActiveChat(chatId, userName, userId) {
+        const activeChat = {
+            chatId: chatId,
+            userName: userName,
+            userId: userId,
+            timestamp: Date.now()
+        };
+        localStorage.setItem('activeChat', JSON.stringify(activeChat));
+    }
+    
+    // Restore last active chat from localStorage
+    function restoreLastActiveChat() {
+        try {
+            const savedChat = localStorage.getItem('activeChat');
+            if (savedChat) {
+                const activeChat = JSON.parse(savedChat);
+                // Check if the chat is not too old (within 24 hours)
+                const chatAge = Date.now() - activeChat.timestamp;
+                if (chatAge < 24 * 60 * 60 * 1000) { // 24 hours
+                    console.log('Restoring last active chat:', activeChat);
+                    openChat(activeChat.chatId, activeChat.userName, activeChat.userId);
+                } else {
+                    // Clear old chat data
+                    localStorage.removeItem('activeChat');
+                }
+            }
+        } catch (error) {
+            console.error('Error restoring last active chat:', error);
+            localStorage.removeItem('activeChat');
+        }
+    }
+    
+    // Show welcome message when no chat is selected
+    function showWelcomeMessage() {
+        $('#chatMessages').html(`
+            <div class="text-center text-muted pd-y-40">
+                <i data-feather="message-square" class="wd-48 mg-b-10"></i>
+                <h6>Welcome to Private Chat</h6>
+                <p class="tx-color-03">Select a user from the sidebar to start a conversation</p>
+            </div>
+        `);
+        feather.replace();
+    }
+    
+    // Clear current chat and reset state
+    function clearCurrentChat() {
+        currentChatId = null;
+        currentChatUser = null;
+        $('#chatMessages').empty();
+        $('#chatTitle').addClass('d-none');
+        $('#chatNav').addClass('d-none');
+        $('#chatFooter').addClass('d-none');
+        $('.media').removeClass('active');
+        localStorage.removeItem('activeChat');
+        showWelcomeMessage();
+    }
+</script>
+
+<%- include('layouts/partials/bottom-files') %>
