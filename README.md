@@ -5,7 +5,7 @@ The Emergency Social Network (ESN) is a web-based platform designed to improve c
 - Students: `Ainedembe Denis, Namusoke Olivia`
 - Lecturer: `Kasaazi William`
 
-## 1. Technologies used
+## 1. Technologies used.
 Node.js + Express + MongoDB Atlas
 
 ## 2. ESN System Features
