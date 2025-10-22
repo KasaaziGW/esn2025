@@ -13,12 +13,9 @@ $(document).ready(function() {
         const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
         
         alertContainer.html(`
-            <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+            <div class="alert ${alertClass} fade show" role="alert">
                 <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
                 ${message}
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
             </div>
         `);
         

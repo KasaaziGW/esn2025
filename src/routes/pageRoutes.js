@@ -1,8 +1,6 @@
 import express from 'express';
 import { clearBrowserData } from '../middleware/noCache.js';
 import { sessionAuth } from '../middleware/sessionAuth.js';
-import { requireCommunityMembership } from '../middleware/communityMembership.js';
-import CommunityMember from '../models/communityMember.js';
 
 const router = express.Router();
 
@@ -20,53 +18,6 @@ router.get('/login', (req, res) => {
 router.get('/register', (req, res) => {
   res.render('signup');
 });
-
-// Admin coordinator requests page
-router.get('/admin/coordinator-requests', sessionAuth, async (req, res) => {
-  // Check if user is admin
-  if (req.user.role !== 'admin') {
-    return res.status(403).render('error', {
-      error: {
-        status: 403,
-        message: 'Access denied. Admin privileges required.'
-      }
-    });
-  }
-  
-  // Check if user has joined any community (though admins are exempt)
-  const communityMembership = await CommunityMember.findOne({ user: req.user._id });
-  const hasJoinedCommunity = !!communityMembership;
-  
-  res.render('admin-coordinator-requests', {
-    user: req.user,
-    hasJoinedCommunity: hasJoinedCommunity
-  });
-});
-
-// Coordinator announcements page
-router.get('/coordinator/announcements', sessionAuth, async (req, res) => {
-  // Check if user is coordinator
-  if (req.user.role !== 'coordinator') {
-    return res.status(403).render('error', {
-      error: {
-        status: 403,
-        message: 'Access denied. Coordinator privileges required.'
-      }
-    });
-  }
-  
-  // Check if user has joined any community (though coordinators are exempt)
-  const communityMembership = await CommunityMember.findOne({ user: req.user._id });
-  const hasJoinedCommunity = !!communityMembership;
-  
-  res.render('coordinator-announcements', {
-    user: req.user,
-    hasJoinedCommunity: hasJoinedCommunity
-  });
-});
-
-
-
 
 
 // Logout page route (handles logout and redirects)

@@ -8,6 +8,7 @@ import {
 } from '../controllers/coordinatorRequestController.js';
 import { sessionAuth } from '../middleware/sessionAuth.js';
 import { adminAuth } from '../middleware/auth.js';
+import CommunityMember from '../models/communityMember.js';
 
 const router = express.Router();
 
@@ -26,5 +27,28 @@ router.get('/', sessionAuth, adminAuth, getCoordinatorRequests);
 
 // Review coordinator request (admins only)
 router.put('/:requestId/review', sessionAuth, adminAuth, reviewCoordinatorRequest);
+
+// Admin coordinator requests page
+router.get('/admin', sessionAuth, async (req, res) => {
+  // Check if user is admin
+  if (req.user.role !== 'admin') {
+    return res.status(403).render('error', {
+      title: 'Access Denied',
+      error: {
+        status: 403,
+        message: 'Access denied. Admin privileges required.'
+      }
+    });
+  }
+  
+  // Check if user has joined any community (though admins are exempt)
+  const communityMembership = await CommunityMember.findOne({ user: req.user._id });
+  const hasJoinedCommunity = !!communityMembership;
+  
+  res.render('admin-coordinator-requests', {
+    user: req.user,
+    hasJoinedCommunity: hasJoinedCommunity
+  });
+});
 
 export default router;

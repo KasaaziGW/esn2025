@@ -56,4 +56,27 @@ router.get('/', sessionAuth, requireCommunityMembership, async (req, res) => {
   });
 });
 
+// Coordinator announcements page
+router.get('/coordinator', sessionAuth, async (req, res) => {
+  // Check if user is coordinator
+  if (req.user.role !== 'coordinator') {
+    return res.status(403).render('error', {
+      title: 'Access Denied',
+      error: {
+        status: 403,
+        message: 'Access denied. Coordinator privileges required.'
+      }
+    });
+  }
+  
+  // Check if user has joined any community (though coordinators are exempt)
+  const communityMembership = await CommunityMember.findOne({ user: req.user._id });
+  const hasJoinedCommunity = !!communityMembership;
+  
+  res.render('coordinator-announcements', {
+    user: req.user,
+    hasJoinedCommunity: hasJoinedCommunity
+  });
+});
+
 export default router;

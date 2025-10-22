@@ -157,20 +157,28 @@ export const paths = {
     }
   },
 
-  '/auth/logout': {
-    post: {
-      summary: 'Logout user',
+  '/auth/verify': {
+    get: {
+      summary: 'Verify user session',
       tags: ['Authentication'],
       security: [{ bearerAuth: [] }],
       responses: {
         200: {
-          description: 'Logout successful',
+          description: 'Session verified successfully',
           content: {
             'application/json': {
               schema: { $ref: '#/components/schemas/Success' },
               example: {
                 status: 'success',
-                message: 'Logout successful'
+                message: 'Session verified',
+                data: {
+                  user: {
+                    id: '507f1f77bcf86cd799439011',
+                    username: 'john_doe',
+                    role: 'citizen',
+                    email: 'john@example.com'
+                  }
+                }
               }
             }
           }
@@ -187,452 +195,6 @@ export const paths = {
     }
   },
 
-  '/emergency/announcements': {
-    post: {
-      summary: 'Create emergency announcement/incident report',
-      tags: ['Emergency'],
-      security: [{ bearerAuth: [] }],
-      requestBody: {
-        required: true,
-        content: {
-          'multipart/form-data': {
-            schema: {
-              type: 'object',
-              required: ['title', 'emergencyType'],
-              properties: {
-                title: {
-                  type: 'string',
-                  example: 'Medical Emergency at Central Park'
-                },
-                body: {
-                  type: 'string',
-                  example: 'Person collapsed near the fountain. Need immediate medical assistance.'
-                },
-                emergencyType: {
-                  type: 'string',
-                  enum: ['medical', 'fire', 'security', 'natural_disaster', 'infrastructure', 'other'],
-                  example: 'medical'
-                },
-                severity: {
-                  type: 'string',
-                  enum: ['low', 'medium', 'high', 'critical'],
-                  example: 'high'
-                },
-                location: {
-                  type: 'object',
-                  properties: {
-                    longitude: { type: 'number', example: 32.5825 },
-                    latitude: { type: 'number', example: 0.3476 }
-                  }
-                },
-                locationDescription: {
-                  type: 'string',
-                  example: 'Central Park, near the fountain'
-                },
-                requiresResponse: {
-                  type: 'boolean',
-                  example: true
-                },
-                responseDeadline: {
-                  type: 'string',
-                  format: 'date-time',
-                  example: '2024-01-15T18:00:00Z'
-                },
-                affectedUsers: {
-                  type: 'array',
-                  items: { type: 'string' },
-                  example: ['john_doe', 'jane_smith']
-                },
-                files: {
-                  type: 'array',
-                  items: { type: 'string', format: 'binary' },
-                  description: 'Emergency-related files (images, documents)'
-                }
-              }
-            }
-          }
-        }
-      },
-      responses: {
-        201: {
-          description: 'Emergency announcement created successfully',
-          content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/Success' }
-            }
-          }
-        },
-        400: {
-          description: 'Validation error or missing required fields',
-          content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/Error' }
-            }
-          }
-        },
-        401: {
-          description: 'Unauthorized',
-          content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/Error' }
-            }
-          }
-        }
-      }
-    },
-
-    get: {
-      summary: 'Get emergency announcements with filters',
-      tags: ['Emergency'],
-      security: [{ bearerAuth: [] }],
-      parameters: [
-        {
-          in: 'query',
-          name: 'emergencyType',
-          schema: {
-            type: 'string',
-            enum: ['medical', 'fire', 'security', 'natural_disaster', 'infrastructure', 'other']
-          },
-          description: 'Filter by emergency type'
-        },
-        {
-          in: 'query',
-          name: 'severity',
-          schema: {
-            type: 'string',
-            enum: ['low', 'medium', 'high', 'critical']
-          },
-          description: 'Filter by severity level'
-        },
-        {
-          in: 'query',
-          name: 'status',
-          schema: {
-            type: 'string',
-            enum: ['active', 'resolved', 'cancelled']
-          },
-          description: 'Filter by status'
-        },
-        {
-          in: 'query',
-          name: 'community',
-          schema: { type: 'string' },
-          description: 'Filter by community identifier (ID, slug, or publicId)'
-        },
-        {
-          in: 'query',
-          name: 'page',
-          schema: { type: 'integer', default: 1 },
-          description: 'Page number'
-        },
-        {
-          in: 'query',
-          name: 'limit',
-          schema: { type: 'integer', default: 20 },
-          description: 'Items per page'
-        },
-        {
-          in: 'query',
-          name: 'sort',
-          schema: { type: 'string', default: '-createdAt' },
-          description: 'Sort order'
-        }
-      ],
-      responses: {
-        200: {
-          description: 'Emergency announcements retrieved successfully',
-          content: {
-            'application/json': {
-              schema: {
-                allOf: [
-                  { $ref: '#/components/schemas/Success' },
-                  {
-                    type: 'object',
-                    properties: {
-                      data: {
-                        allOf: [
-                          { $ref: '#/components/schemas/Pagination' },
-                          {
-                            type: 'object',
-                            properties: {
-                              announcements: {
-                                type: 'array',
-                                items: { $ref: '#/components/schemas/Announcement' }
-                              }
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-
-  '/emergency/announcements/{slug}/status': {
-    patch: {
-      summary: 'Update emergency status',
-      tags: ['Emergency'],
-      security: [{ bearerAuth: [] }],
-      parameters: [
-        {
-          in: 'path',
-          name: 'slug',
-          required: true,
-          schema: { type: 'string' },
-          description: 'Emergency announcement slug'
-        }
-      ],
-      requestBody: {
-        required: true,
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              required: ['status'],
-              properties: {
-                status: {
-                  type: 'string',
-                  enum: ['active', 'resolved', 'cancelled'],
-                  example: 'resolved'
-                },
-                resolutionNotes: {
-                  type: 'string',
-                  example: 'Emergency resolved by medical team'
-                }
-              }
-            }
-          }
-        }
-      },
-      responses: {
-        200: {
-          description: 'Emergency status updated successfully',
-          content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/Success' }
-            }
-          }
-        },
-        404: {
-          description: 'Emergency announcement not found',
-          content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/Error' }
-            }
-          }
-        },
-        403: {
-          description: 'Not authorized to update this emergency',
-          content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/Error' }
-            }
-          }
-        }
-      }
-    }
-  },
-
-  '/emergency/contacts': {
-    post: {
-      summary: 'Add emergency contact',
-      tags: ['Emergency Contacts'],
-      security: [{ bearerAuth: [] }],
-      requestBody: {
-        required: true,
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              required: ['name', 'phone'],
-              properties: {
-                name: {
-                  type: 'string',
-                  example: 'John Doe'
-                },
-                phone: {
-                  type: 'string',
-                  example: '+256701234567'
-                },
-                email: {
-                  type: 'string',
-                  format: 'email',
-                  example: 'john@example.com'
-                },
-                relationship: {
-                  type: 'string',
-                  enum: ['family', 'friend', 'neighbor', 'colleague', 'other'],
-                  example: 'family'
-                },
-                priority: {
-                  type: 'number',
-                  example: 1,
-                  description: '1 = highest priority'
-                },
-                isPrimary: {
-                  type: 'boolean',
-                  example: true
-                },
-                canReceiveAlerts: {
-                  type: 'boolean',
-                  example: true
-                }
-              }
-            }
-          }
-        }
-      },
-      responses: {
-        201: {
-          description: 'Emergency contact added successfully',
-          content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/Success' }
-            }
-          }
-        },
-        400: {
-          description: 'Validation error',
-          content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/Error' }
-            }
-          }
-        }
-      }
-    },
-
-    get: {
-      summary: 'Get user\'s emergency contacts',
-      tags: ['Emergency Contacts'],
-      security: [{ bearerAuth: [] }],
-      responses: {
-        200: {
-          description: 'Emergency contacts retrieved successfully',
-          content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/Success' }
-            }
-          }
-        }
-      }
-    }
-  },
-
-  '/emergency/settings': {
-    get: {
-      summary: 'Get emergency settings',
-      tags: ['Emergency Contacts'],
-      security: [{ bearerAuth: [] }],
-      responses: {
-        200: {
-          description: 'Emergency settings retrieved successfully',
-          content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/Success' }
-            }
-          }
-        }
-      }
-    },
-
-    put: {
-      summary: 'Update emergency settings',
-      tags: ['Emergency Contacts'],
-      security: [{ bearerAuth: [] }],
-      requestBody: {
-        required: true,
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                shareLocation: {
-                  type: 'boolean',
-                  example: true
-                },
-                autoShareLocationInEmergency: {
-                  type: 'boolean',
-                  example: true
-                },
-                alertPreferences: {
-                  type: 'object',
-                  properties: {
-                    emergencyAlerts: { type: 'boolean', example: true },
-                    weatherAlerts: { type: 'boolean', example: true },
-                    securityAlerts: { type: 'boolean', example: false },
-                    healthAlerts: { type: 'boolean', example: true }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      responses: {
-        200: {
-          description: 'Emergency settings updated successfully',
-          content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/Success' }
-            }
-          }
-        }
-      }
-    }
-  },
-
-  '/emergency/status': {
-    patch: {
-      summary: 'Update user emergency status',
-      tags: ['Emergency Contacts'],
-      security: [{ bearerAuth: [] }],
-      requestBody: {
-        required: true,
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                currentStatus: {
-                  type: 'string',
-                  enum: ['safe', 'needs_help', 'injured', 'missing', 'lost', 'available_to_help', 'unknown'],
-                  example: 'safe'
-                },
-                location: {
-                  type: 'object',
-                  properties: {
-                    longitude: { type: 'number', example: 32.5825 },
-                    latitude: { type: 'number', example: 0.3476 }
-                  }
-                },
-                locationDescription: {
-                  type: 'string',
-                  example: 'Central Park, near the fountain'
-                }
-              }
-            }
-          }
-        }
-      },
-      responses: {
-        200: {
-          description: 'Emergency status updated successfully',
-          content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/Success' }
-            }
-          }
-        }
-      }
-    }
-  },
 
   // User Management Routes
   '/users/me': {
@@ -712,6 +274,103 @@ export const paths = {
     }
   },
 
+  '/users/profile': {
+    get: {
+      summary: 'Get user profile page (session-based)',
+      tags: ['Users'],
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: 'Profile page rendered successfully',
+          content: {
+            'text/html': {
+              schema: { type: 'string' }
+            }
+          }
+        }
+      }
+    },
+    put: {
+      summary: 'Update user profile (session-based)',
+      tags: ['Users'],
+      security: [{ bearerAuth: [] }],
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                displayName: { type: 'string', example: 'John Doe' },
+                firstName: { type: 'string', example: 'John' },
+                lastName: { type: 'string', example: 'Doe' },
+                bio: { type: 'string', example: 'Community safety advocate' },
+                region: { type: 'string', example: 'Central' },
+                district: { type: 'string', example: 'Kampala' }
+              }
+            }
+          }
+        }
+      },
+      responses: {
+        200: {
+          description: 'Profile updated successfully',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Success' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/users/profile/avatar': {
+    post: {
+      summary: 'Upload user avatar',
+      tags: ['Users'],
+      security: [{ bearerAuth: [] }],
+      requestBody: {
+        required: true,
+        content: {
+          'multipart/form-data': {
+            schema: {
+              type: 'object',
+              properties: {
+                avatar: { type: 'string', format: 'binary', description: 'Avatar image file' }
+              }
+            }
+          }
+        }
+      },
+      responses: {
+        200: {
+          description: 'Avatar uploaded successfully',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Success' }
+            }
+          }
+        }
+      }
+    },
+    delete: {
+      summary: 'Remove user avatar',
+      tags: ['Users'],
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: 'Avatar removed successfully',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Success' }
+            }
+          }
+        }
+      }
+    }
+  },
+
   '/users': {
     get: {
       summary: 'Get all users (directory)',
@@ -743,18 +402,18 @@ export const paths = {
     }
   },
 
-  '/users/{identifier}': {
+  '/users/{id}': {
     get: {
-      summary: 'Get user by identifier',
+      summary: 'Get user by ID (Admin only)',
       tags: ['Users'],
       security: [{ bearerAuth: [] }],
       parameters: [
         {
           in: 'path',
-          name: 'identifier',
+          name: 'id',
           required: true,
           schema: { type: 'string' },
-          description: 'User identifier (ID, username, or slug)'
+          description: 'User ID'
         }
       ],
       responses: {
@@ -783,20 +442,28 @@ export const paths = {
               schema: { $ref: '#/components/schemas/Error' }
             }
           }
+        },
+        403: {
+          description: 'Admin access required',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Error' }
+            }
+          }
         }
       }
     },
-    patch: {
+    put: {
       summary: 'Update user by admin',
       tags: ['Users'],
       security: [{ bearerAuth: [] }],
       parameters: [
         {
           in: 'path',
-          name: 'identifier',
+          name: 'id',
           required: true,
           schema: { type: 'string' },
-          description: 'User identifier (ID, username, or slug)'
+          description: 'User ID'
         }
       ],
       requestBody: {
@@ -820,6 +487,214 @@ export const paths = {
           content: {
             'application/json': {
               schema: { $ref: '#/components/schemas/Success' }
+            }
+          }
+        },
+        403: {
+          description: 'Admin access required',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Error' }
+            }
+          }
+        }
+      }
+    },
+    delete: {
+      summary: 'Delete user (Admin only)',
+      tags: ['Users'],
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          in: 'path',
+          name: 'id',
+          required: true,
+          schema: { type: 'string' },
+          description: 'User ID'
+        }
+      ],
+      responses: {
+        200: {
+          description: 'User deleted successfully',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Success' }
+            }
+          }
+        },
+        403: {
+          description: 'Admin access required',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Error' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/users/{id}/status': {
+    put: {
+      summary: 'Update user status (Admin only)',
+      tags: ['Users'],
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          in: 'path',
+          name: 'id',
+          required: true,
+          schema: { type: 'string' },
+          description: 'User ID'
+        }
+      ],
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                isActive: { type: 'boolean' },
+                verified: { type: 'boolean' }
+              }
+            }
+          }
+        }
+      },
+      responses: {
+        200: {
+          description: 'User status updated successfully',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Success' }
+            }
+          }
+        },
+        403: {
+          description: 'Admin access required',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Error' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/users/{id}/password': {
+    put: {
+      summary: 'Change user password (Admin only)',
+      tags: ['Users'],
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          in: 'path',
+          name: 'id',
+          required: true,
+          schema: { type: 'string' },
+          description: 'User ID'
+        }
+      ],
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              required: ['password'],
+              properties: {
+                password: { type: 'string', example: 'NewPassword123' }
+              }
+            }
+          }
+        }
+      },
+      responses: {
+        200: {
+          description: 'Password changed successfully',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Success' }
+            }
+          }
+        },
+        403: {
+          description: 'Admin access required',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Error' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/users/stats': {
+    get: {
+      summary: 'Get user statistics (Admin only)',
+      tags: ['Users'],
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: 'User statistics retrieved successfully',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Success' }
+            }
+          }
+        },
+        403: {
+          description: 'Admin access required',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Error' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/users/export': {
+    get: {
+      summary: 'Export users data (Admin only)',
+      tags: ['Users'],
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: 'Users data exported successfully',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Success' }
+            }
+          }
+        },
+        403: {
+          description: 'Admin access required',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Error' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/users/admin': {
+    get: {
+      summary: 'Get admin users page (Admin only)',
+      tags: ['Users'],
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: 'Admin users page rendered successfully',
+          content: {
+            'text/html': {
+              schema: { type: 'string' }
             }
           }
         },
@@ -1655,11 +1530,31 @@ export const paths = {
   },
 
   // Announcement Routes
-  '/announcements': {
+  '/announcements/list': {
     get: {
       summary: 'Get all announcements',
       tags: ['Announcements'],
       security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          in: 'query',
+          name: 'page',
+          schema: { type: 'integer', default: 1 },
+          description: 'Page number'
+        },
+        {
+          in: 'query',
+          name: 'limit',
+          schema: { type: 'integer', default: 20 },
+          description: 'Items per page'
+        },
+        {
+          in: 'query',
+          name: 'emergency',
+          schema: { type: 'boolean' },
+          description: 'Filter by emergency announcements'
+        }
+      ],
       responses: {
         200: {
           description: 'Announcements retrieved successfully',
@@ -1683,7 +1578,41 @@ export const paths = {
           }
         }
       }
-    },
+    }
+  },
+
+  '/announcements/emergency/today': {
+    get: {
+      summary: 'Get today\'s emergency alerts',
+      tags: ['Announcements'],
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: 'Emergency alerts retrieved successfully',
+          content: {
+            'application/json': {
+              schema: {
+                allOf: [
+                  { $ref: '#/components/schemas/Success' },
+                  {
+                    type: 'object',
+                    properties: {
+                      data: {
+                        type: 'array',
+                        items: { $ref: '#/components/schemas/Announcement' }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/announcements': {
     post: {
       summary: 'Create announcement',
       tags: ['Announcements'],
@@ -1698,7 +1627,8 @@ export const paths = {
               properties: {
                 title: { type: 'string', example: 'Community Safety Meeting' },
                 body: { type: 'string', example: 'Join us for our monthly safety meeting...' },
-                community: { type: 'string', example: 'central-park-community' },
+                type: { type: 'string', enum: ['general', 'emergency'], example: 'general' },
+                priority: { type: 'string', enum: ['low', 'medium', 'high'], example: 'medium' },
                 files: {
                   type: 'array',
                   items: { type: 'string', format: 'binary' },
@@ -1740,18 +1670,18 @@ export const paths = {
     }
   },
 
-  '/announcements/{slug}': {
+  '/announcements/id/{id}': {
     get: {
-      summary: 'Get announcement by slug',
+      summary: 'Get announcement by ID',
       tags: ['Announcements'],
       security: [{ bearerAuth: [] }],
       parameters: [
         {
           in: 'path',
-          name: 'slug',
+          name: 'id',
           required: true,
           schema: { type: 'string' },
-          description: 'Announcement slug'
+          description: 'Announcement ID'
         }
       ],
       responses: {
@@ -1784,16 +1714,16 @@ export const paths = {
       }
     },
     put: {
-      summary: 'Update announcement',
+      summary: 'Update announcement by ID',
       tags: ['Announcements'],
       security: [{ bearerAuth: [] }],
       parameters: [
         {
           in: 'path',
-          name: 'slug',
+          name: 'id',
           required: true,
           schema: { type: 'string' },
-          description: 'Announcement slug'
+          description: 'Announcement ID'
         }
       ],
       requestBody: {
@@ -1805,6 +1735,8 @@ export const paths = {
               properties: {
                 title: { type: 'string', example: 'Updated Title' },
                 body: { type: 'string', example: 'Updated content...' },
+                type: { type: 'string', enum: ['general', 'emergency'] },
+                priority: { type: 'string', enum: ['low', 'medium', 'high'] },
                 files: {
                   type: 'array',
                   items: { type: 'string', format: 'binary' },
@@ -1835,16 +1767,16 @@ export const paths = {
       }
     },
     delete: {
-      summary: 'Delete announcement',
+      summary: 'Delete announcement by ID',
       tags: ['Announcements'],
       security: [{ bearerAuth: [] }],
       parameters: [
         {
           in: 'path',
-          name: 'slug',
+          name: 'id',
           required: true,
           schema: { type: 'string' },
-          description: 'Announcement slug'
+          description: 'Announcement ID'
         }
       ],
       responses: {
@@ -1861,6 +1793,60 @@ export const paths = {
           content: {
             'application/json': {
               schema: { $ref: '#/components/schemas/Error' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/announcements/id/{id}/view': {
+    post: {
+      summary: 'Track announcement view',
+      tags: ['Announcements'],
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          in: 'path',
+          name: 'id',
+          required: true,
+          schema: { type: 'string' },
+          description: 'Announcement ID'
+        }
+      ],
+      responses: {
+        200: {
+          description: 'View tracked successfully',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Success' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/announcements/id/{id}/forward': {
+    post: {
+      summary: 'Track announcement forward',
+      tags: ['Announcements'],
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          in: 'path',
+          name: 'id',
+          required: true,
+          schema: { type: 'string' },
+          description: 'Announcement ID'
+        }
+      ],
+      responses: {
+        200: {
+          description: 'Forward tracked successfully',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Success' }
             }
           }
         }
@@ -1918,7 +1904,7 @@ export const paths = {
   },
 
   // Chat Routes
-  '/chats/{chatSlug}/messages': {
+  '/chats/{chatId}/messages': {
     get: {
       summary: 'Get chat messages',
       tags: ['Chat'],
@@ -1926,7 +1912,7 @@ export const paths = {
       parameters: [
         {
           in: 'path',
-          name: 'chatSlug',
+          name: 'chatId',
           required: true,
           schema: { type: 'string' },
           description: 'Chat identifier (ID, slug, or hash_id)'
@@ -1992,7 +1978,7 @@ export const paths = {
       parameters: [
         {
           in: 'path',
-          name: 'chatSlug',
+          name: 'chatId',
           required: true,
           schema: { type: 'string' },
           description: 'Chat identifier (ID, slug, or hash_id)'
@@ -2001,14 +1987,15 @@ export const paths = {
       requestBody: {
         required: true,
         content: {
-          'application/json': {
+          'multipart/form-data': {
             schema: {
               type: 'object',
               properties: {
                 content: { type: 'string', example: 'Hello everyone!' },
                 type: { type: 'string', enum: ['text', 'image', 'file'], default: 'text' },
                 replyTo: { type: 'string', example: 'msg_abc123' },
-                forwardMessageId: { type: 'string', example: 'msg_def456' }
+                forwardMessageId: { type: 'string', example: 'msg_def456' },
+                file: { type: 'string', format: 'binary', description: 'File attachment' }
               }
             }
           }
@@ -2028,6 +2015,682 @@ export const paths = {
           content: {
             'application/json': {
               schema: { $ref: '#/components/schemas/Error' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/chats/private': {
+    get: {
+      summary: 'Get private chats for current user',
+      tags: ['Chat'],
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: 'Private chats retrieved successfully',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Success' }
+            }
+          }
+        }
+      }
+    },
+    post: {
+      summary: 'Create new private chat',
+      tags: ['Chat'],
+      security: [{ bearerAuth: [] }],
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              required: ['participantId'],
+              properties: {
+                participantId: { type: 'string', example: '507f1f77bcf86cd799439011' }
+              }
+            }
+          }
+        }
+      },
+      responses: {
+        201: {
+          description: 'Private chat created successfully',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Success' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/chats/private/with/{userId}': {
+    get: {
+      summary: 'Get private chat with specific user',
+      tags: ['Chat'],
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          in: 'path',
+          name: 'userId',
+          required: true,
+          schema: { type: 'string' },
+          description: 'User ID'
+        }
+      ],
+      responses: {
+        200: {
+          description: 'Private chat retrieved successfully',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Success' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/chats/community/{communityId}': {
+    get: {
+      summary: 'Get community chat',
+      tags: ['Chat'],
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          in: 'path',
+          name: 'communityId',
+          required: true,
+          schema: { type: 'string' },
+          description: 'Community ID'
+        }
+      ],
+      responses: {
+        200: {
+          description: 'Community chat retrieved successfully',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Success' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/chats/community': {
+    post: {
+      summary: 'Create community chat',
+      tags: ['Chat'],
+      security: [{ bearerAuth: [] }],
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              required: ['communityId'],
+              properties: {
+                communityId: { type: 'string', example: '507f1f77bcf86cd799439011' }
+              }
+            }
+          }
+        }
+      },
+      responses: {
+        201: {
+          description: 'Community chat created successfully',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Success' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  // Community Access Routes
+  '/community-access/available': {
+    get: {
+      summary: 'Get communities available to user',
+      tags: ['Community Access'],
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: 'Available communities retrieved successfully',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Success' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/community-access/user-communities': {
+    get: {
+      summary: 'Get user communities',
+      tags: ['Community Access'],
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: 'User communities retrieved successfully',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Success' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/community-access/join/{communityId}': {
+    post: {
+      summary: 'Join a community',
+      tags: ['Community Access'],
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          in: 'path',
+          name: 'communityId',
+          required: true,
+          schema: { type: 'string' },
+          description: 'Community ID'
+        }
+      ],
+      responses: {
+        200: {
+          description: 'Joined community successfully',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Success' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/community-access/leave': {
+    post: {
+      summary: 'Leave current community',
+      tags: ['Community Access'],
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: 'Left community successfully',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Success' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/community-access/my-community': {
+    get: {
+      summary: 'Get user\'s current community',
+      tags: ['Community Access'],
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: 'Current community retrieved successfully',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Success' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/community-access/members': {
+    get: {
+      summary: 'Get community members',
+      tags: ['Community Access'],
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: 'Community members retrieved successfully',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Success' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/community-access/online-members': {
+    get: {
+      summary: 'Get online members',
+      tags: ['Community Access'],
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: 'Online members retrieved successfully',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Success' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/community-access/access-status': {
+    get: {
+      summary: 'Check community access status',
+      tags: ['Community Access'],
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: 'Access status retrieved successfully',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Success' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  // Notification Routes
+  '/notifications/check': {
+    get: {
+      summary: 'Check notifications',
+      tags: ['Notifications'],
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: 'Notifications checked successfully',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Success' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  // Dashboard Routes
+  '/dashboard/data': {
+    get: {
+      summary: 'Get dashboard data',
+      tags: ['Dashboard'],
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: 'Dashboard data retrieved successfully',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Success' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  // Coordinator Request Routes
+  '/coordinator-requests': {
+    get: {
+      summary: 'Get all coordinator requests (Admin only)',
+      tags: ['Coordinator Requests'],
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: 'Coordinator requests retrieved successfully',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Success' }
+            }
+          }
+        }
+      }
+    },
+    post: {
+      summary: 'Submit coordinator request',
+      tags: ['Coordinator Requests'],
+      security: [{ bearerAuth: [] }],
+      requestBody: {
+        required: true,
+        content: {
+          'multipart/form-data': {
+            schema: {
+              type: 'object',
+              required: ['reason'],
+              properties: {
+                reason: { type: 'string', example: 'I want to help coordinate emergency responses' },
+                experience: { type: 'string', example: '5 years in emergency services' },
+                attachment: { type: 'string', format: 'binary', description: 'Supporting documents' }
+              }
+            }
+          }
+        }
+      },
+      responses: {
+        201: {
+          description: 'Coordinator request submitted successfully',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Success' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/coordinator-requests/my-request': {
+    get: {
+      summary: 'Get my coordinator request status',
+      tags: ['Coordinator Requests'],
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: 'My coordinator request retrieved successfully',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Success' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/coordinator-requests/{requestId}/review': {
+    put: {
+      summary: 'Review coordinator request (Admin only)',
+      tags: ['Coordinator Requests'],
+      security: [{ bearerAuth: [] }],
+      parameters: [
+        {
+          in: 'path',
+          name: 'requestId',
+          required: true,
+          schema: { type: 'string' },
+          description: 'Request ID'
+        }
+      ],
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              required: ['status'],
+              properties: {
+                status: { type: 'string', enum: ['approved', 'rejected'], example: 'approved' },
+                notes: { type: 'string', example: 'Approved based on experience' }
+              }
+            }
+          }
+        }
+      },
+      responses: {
+        200: {
+          description: 'Coordinator request reviewed successfully',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Success' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  // Page Routes (Web Interface)
+  '/': {
+    get: {
+      summary: 'Get landing page',
+      tags: ['Pages'],
+      responses: {
+        200: {
+          description: 'Landing page rendered successfully',
+          content: {
+            'text/html': {
+              schema: { type: 'string' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/login': {
+    get: {
+      summary: 'Get login page',
+      tags: ['Pages'],
+      responses: {
+        200: {
+          description: 'Login page rendered successfully',
+          content: {
+            'text/html': {
+              schema: { type: 'string' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/register': {
+    get: {
+      summary: 'Get registration page',
+      tags: ['Pages'],
+      responses: {
+        200: {
+          description: 'Registration page rendered successfully',
+          content: {
+            'text/html': {
+              schema: { type: 'string' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/logout': {
+    get: {
+      summary: 'Logout user and redirect to login',
+      tags: ['Pages'],
+      responses: {
+        302: {
+          description: 'Redirect to login page',
+          headers: {
+            Location: {
+              schema: { type: 'string' },
+              description: 'Redirect URL'
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/admin/coordinator-requests': {
+    get: {
+      summary: 'Get admin coordinator requests page (Admin only)',
+      tags: ['Pages'],
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: 'Coordinator requests page rendered successfully',
+          content: {
+            'text/html': {
+              schema: { type: 'string' }
+            }
+          }
+        },
+        403: {
+          description: 'Admin access required',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Error' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/coordinator/announcements': {
+    get: {
+      summary: 'Get coordinator announcements page (Coordinator only)',
+      tags: ['Pages'],
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: 'Coordinator announcements page rendered successfully',
+          content: {
+            'text/html': {
+              schema: { type: 'string' }
+            }
+          }
+        },
+        403: {
+          description: 'Coordinator access required',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Error' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  // Communities Page Routes
+  '/communities': {
+    get: {
+      summary: 'Get communities page',
+      tags: ['Pages'],
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: 'Communities page rendered successfully',
+          content: {
+            'text/html': {
+              schema: { type: 'string' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/admin/communities': {
+    get: {
+      summary: 'Get admin communities page (Admin only)',
+      tags: ['Pages'],
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: 'Admin communities page rendered successfully',
+          content: {
+            'text/html': {
+              schema: { type: 'string' }
+            }
+          }
+        },
+        403: {
+          description: 'Admin access required',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Error' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  // Chat Page Routes
+  '/chat': {
+    get: {
+      summary: 'Get private chat page',
+      tags: ['Pages'],
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: 'Private chat page rendered successfully',
+          content: {
+            'text/html': {
+              schema: { type: 'string' }
+            }
+          }
+        },
+        302: {
+          description: 'Redirect to communities page if not member',
+          headers: {
+            Location: {
+              schema: { type: 'string' },
+              description: 'Redirect URL'
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/public-chat': {
+    get: {
+      summary: 'Get community chat page',
+      tags: ['Pages'],
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: 'Community chat page rendered successfully',
+          content: {
+            'text/html': {
+              schema: { type: 'string' }
+            }
+          }
+        },
+        302: {
+          description: 'Redirect to communities page if not member',
+          headers: {
+            Location: {
+              schema: { type: 'string' },
+              description: 'Redirect URL'
+            }
+          }
+        }
+      }
+    }
+  },
+
+  // Alerts Page Route
+  '/alerts': {
+    get: {
+      summary: 'Get alerts page',
+      tags: ['Pages'],
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: 'Alerts page rendered successfully',
+          content: {
+            'text/html': {
+              schema: { type: 'string' }
             }
           }
         }
@@ -2058,23 +2721,31 @@ export const tags = [
     description: 'Community management and membership'
   },
   {
+    name: 'Community Access',
+    description: 'Community access and membership management'
+  },
+  {
     name: 'Announcements',
-    description: 'Community announcements'
+    description: 'Community announcements and emergency alerts'
   },
   {
     name: 'Chat',
     description: 'Real-time messaging system'
   },
   {
-    name: 'Emergency',
-    description: 'Emergency management and incident reporting'
+    name: 'Notifications',
+    description: 'User notifications and alerts'
   },
   {
-    name: 'Emergency Alerts',
-    description: 'System-wide emergency alerts'
+    name: 'Dashboard',
+    description: 'Dashboard data and analytics'
   },
   {
-    name: 'Emergency Contacts',
-    description: 'Emergency contact management'
+    name: 'Coordinator Requests',
+    description: 'Coordinator role request management'
+  },
+  {
+    name: 'Pages',
+    description: 'Web interface page routes'
   }
 ];

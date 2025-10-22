@@ -28,7 +28,7 @@
     <meta name="author" content="Emergency Social Network Team">
 
     <!-- Favicon -->
-    <link rel="shortcut icon" type="image/x-icon" href="/assets/img/favicon.png">
+    <link rel="shortcut icon" type="image/x-icon" href="/assets/img/esn-logo.png">
 
     <title>Emergency Social Network - Sign In</title>
 
@@ -73,19 +73,18 @@
             <div class="d-flex align-items-center justify-content-center ht-100p">
                 <div class="sign-wrapper wd-100p" style="max-width: 400px;">
                     <div class="wd-100p">
-                        <h3 class="tx-color-01 mg-b-5">Sign In</h3>
-                        <p class="tx-color-03 tx-16 mg-b-40">Welcome back! Please sign in to continue.</p>
-
+                        <div class="text-center" >
+                        <img src="/assets/img/esn-logo.png" alt="ESN" class="img-fluid" width="50%" style="margin-bottom: 15px;">
+                        </div>
                         <!-- Alert container for messages -->
                         <div id="alertContainer"></div>
 
                         <form id="loginForm" method="POST" action="/api/auth/login">
-            <div class="form-group">
-                <label id="identifierLabel">Username, Email, or Phone number</label>
+                        <div class="form-group">
+                <label id="identifierLabel">Username, Email, or Phone number *</label>
                 <input type="text" class="form-control" id="identifier" name="identifier" 
                        placeholder="Enter your username, email, or phone number" required autocomplete="username">
-                <small class="form-text text-muted" id="identifierHelp">Use your username, email address, or phone number</small>
-            </div>
+                </div>
                             <div class="form-group">
                                 <div class="d-flex justify-content-between mg-b-5">
                                     <label class="mg-b-0-f">Password</label>
@@ -123,9 +122,9 @@
         </div>
         <div>
             <nav class="nav">
-                <a href="/privacy" class="nav-link">Privacy</a>
-                <a href="/terms" class="nav-link">Terms</a>
-                <a href="/help" class="nav-link">Help</a>
+                <a href="#" class="nav-link">Privacy</a>
+                <a href="#" class="nav-link">Terms</a>
+                <a href="#" class="nav-link">Help</a>
             </nav>
         </div>
     </footer>
