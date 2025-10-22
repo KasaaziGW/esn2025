@@ -37,7 +37,7 @@ Node.js + Express + MongoDB Atlas
 - Password: `admin`
 
 ## 6. Development Project Package installations
-- Initialize the Project: npm init -y
+- Initialize the Project: `npm init -y`
 - Install Main dependencies: `npm install express mongoose bcryptjs jsonwebtoken dotenv cors morgan joi`
 - Install Developer dependencies: `npm install -D nodemon jest supertest`
 - Use libphonenumber-js for robust phone parsing: `npm i libphonenumber-js`
