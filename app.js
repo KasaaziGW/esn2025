@@ -11,7 +11,6 @@ import communityRoutes from './src/routes/communityRoutes.js';
 import communityMemberRoutes from './src/routes/communityMemberRoutes.js';
 import announcementRoutes from './src/routes/announcementRoutes.js';
 import chatRoutes from './src/routes/chatRoutes.js';
-import emergencyRoutes from './src/routes/emergencyRoutes.js';
 import dashboardRoutes from './src/routes/dashboardRoutes.js';
 import pageRoutes from './src/routes/pageRoutes.js';
 import notificationRoutes from './src/routes/notificationRoutes.js';
@@ -90,7 +89,6 @@ app.use('/api/community-members', communityMemberRoutes);
 app.use('/api/coordinator-requests', coordinatorRequestRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/chats', chatRoutes);
-app.use('/api/emergency', emergencyRoutes);
 
 // API Documentation with Swagger
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
