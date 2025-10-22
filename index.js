@@ -1,5 +1,3 @@
-// index.js (corrected)
-// --------------------
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
@@ -75,13 +73,50 @@ app.get("/", (req, res) => {
 });
 
 app.get("/dashboard", isAuthenticated, async (req, res) => {
+  const https = require("https");
   const api_url = "https://zenquotes.io/api/random/";
-  const response = await fetch(api_url);
-  var data = await response.json();
-  res.render("dashboard", {
-    title: "Dashboard",
-    user: req.session.user,
-    quote: data,
+
+  https.get(api_url, (apiRes) => {
+    let data = "";
+
+    apiRes.on("data", (chunk) => {
+      data += chunk;
+    });
+
+    apiRes.on("end", () => {
+      try {
+        const quote = JSON.parse(data);
+        res.render("dashboard", {
+          title: "Dashboard",
+          user: req.session.user,
+          quote: quote,
+        });
+      } catch (err) {
+        // Fallback quote if API fails
+        res.render("dashboard", {
+          title: "Dashboard",
+          user: req.session.user,
+          quote: [
+            {
+              q: "Preparation is the key to emergency response.",
+              a: "ESN 2025",
+            },
+          ],
+        });
+      }
+    });
+  }).on("error", (err) => {
+    // Fallback quote if request fails
+    res.render("dashboard", {
+      title: "Dashboard",
+      user: req.session.user,
+      quote: [
+        {
+          q: "Preparation is the key to emergency response.",
+          a: "ESN 2025",
+        },
+      ],
+    });
   });
 });
 
@@ -163,7 +198,6 @@ app.post("/login", (req, res) => {
 app.get("/directory", isAuthenticated, async (req, res) => {
   try {
     const users = await Citizen.find({});
-    // Use real online status and status from DB
     const usersWithStatus = users.map((u) => ({
       fullname: u.fullname,
       email: u.email,
@@ -185,9 +219,73 @@ app.get("/public_chat", isAuthenticated, (req, res) => {
   res.render("public_chat", { title: "Public Chat", user: req.session.user });
 });
 
+// Search route
+app.get("/search", isAuthenticated, (req, res) => {
+  res.render("search", { title: "Search", user: req.session.user });
+});
+
+// Search API endpoint
+app.get("/api/search", isAuthenticated, async (req, res) => {
+  const { context, term, page = 1 } = req.query;
+  const limit = 10;
+  const skip = (page - 1) * limit;
+  let results = [];
+  let hasMore = false;
+
+  try {
+    switch (context) {
+      case "citizens":
+        const citizenResults = await Citizen.find({
+          fullname: { $regex: term, $options: "i" },
+        })
+          .sort({ online: -1, fullname: 1 })
+          .select("fullname online status")
+          .skip(skip)
+          .limit(limit + 1);
+        hasMore = citizenResults.length > limit;
+        results = citizenResults.slice(0, limit);
+        break;
+
+      case "status":
+        if (["OK", "Help", "Emergency"].includes(term.toUpperCase())) {
+          const statusResults = await Citizen.find({
+            status: term.toUpperCase(),
+          })
+            .sort({ online: -1, fullname: 1 })
+            .select("fullname online status")
+            .skip(skip)
+            .limit(limit + 1);
+          hasMore = statusResults.length > limit;
+          results = statusResults.slice(0, limit);
+        }
+        break;
+
+      case "public-messages":
+        const messageResults = await Message.find({
+          message: { $regex: term, $options: "i" },
+        })
+          .sort({ _id: -1 })
+          .skip(skip)
+          .limit(limit + 1);
+        hasMore = messageResults.length > limit;
+        results = messageResults.slice(0, limit);
+        break;
+
+      case "private-messages":
+        results = [];
+        hasMore = false;
+        break;
+    }
+
+    res.json({ results, hasMore });
+  } catch (error) {
+    console.error("Search error:", error);
+    res.status(500).json({ error: "An error occurred while searching" });
+  }
+});
+
 // Logout route
 app.get("/logout", (req, res) => {
-  // Set user online status to false before destroying session
   if (req.session && req.session.user) {
     Citizen.updateOne(
       { email: req.session.user.email },
@@ -210,7 +308,7 @@ app.get("/logout", (req, res) => {
   }
 });
 
-// saving a public message to the database
+// Public messages
 app.post("/sendMessage", async (req, res) => {
   try {
     var message = new Message(req.body);
@@ -223,7 +321,6 @@ app.post("/sendMessage", async (req, res) => {
   }
 });
 
-// fetching public messages from the database
 app.get("/fetchMessages", async (req, res) => {
   try {
     const messages = await Message.find({});
@@ -234,7 +331,7 @@ app.get("/fetchMessages", async (req, res) => {
   }
 });
 
-// Endpoint to get all users with status
+// Get users endpoint
 app.get("/getUsers", isAuthenticated, async (req, res) => {
   try {
     const users = await Citizen.find({}, "fullname email online status");
@@ -245,31 +342,27 @@ app.get("/getUsers", isAuthenticated, async (req, res) => {
   }
 });
 
-
-
+// Private chat routes
 app.get("/private-chat", isAuthenticated, (req, res) => {
   const { email, name } = req.query || {};
-  const currentUser = req.session.user; 
-
+  const currentUser = req.session.user;
   res.render("private-chat", {
     title: "Private Chat",
-    user: currentUser,         
+    user: currentUser,
     currentUser: currentUser,
     receiverEmail: email || "",
-    receiverName: name || ""
+    receiverName: name || "",
   });
 });
 
-
-// Fetch private messages between two users
 app.get("/fetchPrivateMessages", isAuthenticated, async (req, res) => {
   try {
     const { sender, receiver } = req.query;
     const messages = await PrivateMessage.find({
       $or: [
         { sender: sender, receiver: receiver },
-        { sender: receiver, receiver: sender }
-      ]
+        { sender: receiver, receiver: sender },
+      ],
     }).sort({ _id: 1 });
     res.json(messages);
   } catch (err) {
@@ -278,17 +371,13 @@ app.get("/fetchPrivateMessages", isAuthenticated, async (req, res) => {
   }
 });
 
-// Save a private message
 app.post("/sendPrivateMessage", isAuthenticated, async (req, res) => {
   try {
     const { sender, receiver, message, sentTime } = req.body;
     const newMsg = new PrivateMessage({ sender, receiver, message, sentTime });
     await newMsg.save();
-
-    // Emit to the private room (room name is deterministic)
     const room = [sender, receiver].sort().join("_");
     socketIO.to(room).emit("privateMessage", { sender, receiver, message, sentTime });
-
     res.json({ success: true });
   } catch (err) {
     console.error("Error saving private message:", err);
@@ -296,27 +385,21 @@ app.post("/sendPrivateMessage", isAuthenticated, async (req, res) => {
   }
 });
 
-
-// ---------------------- Single consolidated Socket.IO handler --------------------
-const onlineUsers = {}; 
+// ---------------------- Socket.IO handler --------------------
+const onlineUsers = {};
 
 socketIO.on("connection", (socket) => {
   console.log("Socket connected:", socket.id);
 
-  // 'joined' — when client emits they joined (public chat
   socket.on("joined", (username) => {
-    
     socketIO.emit("joined", username);
   });
 
-  // public message from client
   socket.on("message", (message) => {
     socketIO.emit("message", message);
   });
 
-  // status update from client
   socket.on("updateStatus", async (data) => {
-    // data: { email, status }
     try {
       await Citizen.updateOne({ email: data.email }, { $set: { status: data.status } });
       const user = await Citizen.findOne({ email: data.email }, "fullname status");
@@ -330,44 +413,37 @@ socketIO.on("connection", (socket) => {
     }
   });
 
- socket.on("joinPrivateRoom", ({ sender, receiver }) => {
-  const room = [sender, receiver].sort().join("_");
-  socket.join(room);
-  socket.emit("joinedRoom", room); // confirm to the joining socket
-});
-
-
-socket.on("privateMessage", async (message) => {
-  try {
-    const { sender, receiver, message: text, sentTime } = message;
-    // Save to DB
-    const saved = new PrivateMessage({
-      sender,
-      receiver,
-      message: text,
-      sentTime
-    });
-    await saved.save();
-
-    // Prepare payload
-    const payload = {
-      sender: saved.sender,
-      receiver: saved.receiver,
-      message: saved.message,
-      sentTime: saved.sentTime,
-      _id: saved._id
-    };
-
-    // Emit to the private room
+  socket.on("joinPrivateRoom", ({ sender, receiver }) => {
     const room = [sender, receiver].sort().join("_");
-    socketIO.to(room).emit("privateMessage", payload);
-  } catch (err) {
-    console.error("privateMessage socket handler error:", err);
-  }
+    socket.join(room);
+    socket.emit("joinedRoom", room);
+  });
+
+  socket.on("privateMessage", async (message) => {
+    try {
+      const { sender, receiver, message: text, sentTime } = message;
+      const saved = new PrivateMessage({ sender, receiver, message: text, sentTime });
+      await saved.save();
+      const payload = { sender: saved.sender, receiver: saved.receiver, message: saved.message, sentTime: saved.sentTime, _id: saved._id };
+      const room = [sender, receiver].sort().join("_");
+      socketIO.to(room).emit("privateMessage", payload);
+    } catch (err) {
+      console.error("privateMessage socket handler error:", err);
+    }
+  });
 });
-}); // closes socketIO.on("connection")
 
 // start server
 httpServer.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
+}).on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use. Please try these solutions:\n` +
+      '1. Kill the process using the port:\n' +
+      '   - Run: netstat -ano | findstr :3000\n' +
+      '   - Then: taskkill /PID <PID> /F\n' +
+      '2. Or change the PORT in index.js to a different number\n' +
+      '3. Or wait a few seconds and try again, the port might free up');
+  }
+  process.exit(1);
 });
