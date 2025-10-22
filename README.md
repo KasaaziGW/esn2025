@@ -51,7 +51,7 @@ Node.js + Express + MongoDB Atlas
 
 ## 7. Project Structure
 ```bash
-emergency-social-network-project/
+esn2025/
 │
 ├── app.js
 ├── .env
