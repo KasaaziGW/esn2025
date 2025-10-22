@@ -39,23 +39,23 @@
             
             <li class="nav-label mg-t-25">Emergency Features</li>
             <li class="nav-item <%= activePage === 'alerts' ? 'active' : '' %>">
-                <a href="<%= hasJoinedCommunity ? '/alerts' : '#' %>" 
-                   class="nav-link <%= hasJoinedCommunity ? '' : 'text-muted' %>" 
-                   <%= hasJoinedCommunity ? '' : 'onclick="event.preventDefault(); alert(\'Please join a community first to access Emergency Alerts.\'); return false;"' %>>
+                <a href="<%= (hasJoinedCommunity || user.role === 'admin') ? '/alerts' : '#' %>" 
+                   class="nav-link <%= (hasJoinedCommunity || user.role === 'admin') ? '' : 'text-muted' %>" 
+                   <%= (hasJoinedCommunity || user.role === 'admin') ? '' : 'onclick="event.preventDefault(); alert(\'Please join a community first to access Emergency Alerts.\'); return false;"' %>>
                     <i data-feather="alert-triangle"></i> <span>Emergency Alerts</span>
                 </a>
             </li>
             <li class="nav-item <%= activePage === 'emergency' ? 'active' : '' %>">
                 <a href="#" 
-                   class="nav-link <%= hasJoinedCommunity ? '' : 'text-muted' %>" 
-                   <%= hasJoinedCommunity ? '' : 'onclick="event.preventDefault(); alert(\'Please join a community first to access Emergency Contacts.\'); return false;"' %>>
+                   class="nav-link <%= (hasJoinedCommunity || user.role === 'admin') ? '' : 'text-muted' %>" 
+                   <%= (hasJoinedCommunity || user.role === 'admin') ? '' : 'onclick="event.preventDefault(); alert(\'Please join a community first to access Emergency Contacts.\'); return false;"' %>>
                     <i data-feather="phone"></i> <span><strike>Emergency Contacts</strike></span>
                 </a>
             </li>
             <li class="nav-item <%= activePage === 'status' ? 'active' : '' %>">
                 <a href="#" 
-                   class="nav-link <%= hasJoinedCommunity ? '' : 'text-muted' %>" 
-                   <%= hasJoinedCommunity ? '' : 'onclick="event.preventDefault(); alert(\'Please join a community first to access Share Status.\'); return false;"' %>>
+                   class="nav-link <%= (hasJoinedCommunity || user.role === 'admin') ? '' : 'text-muted' %>" 
+                   <%= (hasJoinedCommunity || user.role === 'admin') ? '' : 'onclick="event.preventDefault(); alert(\'Please join a community first to access Share Status.\'); return false;"' %>>
                     <i data-feather="activity"></i> <span><strike>Share Status</strike></span>
                 </a>
             </li>
@@ -73,23 +73,23 @@
             </li>
             <% } %>
             <li class="nav-item <%= activePage === 'public-chat' ? 'active' : '' %>">
-                <a href="<%= hasJoinedCommunity ? '/public-chat' : '#' %>" 
-                   class="nav-link <%= hasJoinedCommunity ? '' : 'text-muted' %>" 
-                   <%= hasJoinedCommunity ? '' : 'onclick="event.preventDefault(); alert(\'Please join a community first to access Public Chat.\'); return false;"' %>>
+                <a href="<%= (hasJoinedCommunity || user.role === 'admin') ? '/public-chat' : '#' %>" 
+                   class="nav-link <%= (hasJoinedCommunity || user.role === 'admin') ? '' : 'text-muted' %>" 
+                   <%= (hasJoinedCommunity || user.role === 'admin') ? '' : 'onclick="event.preventDefault(); alert(\'Please join a community first to access Public Chat.\'); return false;"' %>>
                    <i data-feather="users"></i> <span>Public Chat</span>
                 </a>
             </li>
             <li class="nav-item <%= activePage === 'chat' ? 'active' : '' %>">
-                <a href="<%= hasJoinedCommunity ? '/chat' : '#' %>" 
-                   class="nav-link <%= hasJoinedCommunity ? '' : 'text-muted' %>" 
-                   <%= hasJoinedCommunity ? '' : 'onclick="event.preventDefault(); alert(\'Please join a community first to access Private Chat.\'); return false;"' %>>
+                <a href="<%= (hasJoinedCommunity || user.role === 'admin') ? '/chat' : '#' %>" 
+                   class="nav-link <%= (hasJoinedCommunity || user.role === 'admin') ? '' : 'text-muted' %>" 
+                   <%= (hasJoinedCommunity || user.role === 'admin') ? '' : 'onclick="event.preventDefault(); alert(\'Please join a community first to access Private Chat.\'); return false;"' %>>
                     <i data-feather="message-circle"></i> <span>Private Chat</span>
                 </a>
             </li>
             <li class="nav-item <%= activePage === 'announcements' ? 'active' : '' %>">
-                <a href="<%= hasJoinedCommunity ? '/announcements' : '#' %>" 
-                   class="nav-link <%= hasJoinedCommunity ? '' : 'text-muted' %>" 
-                   <%= hasJoinedCommunity ? '' : 'onclick="event.preventDefault(); alert(\'Please join a community first to access Announcements.\'); return false;"' %>>
+                <a href="<%= (hasJoinedCommunity || user.role === 'admin') ? '/announcements' : '#' %>" 
+                   class="nav-link <%= (hasJoinedCommunity || user.role === 'admin') ? '' : 'text-muted' %>" 
+                   <%= (hasJoinedCommunity || user.role === 'admin') ? '' : 'onclick="event.preventDefault(); alert(\'Please join a community first to access Announcements.\'); return false;"' %>>
                    <i data-feather="message-square"></i> <span>Announcements</span>
                 </a>
             </li>
@@ -105,6 +105,7 @@
             
             <% if (user.role === 'admin') { %>
             <li class="nav-label mg-t-25">Administration</li>
+            <li class="nav-item <%= activePage === 'admin-community-selector' ? 'active' : '' %>"><a href="/admin/communities/selector" class="nav-link"><i data-feather="layers"></i> <span>Select Community</span></a></li>
             <li class="nav-item <%= activePage === 'admin-users' ? 'active' : '' %>"><a href="/users/admin" class="nav-link"><i data-feather="user-check"></i> <span>User Management</span></a></li>
             <li class="nav-item <%= activePage === 'admin-communities' ? 'active' : '' %>"><a href="/admin/communities" class="nav-link"><i data-feather="users"></i> <span>Communities</span></a></li>
             <li class="nav-item <%= activePage === 'admin-coordinator-requests' ? 'active' : '' %>"><a href="/coordinator-requests/manage" class="nav-link"><i data-feather="user-plus"></i> <span>Coordinator Requests</span></a></li>

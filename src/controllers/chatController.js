@@ -356,6 +356,126 @@ export const createCommunityChat = catchAsync(async (req, res) => {
   sendCreated(res, 'Community chat created successfully', { chat });
 });
 
+/**
+ * Get all community chats for admin multi-chat interface
+ * GET /api/chats/admin/communities
+ */
+export const getAllCommunityChats = catchAsync(async (req, res) => {
+  const userId = req.user._id;
+  
+  // Only admins can access this endpoint
+  if (req.user.role !== 'admin') {
+    throw new AuthorizationError('Admin access required');
+  }
+
+  // Get all communities
+  const Community = (await import('../models/Community.js')).default;
+  const communities = await Community.find()
+    .populate('region', 'name')
+    .populate('district', 'name')
+    .sort({ name: 1 });
+
+  // Get or create community chats for each community
+  const communityChats = await Promise.all(communities.map(async (community) => {
+    let chat = await Chat.findOne({
+      type: 'community',
+      community: community._id
+    });
+
+    if (!chat) {
+      // Create community chat if it doesn't exist
+      chat = await Chat.create({
+        type: 'community',
+        community: community._id,
+        participants: []
+      });
+    }
+
+    // Get recent messages for this community chat
+    const messages = await Message.find({ chat: chat._id })
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .populate('sender', 'username displayName role profile avatarUrl')
+      .populate('replyTo', 'content sender type')
+      .populate('forwardedFrom', 'content sender type');
+
+    return {
+      community: {
+        id: community._id,
+        name: community.name,
+        region: community.region?.name,
+        district: community.district?.name,
+        memberCount: community.memberCount || 0
+      },
+      chat: {
+        id: chat._id,
+        lastMessage: chat.lastMessage,
+        lastMessageAt: chat.lastMessageAt
+      },
+      messages: messages.reverse() // oldest first
+    };
+  }));
+
+  sendOK(res, 'All community chats retrieved successfully', { communityChats });
+});
+
+/**
+ * Get community chat messages for admin
+ * GET /api/chats/community/:communityId/messages
+ */
+export const getCommunityChatMessages = catchAsync(async (req, res) => {
+  const { communityId } = req.params;
+  const userId = req.user._id;
+  const { before, limit = 50 } = req.query;
+
+  // Only admins can access this endpoint
+  if (req.user.role !== 'admin') {
+    throw new AuthorizationError('Admin access required');
+  }
+
+  // Find or create community chat
+  let chat = await Chat.findOne({
+    type: 'community',
+    community: communityId
+  });
+
+  if (!chat) {
+    // Create community chat if it doesn't exist
+    chat = await Chat.create({
+      type: 'community',
+      community: communityId,
+      participants: []
+    });
+  }
+
+  // Get messages
+  const filter = { chat: chat._id };
+  if (before) filter.createdAt = { $lt: new Date(before) }
+
+  const messages = await Message.find(filter)
+    .sort({ createdAt: -1 })
+    .limit(parseInt(limit, 10))
+    .populate('sender', 'username displayName role profile avatarUrl')
+    .populate('replyTo', 'content sender type')
+    .populate('forwardedFrom', 'content sender type');
+
+  // Mark messages as read for admin
+  await Message.updateMany(
+    { chat: chat._id, readBy: { $ne: userId } },
+    { $addToSet: { readBy: userId } }
+  );
+
+  sendOK(res, 'Community chat messages retrieved successfully', { 
+    messages: messages.reverse(), // oldest first
+    chat: {
+      id: chat._id,
+      community: communityId,
+      lastMessage: chat.lastMessage,
+      lastMessageAt: chat.lastMessageAt
+    }
+  });
+});
+
 export default { 
   getChatMessages, 
   sendMessage, 
@@ -363,5 +483,7 @@ export default {
   createPrivateChat, 
   getPrivateChatWithUser,
   getCommunityChat,
-  createCommunityChat
+  createCommunityChat,
+  getAllCommunityChats,
+  getCommunityChatMessages
 };

@@ -2,6 +2,7 @@ import express from 'express';
 import announcementController from '../controllers/announcementController.js';
 import { sessionAuth } from '../middleware/sessionAuth.js';
 import { requireCommunityMembership } from '../middleware/communityMembership.js';
+import { requireCommunityMembershipOrAdmin } from '../middleware/adminAccess.js';
 import { uploadAnnouncementFiles } from '../middleware/upload.js';
 import CommunityMember from '../models/communityMember.js';
 
@@ -9,13 +10,13 @@ const router = express.Router();
 
 // API Routes for announcement functionality
 // Get all announcements (user sees only their community if not admin)
-router.get('/list', sessionAuth, requireCommunityMembership, announcementController.getAnnouncements);
+router.get('/list', sessionAuth, requireCommunityMembershipOrAdmin, announcementController.getAnnouncements);
 
 // Get today's emergency alerts (must come before /:slug route)
-router.get('/emergency/today', sessionAuth, requireCommunityMembership, announcementController.getTodayEmergencyAlerts);
+router.get('/emergency/today', sessionAuth, requireCommunityMembershipOrAdmin, announcementController.getTodayEmergencyAlerts);
 
 // Get single announcement by ID (for actions)
-router.get('/id/:id', sessionAuth, requireCommunityMembership, announcementController.getAnnouncementById);
+router.get('/id/:id', sessionAuth, requireCommunityMembershipOrAdmin, announcementController.getAnnouncementById);
 
 // Create announcement (coordinator or admin) with attachments
 router.post('/', sessionAuth, uploadAnnouncementFiles, announcementController.createAnnouncement);
@@ -27,16 +28,16 @@ router.put('/id/:id', sessionAuth, announcementController.updateAnnouncementById
 router.delete('/id/:id', sessionAuth, announcementController.deleteAnnouncementById);
 
 // Track announcement view
-router.post('/id/:id/view', sessionAuth, requireCommunityMembership, announcementController.trackAnnouncementView);
+router.post('/id/:id/view', sessionAuth, requireCommunityMembershipOrAdmin, announcementController.trackAnnouncementView);
 
 // Track announcement forward
-router.post('/id/:id/forward', sessionAuth, requireCommunityMembership, announcementController.trackAnnouncementForward);
+router.post('/id/:id/forward', sessionAuth, requireCommunityMembershipOrAdmin, announcementController.trackAnnouncementForward);
 
 // Citizen announcements view page
-router.get('/view', sessionAuth, requireCommunityMembership, async (req, res) => {
-  // Check if user has joined any community (though this route already requires community membership)
+router.get('/view', sessionAuth, requireCommunityMembershipOrAdmin, async (req, res) => {
+  // Check if user has joined any community or is admin
   const communityMembership = await CommunityMember.findOne({ user: req.user._id });
-  const hasJoinedCommunity = !!communityMembership;
+  const hasJoinedCommunity = !!communityMembership || req.user.role === 'admin';
 
   res.render('announcements', {
     user: req.user,
@@ -45,10 +46,10 @@ router.get('/view', sessionAuth, requireCommunityMembership, async (req, res) =>
 });
 
 // Main announcements page (redirect to view)
-router.get('/', sessionAuth, requireCommunityMembership, async (req, res) => {
-  // Check if user has joined any community (though this route already requires community membership)
+router.get('/', sessionAuth, requireCommunityMembershipOrAdmin, async (req, res) => {
+  // Check if user has joined any community or is admin
   const communityMembership = await CommunityMember.findOne({ user: req.user._id });
-  const hasJoinedCommunity = !!communityMembership;
+  const hasJoinedCommunity = !!communityMembership || req.user.role === 'admin';
 
   res.render('announcements', {
     user: req.user,

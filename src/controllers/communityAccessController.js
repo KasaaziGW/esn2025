@@ -273,12 +273,31 @@ export const getMyCommunity = catchAsync(async (req, res) => {
   console.log('User role:', req.user.role);
   console.log('Session user:', req.session?.user);
   console.log('Session user community:', req.session?.user?.community);
+  console.log('Session activeCommunity:', req.session?.activeCommunity);
   
   const userId = req.user.id;
 
-  // If user is an administrator, they can access any community
+  // If user is an administrator, check for selected community in session first
   if (req.user.role === 'admin') {
-    console.log('User is administrator, getting first available community');
+    console.log('User is administrator, checking for selected community in session');
+    
+    // First check if admin has selected a community in session
+    if (req.session.activeCommunity) {
+      console.log('Admin has selected community in session:', req.session.activeCommunity);
+      return sendOK(res, 'Community details retrieved successfully', {
+        community: {
+          id: req.session.activeCommunity._id,
+          name: req.session.activeCommunity.name,
+          description: req.session.activeCommunity.description,
+          region: req.session.activeCommunity.region?.name || 'N/A',
+          district: req.session.activeCommunity.district?.name || 'N/A',
+          memberCount: req.session.activeCommunity.membersCount || 0
+        }
+      });
+    }
+    
+    // Fallback to first available community if no selection made
+    console.log('No selected community in session, getting first available community');
     const firstCommunity = await Community.findOne()
       .populate([
         { path: 'region', select: 'name' },
@@ -530,21 +549,54 @@ export const getCommunityMembers = catchAsync(async (req, res) => {
   
   // If user is an administrator, they can see all users
   if (user.role === 'admin') {
-    const allUsers = await User.find({ _id: { $ne: userId } })
-      .select('username displayName role profile avatarUrl isOnline lastSeenAt isActive')
-      .sort({ username: 1 });
-    
-    members = allUsers.map(user => ({
-      _id: user._id,
-      username: user.username,
-      displayName: user.displayName,
-      role: user.role,
-      avatarUrl: user.profile?.avatarUrl,
-      isOnline: user.isOnline || false,
-      lastSeenAt: user.lastSeenAt,
-      isActive: user.isActive,
-      joinedAt: null
-    }));
+    // Check if admin has selected a specific community in session
+    if (req.session.activeCommunity) {
+      console.log('Admin viewing members of selected community:', req.session.activeCommunity.name);
+      
+      // Get members of the selected community
+      const CommunityMember = (await import('../models/communityMember.js')).default;
+      const communityMembers = await CommunityMember.find({ 
+        community: req.session.activeCommunity._id,
+        user: { $ne: userId }
+      })
+        .populate({
+          path: 'user',
+          select: 'username displayName role profile avatarUrl isOnline lastSeenAt isActive'
+        })
+        .sort({ joinedAt: -1 });
+
+      // Filter out members where user is null (inactive users)
+      const activeCommunityMembers = communityMembers.filter(member => member.user);
+
+      members = activeCommunityMembers.map(member => ({
+        _id: member.user._id,
+        username: member.user.username,
+        displayName: member.user.displayName,
+        role: member.user.role,
+        avatarUrl: member.user.profile?.avatarUrl,
+        isOnline: member.user.isOnline || false,
+        lastSeenAt: member.user.lastSeenAt,
+        isActive: member.user.isActive,
+        joinedAt: member.joinedAt
+      }));
+    } else {
+      // Fallback: show all users if no community selected
+      const allUsers = await User.find({ _id: { $ne: userId } })
+        .select('username displayName role profile avatarUrl isOnline lastSeenAt isActive')
+        .sort({ username: 1 });
+      
+      members = allUsers.map(user => ({
+        _id: user._id,
+        username: user.username,
+        displayName: user.displayName,
+        role: user.role,
+        avatarUrl: user.profile?.avatarUrl,
+        isOnline: user.isOnline || false,
+        lastSeenAt: user.lastSeenAt,
+        isActive: user.isActive,
+        joinedAt: null
+      }));
+    }
   } else {
     // Regular users can only see community members and administrators
     if (!user || !user.community) {
@@ -615,25 +667,79 @@ export const getOnlineMembers = catchAsync(async (req, res) => {
   
   // Get user's community
   const user = await User.findById(userId).populate('community');
-  if (!user || !user.community) {
-    throw new NotFoundError('User not in any community');
+  
+  let members = [];
+  
+  // If user is an administrator, check for selected community in session
+  if (user.role === 'admin') {
+    if (req.session.activeCommunity) {
+      console.log('Admin viewing online members of selected community:', req.session.activeCommunity.name);
+      
+      // Get online members of the selected community
+      const CommunityMember = (await import('../models/communityMember.js')).default;
+      const communityMembers = await CommunityMember.find({ 
+        community: req.session.activeCommunity._id,
+        user: { $ne: userId }
+      })
+        .populate({
+          path: 'user',
+          select: 'username displayName role profile avatarUrl isOnline lastSeenAt isActive',
+          match: { isOnline: true, isActive: true }
+        })
+        .sort({ joinedAt: -1 });
+
+      // Filter out members where user is null (inactive users)
+      const activeCommunityMembers = communityMembers.filter(member => member.user);
+
+      members = activeCommunityMembers.map(member => ({
+        _id: member.user._id,
+        username: member.user.username,
+        displayName: member.user.displayName,
+        role: member.user.role,
+        avatarUrl: member.user.profile?.avatarUrl,
+        isOnline: true,
+        lastSeenAt: member.user.lastSeenAt
+      }));
+    } else {
+      // Fallback: show all online users if no community selected
+      const allOnlineUsers = await User.find({ 
+        _id: { $ne: userId },
+        isOnline: true,
+        isActive: true
+      }).select('username displayName role profile avatarUrl lastSeenAt');
+      
+      members = allOnlineUsers.map(user => ({
+        _id: user._id,
+        username: user.username,
+        displayName: user.displayName,
+        role: user.role,
+        avatarUrl: user.profile?.avatarUrl,
+        isOnline: true,
+        lastSeenAt: user.lastSeenAt
+      }));
+    }
+  } else {
+    // Regular users can only see online members of their community
+    if (!user || !user.community) {
+      throw new NotFoundError('User not in any community');
+    }
+
+    // Get online community members
+    const onlineMembers = await User.find({
+      community: user.community._id,
+      isOnline: true
+    }).select('username displayName role profile avatarUrl lastSeenAt');
+
+    members = onlineMembers.map(member => ({
+      _id: member._id,
+      username: member.username,
+      displayName: member.displayName,
+      role: member.role,
+      avatarUrl: member.profile?.avatarUrl,
+      isOnline: true,
+      lastSeenAt: member.lastSeenAt
+    }));
   }
-
-  // Get online community members
-  const onlineMembers = await User.find({
-    community: user.community._id,
-    isOnline: true
-  }).select('username displayName role profile avatarUrl lastSeenAt');
-
-  const members = onlineMembers.map(member => ({
-    _id: member._id,
-    username: member.username,
-    displayName: member.displayName,
-    role: member.role,
-    avatarUrl: member.profile?.avatarUrl,
-    isOnline: true,
-    lastSeenAt: member.lastSeenAt
-  }));
 
   sendOK(res, 'Online members retrieved successfully', { members });
 });

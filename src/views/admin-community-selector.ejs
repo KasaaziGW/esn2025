@@ -1,0 +1,154 @@
+<%- include('layouts/partials/top-files') %>
+<%- include('layouts/partials/sidebar', { user: user, activePage: 'admin-community-selector', hasJoinedCommunity: true }) %>
+
+<%- include('layouts/partials/header') %>
+
+<div class="content-body">
+  <div class="container pd-x-0">
+
+  <div class="d-sm-flex align-items-center justify-content-between mg-b-20 mg-lg-b-25 mg-xl-b-30">
+    <div>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb breadcrumb-style1 mg-b-10">
+          <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Select Community</li>
+        </ol>
+      </nav>
+      <h4 class="mg-b-0 tx-spacing--1">Select Active Community</h4>
+    </div>
+  </div>
+
+  <div class="row row-xs">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-header">
+          <h6 class="mg-b-0">Choose a community to access its chats and announcements</h6>
+        </div>
+        <div class="card-body">
+                        <div class="row">
+                            <% if (communities && communities.length > 0) { %>
+                                <% communities.forEach(community => { %>
+                                    <div class="col-md-6 col-lg-4 mb-3">
+                                        <div class="card community-card <%= selectedCommunityId === community._id.toString() ? 'border-success' : '' %>" 
+                                             data-community-id="<%= community._id %>">
+                                            <div class="card-body">
+                                                <h5 class="card-title">
+                                                    <%= community.name %>
+                                                    <% if (selectedCommunityId === community._id.toString()) { %>
+                                                        <span class="badge bg-success ms-2">Active</span>
+                                                    <% } %>
+                                                </h5>
+                                                <p class="card-text">
+                                                    <strong>Region:</strong> <%= community.region?.name || 'N/A' %><br>
+                                                    <strong>District:</strong> <%= community.district?.name || 'N/A' %><br>
+                                                    <strong>Members:</strong> <%= community.memberCount || 0 %>
+                                                </p>
+                                                <p class="card-text">
+                                                    <small class="text-muted">
+                                                        <%= community.isPublic ? 'Public' : 'Private' %> Community
+                                                    </small>
+                                                </p>
+                                                <% if (selectedCommunityId === community._id.toString()) { %>
+                                                    <button class="btn btn-success btn-sm" disabled>
+                                                        <i class="fas fa-check"></i> Currently Active
+                                                    </button>
+                                                <% } else { %>
+                                                    <button class="btn btn-primary btn-sm select-community-btn" 
+                                                            data-community-id="<%= community._id %>"
+                                                            data-community-name="<%= community.name %>">
+                                                        Select This Community
+                                                    </button>
+                                                <% } %>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <% }); %>
+                            <% } else { %>
+                                <div class="col-12">
+                                    <div class="alert alert-info">
+                                        <h5>No Communities Found</h5>
+                                        <p>There are no communities available. Create some communities first.</p>
+                                        <a href="/admin/communities" class="btn btn-primary">Manage Communities</a>
+                                    </div>
+                                </div>
+                            <% } %>
+                        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  </div>
+</div>
+<%- include('layouts/partials/footer') %>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle community selection
+    document.querySelectorAll('.select-community-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const communityId = this.getAttribute('data-community-id');
+            const communityName = this.getAttribute('data-community-name');
+            
+            // Show loading state
+            this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Setting...';
+            this.disabled = true;
+            
+            // Send request to set active community
+            fetch('/admin/communities/selector/set-active', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ communityId: communityId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    showAlert('success', `Active community set to: ${communityName}`);
+                    
+                    // Redirect to dashboard after a short delay
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 1500);
+                } else {
+                    showAlert('error', data.message || 'Error setting active community');
+                    // Reset button
+                    this.innerHTML = 'Select This Community';
+                    this.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('error', 'Error setting active community');
+                // Reset button
+                this.innerHTML = 'Select This Community';
+                this.disabled = false;
+            });
+        });
+    });
+    
+    // Function to show alerts
+    function showAlert(type, message) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        // Insert at the top of the card body
+        const cardBody = document.querySelector('.card-body');
+        cardBody.insertBefore(alertDiv, cardBody.firstChild);
+        
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+});
+</script>
+
+<%- include('layouts/partials/bottom-files') %>

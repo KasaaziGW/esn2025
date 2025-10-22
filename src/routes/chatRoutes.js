@@ -1,5 +1,6 @@
 import express from 'express';
 import { sessionAuth } from '../middleware/sessionAuth.js';
+import { requireCommunityMembershipOrAdmin, requireAdmin } from '../middleware/adminAccess.js';
 import chatController from '../controllers/chatController.js';
 import { uploadSingleChatFile } from '../middleware/upload.js';
 import CommunityMember from '../models/communityMember.js';
@@ -31,6 +32,10 @@ router.post('/private', sessionAuth, chatController.createPrivateChat);
 // Get private chat with specific user
 router.get('/private/with/:userId', sessionAuth, chatController.getPrivateChatWithUser);
 
+// Admin routes for multi-community chat (must come before other routes to avoid conflicts)
+router.get('/admin/communities', sessionAuth, requireAdmin, chatController.getAllCommunityChats);
+router.get('/community/:communityId/messages', sessionAuth, requireAdmin, chatController.getCommunityChatMessages);
+
 // Get community chat
 router.get('/community/:communityId', sessionAuth, chatController.getCommunityChat);
 
@@ -38,52 +43,39 @@ router.get('/community/:communityId', sessionAuth, chatController.getCommunityCh
 router.post('/community', sessionAuth, chatController.createCommunityChat);
 
 // Private chat page
-router.get('/', sessionAuth, async (req, res) => {
+router.get('/', sessionAuth, requireCommunityMembershipOrAdmin, async (req, res) => {
   // Check if user has joined any community or is an administrator
   const communityMembership = await CommunityMember.findOne({ user: req.user._id });
   const hasJoinedCommunity = !!communityMembership || req.user.role === 'admin';
   
-  // If not admin and no community membership, require community membership
-  if (!hasJoinedCommunity) {
-    return res.redirect('/communities?message=Please join a community first to access this feature.');
+  // For administrators, get a community to display
+  let userWithCommunity = req.user;
+  if (req.user.role === 'admin') {
+    // First check if admin has selected a community in session
+    if (req.session.activeCommunity) {
+      userWithCommunity = {
+        ...req.user,
+        community: req.session.activeCommunity
+      };
+    } else if (!req.user.community) {
+      // Fallback to first community if no selection made
+      const Community = (await import('../models/Community.js')).default;
+      const firstCommunity = await Community.findOne().sort({ createdAt: 1 });
+      if (firstCommunity) {
+        userWithCommunity = {
+          ...req.user,
+          community: firstCommunity
+        };
+      }
+    }
   }
   
   res.render('private-chat', {
-    user: req.user,
+    user: userWithCommunity,
     hasJoinedCommunity: hasJoinedCommunity,
     activePage: 'chat'
   });
 });
 
-// Public/Community chat page
-router.get('/', sessionAuth, async (req, res) => {
-  // Check if user has joined any community or is an administrator
-  const communityMembership = await CommunityMember.findOne({ user: req.user._id });
-  const hasJoinedCommunity = !!communityMembership || req.user.role === 'admin';
-  
-  // If not admin and no community membership, require community membership
-  if (!hasJoinedCommunity) {
-    return res.redirect('/communities?message=Please join a community first to access Public Chat.');
-  }
-  
-  // For administrators, get a community to display
-  let userWithCommunity = req.user;
-  if (req.user.role === 'admin' && !req.user.community) {
-    const Community = (await import('../models/Community.js')).default;
-    const firstCommunity = await Community.findOne().sort({ createdAt: 1 });
-    if (firstCommunity) {
-      userWithCommunity = {
-        ...req.user.toObject(),
-        community: firstCommunity
-      };
-    }
-  }
-  
-  res.render('community-chat', {
-    user: userWithCommunity,
-    hasJoinedCommunity: hasJoinedCommunity,
-    activePage: 'public-chat'
-  });
-});
 
 export default router;
