@@ -269,226 +269,173 @@
     </div>
 
     <script>
-        /*
-          public_chat.ejs — client-side script
-          - keeps original public chat behavior
-          - populates users sidebar (email icon navigates to /private-chat)
-          - updates status UI live when server emits 'statusUpdated'
-          - safe: does not change server-side routes or socket event names
-        */
+const socket = io();
 
-        const socket = io();
+const chatBox = $("#chat-box");
+const usernameInput = $("#username");
+const messageInput = $("#message-input");
+const sendButton = $("#sendButton");
 
-        // -------------------- Messages --------------------
-        function appendMessage(message) {
-            const fullname = $("#username").val();
-            const isOwn = message.sender === fullname;
+const currentUser = usernameInput.val();
 
-            const html = `
-                <div class="message ${isOwn ? 'own' : 'other'}">
-                    <div class="message-header">
-                        <span class="message-sender">${isOwn ? 'You' : message.sender}</span>
-                        <span class="message-time">${message.sentTime}</span>
-                    </div>
-                    <div class="message-content">
-                        <div class="message-text">${escapeHtml(message.message)}</div>
-                    </div>
-                </div>
-            `;
-            $("#chat-box").append(html);
-            scrollToBottom();
-        }
+// -------------------- Helpers --------------------
+function escapeHtml(str) {
+    if (!str) return "";
+    return String(str).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[m]);
+}
 
-        function scrollToBottom() {
-            const chatBox = document.getElementById('chat-box');
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
+function getCurrentTime() {
+    const d = new Date();
+    const pad = n => n < 10 ? '0' + n : n;
+    const date = [pad(d.getDate()), pad(d.getMonth() + 1), d.getFullYear()].join("-");
+    const time = [pad(d.getHours()), pad(d.getMinutes()), pad(d.getSeconds())].join(":");
+    const ampm = d.getHours() >= 12 ? "PM" : "AM";
+    return `${date} ${time} ${ampm}`;
+}
 
-        // Send message: keep same endpoint /sendMessage
-        $("#sendButton").click((e) => {
-            e.preventDefault();
-            const fullname = $("#username").val();
-            const messageText = $("#message-input").val();
-            if(!messageText || !messageText.trim()) return;
-            const message = {
-                sender: fullname,
-                message: messageText,
-                sentTime: getCurrentTime()
-            };
-            // Save and broadcast (server handles public message save)
-            saveMessage(message);
-            appendMessage(message);
-            $("#message-input").val("");
-        });
+function scrollToBottom() {
+    chatBox.scrollTop(chatBox.prop("scrollHeight"));
+}
 
-        function saveMessage(message) {
-            $.post("/sendMessage", message).fail(() => {
-                console.error("Failed to save message");
-            });
-        }
+// -------------------- Messages --------------------
+function appendMessage(msg) {
+    const isOwn = msg.sender === currentUser;
+    const html = `
+        <div class="message ${isOwn ? 'own' : 'other'}">
+            <div class="message-header">
+                <span class="message-sender">${isOwn ? 'You' : escapeHtml(msg.sender)}</span>
+                <span class="message-time">${msg.sentTime}</span>
+            </div>
+            <div class="message-content">
+                <div class="message-text">${escapeHtml(msg.message)}</div>
+            </div>
+        </div>
+    `;
+    chatBox.append(html);
+    scrollToBottom();
+}
 
-        // fetch and show history
-        function fetchMessages() {
-            $.get("/fetchMessages", (data) => {
-                $("#chat-box").empty();
-                data.forEach(appendMessage);
-                scrollToBottom();
-            }).fail(() => {
-                console.error("Failed to fetch messages");
-            });
-        }
-        fetchMessages();
+// Fetch all messages
+function fetchMessages() {
+    $.get("/fetchMessages")
+        .done(data => {
+            chatBox.empty();
+            data.forEach(appendMessage);
+        })
+        .fail(() => console.error("Failed to fetch messages"));
+}
 
-        // server -> client events for public chat
-        socket.on("joined", user => {
-            const fullname = $("#username").val();
-            const text = user === fullname ? "You have joined the chat" : `${user} has joined the chat`;
-            $("#chat-box").append(`<div class="join-notification">${escapeHtml(text)}</div>`);
-            scrollToBottom();
-        });
+fetchMessages();
 
-        socket.on("message", message => {
-            appendMessage(message);
-        });
+// -------------------- Send message --------------------
+sendButton.click(e => {
+    e.preventDefault();
+    const text = messageInput.val().trim();
+    if (!text) return;
 
-        // -------------------- Users Sidebar --------------------
-        function populateUsers() {
-            $.get("/getUsers", (users) => {
-                const usersList = $("#users-list");
-                usersList.empty();
-                const currentUser = $("#username").val();
+    const msg = { sender: currentUser, message: text, sentTime: getCurrentTime() };
 
-                users.forEach(user => {
-                    const statusClass = (user.status || "OK").toLowerCase(); // ok/help/emergency
-                    const onlineClass = user.online ? "online" : "offline";
+    $.post("/sendMessage", msg)
+        .done(response => {
+            appendMessage(response.message);
+            messageInput.val("");
+        })
+        .fail(() => console.error("Failed to send message"));
+});
 
-                    // choose icon markup only (no text) so small
-                    let statusIcon = '';
-                    if(statusClass === 'ok') statusIcon = '<i class="fas fa-check" aria-hidden="true"></i>';
-                    else if(statusClass === 'help') statusIcon = '<i class="fas fa-exclamation" aria-hidden="true"></i>';
-                    else if(statusClass === 'emergency') statusIcon = '<i class="fas fa-plus" aria-hidden="true"></i>';
+// -------------------- Socket.IO --------------------
+socket.on("message", msg => {
+    if (msg.sender !== currentUser) appendMessage(msg);
+});
 
-                    // user item uses data-email for reliable lookups later
-                    const itemHtml = `
-                        <li class="user-item" data-email="${escapeAttr(user.email)}" data-fullname="${escapeAttr(user.fullname)}">
-                            <span class="status ${onlineClass}" title="${user.online ? 'Online' : 'Offline'}"></span>
+socket.on("joined", user => {
+    const text = user === currentUser ? "You have joined the chat" : `${user} has joined the chat`;
+    chatBox.append(`<div class="join-notification">${escapeHtml(text)}</div>`);
+    scrollToBottom();
+});
 
-                            <div class="user-main">
-                                <span class="user-name">${escapeHtml(user.fullname)}</span>
-                                <div class="user-icons" style="margin-left:auto;">
-                                    <span class="user-email-icon" title="Start private chat" data-email="${escapeAttr(user.email)}" data-name="${escapeAttr(user.fullname)}">
-                                        <i class="fas fa-envelope"></i>
-                                    </span>
-                                    <span class="user-status ${statusClass}" title="${escapeAttr(user.status || 'OK')}">
-                                        ${statusIcon}
-                                    </span>
-                                </div>
+// -------------------- Users Sidebar --------------------
+function populateUsers() {
+    $.get("/getUsers")
+        .done(users => {
+            const usersList = $("#users-list");
+            usersList.empty();
+            users.forEach(user => {
+                const statusClass = (user.status || "OK").toLowerCase();
+                const onlineClass = user.online ? "online" : "offline";
+                let statusIcon = '';
+                if (statusClass === 'ok') statusIcon = '<i class="fas fa-check"></i>';
+                else if (statusClass === 'help') statusIcon = '<i class="fas fa-exclamation"></i>';
+                else if (statusClass === 'emergency') statusIcon = '<i class="fas fa-plus"></i>';
+
+                const itemHtml = `
+                    <li class="user-item" data-email="${user.email}" data-fullname="${user.fullname}">
+                        <span class="status ${onlineClass}" title="${user.online ? 'Online' : 'Offline'}"></span>
+                        <div class="user-main">
+                            <span class="user-name">${escapeHtml(user.fullname)}</span>
+                            <div class="user-icons" style="margin-left:auto;">
+                                <span class="user-email-icon" title="Start private chat" data-email="${user.email}" data-name="${escapeHtml(user.fullname)}">
+                                    <i class="fas fa-envelope"></i>
+                                </span>
+                                <span class="user-status ${statusClass}" title="${user.status || 'OK'}">${statusIcon}</span>
                             </div>
-                        </li>
-                    `;
-                    usersList.append(itemHtml);
-                });
-
-            }).fail(() => {
-                console.error("Failed to fetch users");
+                        </div>
+                    </li>
+                `;
+                usersList.append(itemHtml);
             });
+        })
+        .fail(() => console.error("Failed to fetch users"));
+}
+
+populateUsers();
+setInterval(populateUsers, 10000);
+
+// Update status dynamically
+socket.on("statusUpdated", user => {
+    $("#users-list .user-item").each(function () {
+        const li = $(this);
+        const email = li.data("email");
+        if (user.email === email) {
+            const st = (user.status || "").toLowerCase();
+            const iconHtml = st === 'ok' ? '<i class="fas fa-check"></i>' : (st === 'help' ? '<i class="fas fa-exclamation"></i>' : '<i class="fas fa-plus"></i>');
+            li.find(".user-status").attr("class", `user-status ${st}`).html(iconHtml).attr("title", user.status || "");
         }
+    });
+});
 
-        // initial and periodic refresh
-        populateUsers();
-        setInterval(populateUsers, 10000);
+// Change own status
+$(document).on("click", ".user-status", function() {
+    const li = $(this).closest(".user-item");
+    const fullname = li.data("fullname");
+    if(fullname !== currentUser) return;
 
-        // -------------------- Status update UI & events --------------------
-        // When server broadcasts a statusUpdated event, update sidebar accordingly
-        socket.on("statusUpdated", (user) => {
-            // server sends { fullname, status } or { email, status }
-            // prefer matching by email if available in data.
-            $("#users-list .user-item").each(function () {
-                const li = $(this);
-                const email = li.data("email");
-                const fullname = li.data("fullname");
-                // match by fullname or email
-                if ((user.email && user.email === email) || (user.fullname && user.fullname === fullname)) {
-                    const st = (user.status || user.status || "").toLowerCase();
-                    const iconHtml = st === 'ok' ? '<i class="fas fa-check"></i>' : (st === 'help' ? '<i class="fas fa-exclamation"></i>' : '<i class="fas fa-plus"></i>');
-                    li.find(".user-status").attr("class", `user-status ${escapeAttr(st)}`).html(iconHtml).attr("title", user.status || "");
-                }
-            });
-        });
+    const newStatus = prompt("Change your status (OK, Help, Emergency):", $(this).attr("title") || "OK");
+    if (!newStatus) return;
+    const allowed = ["OK", "Help", "Emergency"];
+    if (!allowed.includes(newStatus)) { alert("Invalid status"); return; }
 
-        // manual change flow (prompt) for the current user only — triggers server update
-        // clicking the status icon will prompt user to change their status (OK/Help/Emergency)
-        $(document).on("click", ".user-status", function(e) {
-            const li = $(this).closest(".user-item");
-            const fullname = li.data("fullname");
-            const myFullname = $("#username").val();
-            if(fullname !== myFullname) {
-                // only allow changing your own status via sidebar (prevent others)
-                return;
-            }
+    const statusLower = newStatus.toLowerCase();
+    const iconHtml = statusLower === 'ok' ? '<i class="fas fa-check"></i>' : (statusLower === 'help' ? '<i class="fas fa-exclamation"></i>' : '<i class="fas fa-plus"></i>');
 
-            const newStatus = prompt("Change your status (OK, Help, Emergency):", $(this).attr("title") || "OK");
-            if(!newStatus) return;
-            const allowed = ["OK","Help","Emergency"];
-            if(!allowed.includes(newStatus)) {
-                alert("Invalid status. Use OK, Help, or Emergency.");
-                return;
-            }
+    $(this).attr("class", `user-status ${statusLower}`).html(iconHtml).attr("title", newStatus);
+    socket.emit("updateStatus", { email: $("#username").data("email"), status: newStatus });
+});
 
-            const statusLower = newStatus.toLowerCase();
-            const iconHtml = statusLower === 'ok' ? '<i class="fas fa-check"></i>' : (statusLower === 'help' ? '<i class="fas fa-exclamation"></i>' : '<i class="fas fa-plus"></i>');
+// Start private chat
+$(document).on("click", ".user-email-icon", function () {
+    const email = $(this).data("email");
+    const name = $(this).data("name");
+    if(!email) return;
+    window.location.href = `/private-chat?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`;
+});
 
-            // update UI immediately
-            $(this).attr("class", `user-status ${statusLower}`).html(iconHtml).attr("title", newStatus);
+// Emit join on page load
+$(function() {
+    socket.emit("joined", currentUser);
+});
+</script>
 
-            // emit to server; server will persist and broadcast to others
-            socket.emit("updateStatus", { email: $("#username").data("email"), status: newStatus });
-        });
-
-        // -------------------- Start private chat when envelope clicked --------------------
-        // Clicking the envelope navigates to private chat view with query params.
-        $(document).on("click", ".user-email-icon", function () {
-            const email = $(this).data("email");
-            const name = $(this).data("name");
-            if(!email) return;
-            // navigate to private chat route
-            window.location.href = `/private-chat?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`;
-        });
-
-        // -------------------- Helpers & small UX improvements --------------------
-        // Escape HTML to avoid injection (simple)
-        function escapeHtml(str) {
-            if(str === null || str === undefined) return "";
-            return String(str).replace(/[&<>"']/g, function (m) {
-                return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[m];
-            });
-        }
-        function escapeAttr(str) {
-            if(str === null || str === undefined) return "";
-            return String(str).replace(/["']/g, function (m) {
-                return ({ '"': "&quot;", "'": "&#39;" })[m];
-            });
-        }
-
-        // get formatted time like your existing code
-        function getCurrentTime() {
-            const d = new Date();
-            const pad = n => n < 10 ? '0' + n : n;
-            const date = [pad(d.getDate()), pad(d.getMonth() + 1), d.getFullYear()].join("-");
-            const time = [pad(d.getHours()), pad(d.getMinutes()), pad(d.getSeconds())].join(":");
-            const ampm = d.getHours() >= 12 ? "PM" : "AM";
-            return `${date} ${time} ${ampm}`;
-        }
-
-        // Optional: emit a join event with your fullname so server can announce it (server already sends joined sometimes)
-        $(function () {
-            const fullname = $("#username").val();
-            if (fullname) {
-                // emit to server (server may already broadcast a 'joined' event using a global username variable)
-                socket.emit("joined", fullname);
-            }
-        });
-    </script>
 
     <script src="js/navbar.js"></script>
     <%- include('templates/footer') %>
