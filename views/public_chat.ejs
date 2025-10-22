@@ -359,7 +359,13 @@
                 const currentUser = $("#username").val();
 
                 users.forEach(user => {
-                    const statusClass = (user.status || "OK").toLowerCase(); // ok/help/emergency
+                    // normalize status to string safely (handles legacy object-shaped status)
+                    let statusVal = 'OK';
+                    if (user && user.status) {
+                        if (typeof user.status === 'string') statusVal = user.status;
+                        else if (typeof user.status === 'object' && user.status.current_state) statusVal = String(user.status.current_state);
+                    }
+                    const statusClass = (statusVal || 'OK').toLowerCase(); // ok/help/emergency
                     const onlineClass = user.online ? "online" : "offline";
 
                     // choose icon markup only (no text) so small
@@ -408,8 +414,14 @@
                 const email = li.data("email");
                 const fullname = li.data("fullname");
                 // match by fullname or email
-                if ((user.email && user.email === email) || (user.fullname && user.fullname === fullname)) {
-                    const st = (user.status || user.status || "").toLowerCase();
+                    if ((user.email && user.email === email) || (user.fullname && user.fullname === fullname)) {
+                    // normalize incoming status from server
+                    let stVal = '';
+                    if (user && user.status) {
+                        if (typeof user.status === 'string') stVal = user.status;
+                        else if (typeof user.status === 'object' && user.status.current_state) stVal = String(user.status.current_state);
+                    }
+                    const st = (stVal || '').toLowerCase();
                     const iconHtml = st === 'ok' ? '<i class="fas fa-check"></i>' : (st === 'help' ? '<i class="fas fa-exclamation"></i>' : '<i class="fas fa-plus"></i>');
                     li.find(".user-status").attr("class", `user-status ${escapeAttr(st)}`).html(iconHtml).attr("title", user.status || "");
                 }

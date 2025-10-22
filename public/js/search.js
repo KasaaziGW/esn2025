@@ -128,6 +128,12 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'citizens':
             case 'status':
                 div.className += ' citizen-result';
+                // normalize status to string to avoid errors if backend returns object
+                let _res_status = 'undefined';
+                if (result && result.status) {
+                    if (typeof result.status === 'string') _res_status = result.status;
+                    else if (typeof result.status === 'object' && result.status.current_state) _res_status = String(result.status.current_state);
+                }
                 div.innerHTML = `
                     <div class="citizen-avatar">
                         <i class="fas fa-user"></i>
@@ -135,8 +141,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="citizen-info">
                         <h4 class="citizen-name">${result.fullname}</h4>
                         <div class="citizen-status">
-                            <span class="status-indicator status-${result.status.toLowerCase()}"></span>
-                            <span>${result.status}</span>
+                            <span class="status-indicator status-${_res_status.toLowerCase()}"></span>
+                            <span>${_res_status}</span>
                             <span style="margin-left: auto">${result.online ? 'Online' : 'Offline'}</span>
                         </div>
                     </div>
