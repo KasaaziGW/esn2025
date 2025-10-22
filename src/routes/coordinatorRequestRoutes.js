@@ -29,7 +29,7 @@ router.get('/', sessionAuth, adminAuth, getCoordinatorRequests);
 router.put('/:requestId/review', sessionAuth, adminAuth, reviewCoordinatorRequest);
 
 // Admin coordinator requests page
-router.get('/admin', sessionAuth, async (req, res) => {
+router.get('/manage', sessionAuth, async (req, res) => {
   // Check if user is admin
   if (req.user.role !== 'admin') {
     return res.status(403).render('error', {

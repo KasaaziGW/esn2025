@@ -57,7 +57,7 @@ router.get('/', sessionAuth, requireCommunityMembership, async (req, res) => {
 });
 
 // Coordinator announcements page
-router.get('/coordinator', sessionAuth, async (req, res) => {
+router.get('/manage', sessionAuth, async (req, res) => {
   // Check if user is coordinator
   if (req.user.role !== 'coordinator') {
     return res.status(403).render('error', {

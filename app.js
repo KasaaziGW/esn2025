@@ -89,7 +89,6 @@ app.use('/api/community-members', communityMemberRoutes);
 app.use('/api/coordinator-requests', coordinatorRequestRoutes);
 app.use('/coordinator-requests', coordinatorRequestRoutes);
 app.use('/api/announcements', announcementRoutes);
-app.use('/coordinator/announcements', announcementRoutes);
 app.use('/api/chats', chatRoutes);
 
 // API Documentation with Swagger

@@ -2527,7 +2527,7 @@ export const paths = {
     }
   },
 
-  '/admin/coordinator-requests': {
+  '/coordinator-requests/manage': {
     get: {
       summary: 'Get admin coordinator requests page (Admin only)',
       tags: ['Pages'],
@@ -2553,7 +2553,7 @@ export const paths = {
     }
   },
 
-  '/coordinator/announcements': {
+  '/announcements/manage': {
     get: {
       summary: 'Get coordinator announcements page (Coordinator only)',
       tags: ['Pages'],
@@ -2691,6 +2691,87 @@ export const paths = {
           content: {
             'text/html': {
               schema: { type: 'string' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  // Additional Page Routes
+  '/users/profile': {
+    get: {
+      summary: 'Get user profile page',
+      tags: ['Pages'],
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: 'User profile page rendered successfully',
+          content: {
+            'text/html': {
+              schema: { type: 'string' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/announcements': {
+    get: {
+      summary: 'Get announcements page',
+      tags: ['Pages'],
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: 'Announcements page rendered successfully',
+          content: {
+            'text/html': {
+              schema: { type: 'string' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/dashboard': {
+    get: {
+      summary: 'Get dashboard page',
+      tags: ['Pages'],
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: 'Dashboard page rendered successfully',
+          content: {
+            'text/html': {
+              schema: { type: 'string' }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/users/admin': {
+    get: {
+      summary: 'Get admin users page (Admin only)',
+      tags: ['Pages'],
+      security: [{ bearerAuth: [] }],
+      responses: {
+        200: {
+          description: 'Admin users page rendered successfully',
+          content: {
+            'text/html': {
+              schema: { type: 'string' }
+            }
+          }
+        },
+        403: {
+          description: 'Admin access required',
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/Error' }
             }
           }
         }

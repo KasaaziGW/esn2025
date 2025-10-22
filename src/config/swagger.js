@@ -260,17 +260,46 @@ const options = {
             items: { type: 'array', items: { type: 'object' } }
           }
         },
-        Community: {
+        CoordinatorRequest: {
           type: 'object',
           properties: {
-            id: { type: 'string', example: '60d0fe4f5311236168a109ce' },
-            name: { type: 'string', example: 'Central Park Community' },
-            description: { type: 'string', example: 'A community focused on safety' },
-            region: { type: 'object' },
-            district: { type: 'object' },
-            isPublic: { type: 'boolean', example: true },
-            memberCount: { type: 'number', example: 150 },
-            createdAt: { type: 'string', format: 'date-time' }
+            id: { type: 'string', example: '507f1f77bcf86cd799439018' },
+            user: { type: 'string', example: 'john_doe' },
+            reason: { type: 'string', example: 'I want to help coordinate emergency responses' },
+            experience: { type: 'string', example: '5 years in emergency services' },
+            status: { 
+              type: 'string', 
+              enum: ['pending', 'approved', 'rejected'],
+              example: 'pending'
+            },
+            reviewedBy: { type: 'string', example: 'admin_user' },
+            reviewNotes: { type: 'string', example: 'Approved based on experience' },
+            attachment: {
+              type: 'object',
+              properties: {
+                url: { type: 'string', example: '/uploads/coordinator-requests/document.pdf' },
+                filename: { type: 'string', example: 'experience-certificate.pdf' },
+                mimetype: { type: 'string', example: 'application/pdf' },
+                size: { type: 'number', example: 2048000 }
+              }
+            },
+            createdAt: { type: 'string', format: 'date-time', example: '2024-01-15T10:30:00Z' },
+            updatedAt: { type: 'string', format: 'date-time', example: '2024-01-15T10:30:00Z' }
+          }
+        },
+        CommunityMember: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', example: '507f1f77bcf86cd799439019' },
+            user: { type: 'string', example: 'john_doe' },
+            community: { type: 'string', example: 'central-park-community' },
+            role: { 
+              type: 'string', 
+              enum: ['member', 'coordinator', 'admin'],
+              example: 'member'
+            },
+            joinedAt: { type: 'string', format: 'date-time', example: '2024-01-15T10:30:00Z' },
+            isActive: { type: 'boolean', example: true }
           }
         }
       }

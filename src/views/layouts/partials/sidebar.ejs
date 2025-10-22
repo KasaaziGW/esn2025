@@ -97,7 +97,7 @@
             <% if (user.role === 'coordinator') { %>
             <li class="nav-label mg-t-25">Coordination</li>
             <li class="nav-item <%= activePage === 'coordinator-announcements' ? 'active' : '' %>">
-                <a href="/coordinator/announcements" class="nav-link">
+                <a href="/announcements/manage" class="nav-link">
                     <i data-feather="message-square"></i><span>Manage Announcements</span>
                 </a>
             </li>
@@ -107,7 +107,7 @@
             <li class="nav-label mg-t-25">Administration</li>
             <li class="nav-item <%= activePage === 'admin-users' ? 'active' : '' %>"><a href="/users/admin" class="nav-link"><i data-feather="user-check"></i> <span>User Management</span></a></li>
             <li class="nav-item <%= activePage === 'admin-communities' ? 'active' : '' %>"><a href="/admin/communities" class="nav-link"><i data-feather="users"></i> <span>Communities</span></a></li>
-            <li class="nav-item <%= activePage === 'admin-coordinator-requests' ? 'active' : '' %>"><a href="/admin/coordinator-requests" class="nav-link"><i data-feather="user-plus"></i> <span>Coordinator Requests</span></a></li>
+            <li class="nav-item <%= activePage === 'admin-coordinator-requests' ? 'active' : '' %>"><a href="/coordinator-requests/manage" class="nav-link"><i data-feather="user-plus"></i> <span>Coordinator Requests</span></a></li>
             <li class="nav-item <%= activePage === 'logs' ? 'active' : '' %>"><a href="/admin/logs" class="nav-link"><i data-feather="file-text"></i> <span>System Logs</span></a></li>
             <li class="nav-item <%= activePage === 'settings' ? 'active' : '' %>"><a href="#" class="nav-link"><i data-feather="settings"></i> <span>System Settings</span></a></li>
             <% } %>
