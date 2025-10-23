@@ -183,7 +183,7 @@ app.get("/directory", isAuthenticated, async (req, res) => {
       user: req.session.user,
       users: usersWithStatus,
       getStatusBadge,
-      users: users.map((u) => ({ fullname: u.fullname, email: u.email, online: u.online || false, status: u.status || "OK" })),
+      users: users.map((u) => ({ fullname: u.fullname, email: u.email, online: u.online || false, status: u.status})),
     });
   } catch {
     res.status(500).send("Error loading directory");
@@ -194,6 +194,80 @@ app.get("/directory", isAuthenticated, async (req, res) => {
 app.get("/public_chat", isAuthenticated, (req, res) => {
   res.render("public_chat", { title: "Public Chat", user: req.session.user,getStatusBadge });
 });
+
+// Search route
+app.get("/search", isAuthenticated, (req, res) => {
+  res.render("search", { title: "Search", user: req.session.user });
+});
+
+// Search API endpoint
+app.get("/api/search", isAuthenticated, async (req, res) => {
+  const { context, term, page = 1 } = req.query;
+  const limit = 10;
+  const skip = (page - 1) * limit;
+  let results = [];
+  let hasMore = false;
+
+  try {
+    switch(context) {
+      case 'citizens':
+        // Search citizens by username (fullname)
+        const citizenResults = await Citizen.find({
+          fullname: { $regex: term, $options: 'i' }
+        })
+        .sort({ online: -1, fullname: 1 }) // Online first, then alphabetical
+        .select('fullname online status')
+        .skip(skip)
+        .limit(limit + 1); // Get one extra to check if there are more
+
+        hasMore = citizenResults.length > limit;
+        results = citizenResults.slice(0, limit);
+        break;
+
+      case 'status':
+        // Search citizens by status
+        if (['OK', 'Help', 'Emergency'].includes(term.toUpperCase())) {
+          const statusResults = await Citizen.find({
+            status:{current_state: term.toUpperCase()}
+          })
+          .sort({ online: -1, fullname: 1 })
+          .select('fullname online status')
+          .skip(skip)
+          .limit(limit + 1);
+
+          hasMore = statusResults.length > limit;
+          results = statusResults.slice(0, limit);
+        }
+        break;
+
+      case 'public-messages':
+        // Search public messages
+        const messageResults = await Message.find({
+          message: { $regex: term, $options: 'i' }
+        })
+        .sort({ _id: -1 }) // Latest first
+        .skip(skip)
+        .limit(limit + 1);
+
+        hasMore = messageResults.length > limit;
+        results = messageResults.slice(0, limit);
+        break;
+
+      case 'private-messages':
+        // For private messages (placeholder for future implementation)
+        // This would need a PrivateMessage model and proper filtering
+        results = [];
+        hasMore = false;
+        break;
+    }
+
+    res.json({ results, hasMore });
+  } catch (error) {
+    console.error('Search error:', error);
+    res.status(500).json({ error: 'An error occurred while searching' });
+  }
+});
+
 
 // Logout
 app.get("/logout", async (req, res) => {
@@ -244,15 +318,18 @@ app.get("/getUsers", isAuthenticated, async (req, res) => {
 });
 
 // Private chat
-app.get("/private-chat", isAuthenticated, (req, res) => {
+app.get("/private-chat", isAuthenticated, async (req, res) => {
   const { email, name } = req.query || {};
   const currentUser = req.session.user;
+  const citizens = await Citizen.find({});
   res.render("private-chat", {
     title: "Private Chat",
     user: currentUser,
     currentUser,
     receiverEmail: email || "",
-    receiverName: name || ""
+    receiverName: name || "",
+    getStatusBadge,
+    users: citizens.filter((u)=>u.email!==currentUser.email).map((u) => ({ fullname: u.fullname, email: u.email, online: u.online || false, status: u.status}))
   });
 });
 
