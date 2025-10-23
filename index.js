@@ -37,11 +37,11 @@ app.use(flashMessage());
 
 const  getStatusBadge = function(status) {
   switch(status) {
-    case 'ok':
+    case 'OK':
       return '<span class="badge bg-success text-white"><i class="fa-regular fa-check-circle"></i> OK</span>';
-    case 'help':
+    case 'Help':
       return '<span class="badge bg-warning text-white"><i class="fas fa-warning"></i> Help</span>';
-    case 'emergency':
+    case 'Emergency':
       return '<span class="badge bg-danger text-white"><i class="fas fa-ambulance"></i> Emergency</span>';
     default:
       return '<span class="badge bg-secondary"> Undefined</span>';
@@ -59,7 +59,6 @@ app.use(function (req, res, next) {
 app.get("/favicon.ico", (req, res) =>
   res.sendFile(__dirname + "/public/images/logo.png")
 );
-
 
 // testing connection to MongoDB
 const dbURL =
@@ -129,7 +128,7 @@ app.post("/registerUser", (req, res) => {
           req.flash("error", "An error occurred. Please try again!");
           return res.redirect("/register");
         }
-        const user = new Citizen({ email, fullname, password: hash, online: false, status: "OK" });
+        const user = new Citizen({ email, fullname, password: hash, online: false});
         user.save();
         req.flash("success", "Registration successful!");
         res.redirect("/register");
@@ -177,13 +176,13 @@ app.get("/directory", isAuthenticated, async (req, res) => {
       fullname: u.fullname,
       email: u.email,
       online: u.online || false,
-      status: u.status || {current_state:"undefined",timestamp:null},
+      status: u.status || {current_state:"Undefined",timestamp:null},
     }));
     res.render("directory", {
       title: "ESN Directory",
       user: req.session.user,
       users: usersWithStatus,
-      getStatusBadge
+      getStatusBadge,
       users: users.map((u) => ({ fullname: u.fullname, email: u.email, online: u.online || false, status: u.status || "OK" })),
     });
   } catch {
@@ -208,9 +207,11 @@ app.get("/logout", async (req, res) => {
 app.post("/sendMessage", async (req, res) => {
   try {
     const { sender, message, sentTime } = req.body;
-    if (!sender || !message) return res.status(400).json({ error: "Missing fields" });
+     console.log("Received Bod:", req.body);
+    console.log("Received Session:", req.session.user);
+    if (!sender || !message || !req.session.user) return res.status(400).json({ error: "Missing fields or Invalid session" });
 
-    const newMessage = await Message.create({ sender, message, sentTime });
+    const newMessage = await Message.create({ sender, message, sentTime,sender_status:req.session.user.status });
     io.emit("message", newMessage);
     res.json({ success: true, message: newMessage });
   } catch (err) {
@@ -219,12 +220,6 @@ app.post("/sendMessage", async (req, res) => {
   }
 });
 
-  var message = new Message(req.body);
-  message.sender_status=req.session.user.status;
-  await message.save();
-  socketIO.emit("message", req.body);
-  res.sendStatus(200);
-});
 
 // fetching messages from the database
 app.get("/fetchMessages", async (req, res) => {
@@ -257,7 +252,7 @@ app.get("/private-chat", isAuthenticated, (req, res) => {
     user: currentUser,
     currentUser,
     receiverEmail: email || "",
-    receiverName: name || "",
+    receiverName: name || ""
   });
 });
 
@@ -280,11 +275,11 @@ app.get("/fetchPrivateMessages", isAuthenticated, async (req, res) => {
 app.post("/sendPrivateMessage", isAuthenticated, async (req, res) => {
   try {
     const { sender, receiver, message, sentTime } = req.body;
-    const newMsg = new PrivateMessage({ sender, receiver, message, sentTime });
+    const newMsg = new PrivateMessage({ sender, receiver, message, sentTime,sender_status:req.session.user.status });
     await newMsg.save();
 
     const room = [sender, receiver].sort().join("_");
-    io.to(room).emit("privateMessage", { sender, receiver, message, sentTime });
+    io.to(room).emit("privateMessage", { sender, receiver, message, sentTime,sender_status:req.session.user.status });
     res.json({ success: true });
   } catch (err) {
     console.error("Error saving private message:", err);
@@ -312,8 +307,9 @@ io.on("connection", (socket) => {
   // Public chat
   socket.on("sendPublicMessage", async (msg) => {
     try {
-      const { sender, message, sentTime } = msg;
-      const newMessage = await Message.create({ sender, message, sentTime });
+      const { sender, message, sentTime,sender_status } = msg;
+      const newMessage = await Message.create({ sender, message, sentTime,sender_status });
+      console.log("New public message:", newMessage);
       io.emit("message", newMessage);
     } catch (err) {
       console.error("Error sending public message via socket:", err);
@@ -323,27 +319,14 @@ io.on("connection", (socket) => {
   // Private chat
   socket.on("sendPrivateMessage", async (msg) => {
     try {
-      const { sender, receiver, message, sentTime } = msg;
-      const newMsg = await PrivateMessage.create({ sender, receiver, message, sentTime });
+      const { sender, receiver, message, sentTime,sender_status } = msg;
+      const newMsg = await PrivateMessage.create({ sender, receiver, message, sentTime,sender_status });
       const room = [sender, receiver].sort().join("_");
       io.to(room).emit("privateMessage", { sender, receiver, message, sentTime });
     } catch (err) {
       console.error("Error sending private message via socket:", err);
     }
   });
-});
-
-// Start server
-httpServer.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`))
-  .on("error", (err) => {
-    if (err.code === "EADDRINUSE") {
-      console.error(`Port ${PORT} in use. Kill process or change port.`);
-    }
-    process.exit(1);
-  });
-  const messages = await Message.find({});
-  console.log("Fetched messages:", messages);
-  res.json(messages);
 });
 
 app.get("/share-status", isAuthenticated, (req, res) => {
@@ -366,7 +349,12 @@ app.post("/setStatus", async (req, res) => {
   
 });
 
+// Start server
+httpServer.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`))
+  .on("error", (err) => {
+    if (err.code === "EADDRINUSE") {
+      console.error(`Port ${PORT} in use. Kill process or change port.`);
+    }
+    process.exit(1);
+  });
 
-httpServer.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});

@@ -15,10 +15,10 @@
         </div>
 
         <select id="statusSelect" onchange="updateStatus(event)" class="status-select">
-            <option value="undefined" <%= user?.status?.current_state === 'undefined' ? 'selected' : '' %>>Undefined</option>
-            <option value="ok" <%= user?.status?.current_state === 'ok' ? 'selected' : '' %>>OK</option>
-            <option value="emergency" <%= user?.status?.current_state === 'emergency' ? 'selected' : '' %>>Emergency</option>
-            <option value="help" <%= user?.status?.current_state === 'help' ? 'selected' : '' %>>Help</option>
+            <option value="Undefined" <%= user?.status?.current_state === 'Undefined' ? 'selected' : '' %>>Undefined</option>
+            <option value="OK" <%= user?.status?.current_state === 'OK' ? 'selected' : '' %>>OK</option>
+            <option value="Emergency" <%= user?.status?.current_state === 'Emergency' ? 'selected' : '' %>>Emergency</option>
+            <option value="Help" <%= user?.status?.current_state === 'Help' ? 'selected' : '' %>>Help</option>
         </select>
 
         

@@ -5,6 +5,6 @@ const citizenSchema = new Schema({
   fullname: { type: String, required: true },
   password: { type: String, required: true },
   online: { type: Boolean, default: false },
-  status: { type: String, enum: ['OK', 'Help', 'Emergency'], default: 'OK' },
+  status: { type:  Object, default: { current_state: 'Undefined', timestamp: new Date() } },
 });
 module.exports = mongoose.model("Citizen", citizenSchema);
