@@ -25,7 +25,7 @@ Node.js + Express + MongoDB Atlas
 - Node.js v16.0.0 or higher required
 
 ## 4. Installation Steps
-- Clone the repository: `git clone https://github.com/KasaaziGW/esn2025.git`
+- Clone the repository: `git clone -b Group-1 --single-branch https://github.com/KasaaziGW/esn2025.git`
 - Initialize the Project:  `npm init -y`
 - Install dependencies: `npm install`  
 - Run the Server: `npx nodemon app.js`  "or" `node app.js`
