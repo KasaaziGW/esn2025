@@ -146,7 +146,7 @@ $(document).ready(function() {
         }
 
         $.ajax({
-            url: '/api/auth/login',
+            url: '/auth/login',
             method: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(formData),
@@ -189,7 +189,7 @@ $(document).ready(function() {
         }
         
         $.ajax({
-            url: '/api/auth/verify',
+            url: '/auth/verify',
             method: 'GET',
             success: function(response) {
                 // Only redirect if user is actually authenticated and not just logged out

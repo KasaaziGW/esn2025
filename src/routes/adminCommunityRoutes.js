@@ -6,6 +6,43 @@ import CommunityMember from '../models/communityMember.js';
 
 const router = express.Router();
 
+// Admin communities management page
+router.get('/', sessionAuth, requireAdmin, async (req, res) => {
+  try {
+    // Get all communities with member count
+    const communities = await Community.find()
+      .populate('region', 'name')
+      .populate('district', 'name')
+      .sort({ name: 1 });
+
+    // Get member count for each community
+    const communitiesWithMemberCount = await Promise.all(communities.map(async (community) => {
+      const memberCount = await CommunityMember.countDocuments({ community: community._id });
+      return {
+        ...community.toObject(),
+        memberCount: memberCount
+      };
+    }));
+
+    res.render('admin-communities', {
+      user: req.user,
+      activePage: 'admin-communities',
+      hasJoinedCommunity: true, // Admin always has access to all features
+      token: req.session.token || null, // Add token for API requests
+      communities: communitiesWithMemberCount // Pass communities data to template
+    });
+  } catch (error) {
+    console.error('Error loading admin communities page:', error);
+    res.status(500).render('error', {
+      title: 'Error',
+      error: {
+        status: 500,
+        message: 'Error loading communities management page'
+      }
+    });
+  }
+});
+
 // Admin community selector page
 router.get('/selector', sessionAuth, requireAdmin, async (req, res) => {
   try {
@@ -28,7 +65,9 @@ router.get('/selector', sessionAuth, requireAdmin, async (req, res) => {
       user: req.user,
       communities: communitiesWithMemberCount,
       activePage: 'admin-community-selector',
-      selectedCommunityId: req.session.activeCommunityId || null
+      selectedCommunityId: req.session.activeCommunityId || null,
+      hasJoinedCommunity: true, // Admin always has access to all features
+      token: req.session.token || null // Add token for API requests
     });
   } catch (error) {
     console.error('Error loading admin community selector:', error);
@@ -108,6 +147,39 @@ router.get('/active', sessionAuth, requireAdmin, async (req, res) => {
   } catch (error) {
     console.error('Error getting active community:', error);
     res.status(500).json({ message: 'Error getting active community' });
+  }
+});
+
+// API endpoint to get all communities for admin
+router.get('/api/communities', sessionAuth, requireAdmin, async (req, res) => {
+  try {
+    // Get all communities with member count
+    const communities = await Community.find()
+      .populate('region', 'name')
+      .populate('district', 'name')
+      .sort({ name: 1 });
+
+    // Get member count for each community
+    const communitiesWithMemberCount = await Promise.all(communities.map(async (community) => {
+      const memberCount = await CommunityMember.countDocuments({ community: community._id });
+      return {
+        ...community.toObject(),
+        memberCount: memberCount
+      };
+    }));
+
+    res.json({
+      status: 'success',
+      data: {
+        items: communitiesWithMemberCount
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching communities:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Error fetching communities'
+    });
   }
 });
 

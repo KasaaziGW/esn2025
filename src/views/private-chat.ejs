@@ -526,7 +526,7 @@
     // Load community members for starting new chats
     function loadCommunityMembers() {
         $.ajax({
-            url: '/api/community-access/members',
+            url: '/community-access/members',
             method: 'GET',
             success: function(response) {
                 console.log('Community members loaded:', response);
@@ -587,7 +587,7 @@
     // Load existing private chats
     function loadPrivateChats() {
         $.ajax({
-            url: '/api/chats/private',
+            url: '/chats/private',
             method: 'GET',
             success: function(response) {
                 console.log('Private chats loaded:', response);
@@ -654,7 +654,7 @@
         }
         
         $.ajax({
-            url: '/api/chats/private',
+            url: '/chats/private',
             method: 'POST',
             data: { recipientId: userId },
             success: function(response) {
@@ -692,7 +692,7 @@
         
         // Check if chat already exists
         $.ajax({
-            url: `/api/chats/private/with/${userId}`,
+            url: `/chats/private/with/${userId}`,
             method: 'GET',
             success: function(response) {
                 console.log('Chat check response:', response);
@@ -703,7 +703,7 @@
                     console.log('No existing chat, creating new one');
                     // Create new chat
                     $.ajax({
-                        url: '/api/chats/private',
+                        url: '/chats/private',
                         method: 'POST',
                         data: { recipientId: userId },
                         success: function(response) {
@@ -770,7 +770,7 @@
     // Load chat messages
     function loadChatMessages(chatId) {
         $.ajax({
-            url: `/api/chats/${chatId}/messages`,
+            url: `/chats/${chatId}/messages`,
             method: 'GET',
             success: function(response) {
                 console.log('Chat messages loaded:', response);
@@ -958,7 +958,7 @@
             console.log('Socket not connected, using REST API');
             // Fallback to REST API
             $.ajax({
-                url: `/api/chats/${currentChatId}/messages`,
+                url: `/chats/${currentChatId}/messages`,
                 method: 'POST',
                 data: { content: content, type: 'text' },
                 success: function(response) {
@@ -1000,7 +1000,7 @@
         formData.append('file', file);
         
         $.ajax({
-            url: `/api/chats/${currentChatId}/messages`,
+            url: `/chats/${currentChatId}/messages`,
             method: 'POST',
             data: formData,
             processData: false,

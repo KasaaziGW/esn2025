@@ -69,7 +69,7 @@ function loadRegions() {
     console.log('Region select element found:', $('#regionSelect').length);
     
     $.ajax({
-        url: `/api/regions`,
+        url: `/regions`,
         method: 'GET',
         xhrFields: {
             withCredentials: true
@@ -227,7 +227,7 @@ function updateDistricts(region) {
     console.log('Fetching districts for region:', region);
     
     $.ajax({
-        url: `/api/districts?region=${encodeURIComponent(region)}`,
+        url: `/districts?region=${encodeURIComponent(region)}`,
         method: 'GET',
         xhrFields: {
             withCredentials: true
@@ -285,7 +285,7 @@ window.testRegionDistrict = function() {
     // Test API endpoint directly
     console.log('Testing API endpoint...');
     $.ajax({
-        url: '/api/regions',
+        url: '/regions',
         method: 'GET',
         xhrFields: {
             withCredentials: true
@@ -437,7 +437,7 @@ window.saveProfile = function() {
     
     // Send AJAX request
     $.ajax({
-        url: '/api/users/profile',
+        url: '/users/profile',
         method: 'PUT',
         contentType: 'application/json',
         data: JSON.stringify(formData),
@@ -678,7 +678,7 @@ function uploadAvatar(file) {
     progressBar.css('width', '0%');
     
     $.ajax({
-        url: '/api/users/profile/avatar',
+        url: '/users/profile/avatar',
         method: 'POST',
         data: formData,
         processData: false,
@@ -743,7 +743,7 @@ window.removeAvatar = function() {
     }
     
     $.ajax({
-        url: '/api/users/profile/avatar',
+        url: '/users/profile/avatar',
         method: 'DELETE',
         xhrFields: {
             withCredentials: true

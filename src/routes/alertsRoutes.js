@@ -6,7 +6,7 @@ import CommunityMember from '../models/communityMember.js';
 const router = express.Router();
 
 // Emergency alerts page route
-router.get('/', sessionAuth, requireCommunityMembership, async (req, res) => {
+router.get('/', sessionAuth, async (req, res) => {
   // Check if user has joined any community
   const communityMembership = await CommunityMember.findOne({ user: req.user._id });
   const hasJoinedCommunity = !!communityMembership;

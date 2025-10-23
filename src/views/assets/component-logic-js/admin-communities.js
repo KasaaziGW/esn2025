@@ -172,20 +172,24 @@ function setupTabSwitching() {
 }
 
 function loadCommunities() {
-
-    $.ajax({
-        url: '/api/communities',
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${window.authToken}`
-        },
-        success: function(response) {
-            renderCommunities(response.data.items || response.data.communities || []);
-        },
-        error: function(xhr) {
-            showAlert('error', 'Failed to load communities.');
-        }
-    });
+    // Use server-side data if available, otherwise make AJAX call
+    if (window.communitiesData && window.communitiesData.length > 0) {
+        renderCommunities(window.communitiesData);
+    } else {
+        $.ajax({
+            url: '/communities',
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${window.authToken}`
+            },
+            success: function(response) {
+                renderCommunities(response.data.items || response.data.communities || []);
+            },
+            error: function(xhr) {
+                showAlert('error', 'Failed to load communities.');
+            }
+        });
+    }
 }
 
 function renderCommunities(communities) {
@@ -250,7 +254,7 @@ function createCommunityCard(community) {
 
 function loadRegions() {
     $.ajax({
-        url: '/api/regions',
+        url: '/regions',
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${window.authToken}`
@@ -319,7 +323,7 @@ function createRegionCard(region) {
 function loadDistricts() {
     
     $.ajax({
-        url: '/api/districts',
+        url: '/districts',
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${window.authToken}`
@@ -409,7 +413,7 @@ function populateRegionSelects(regions) {
 function loadRegionsForSelect() {
     
     $.ajax({
-        url: '/api/regions',
+        url: '/regions',
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${window.authToken}`
@@ -432,7 +436,7 @@ function loadDistrictsForRegion(regionId, selectId) {
     }
     
     $.ajax({
-        url: `/api/districts?region=${regionId}`,
+        url: `/districts?region=${regionId}`,
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${window.authToken}`
@@ -477,7 +481,7 @@ function createCommunity() {
     console.log('Form Data:', Object.fromEntries(formData));
     
     $.ajax({
-        url: '/api/communities',
+        url: '/communities',
         method: 'POST',
         data: formData,
         processData: false,
@@ -510,7 +514,7 @@ function createRegion() {
     console.log('Form Data:', formData);
     
     $.ajax({
-        url: '/api/regions',
+        url: '/regions',
         method: 'POST',
         data: formData,
         headers: {
@@ -542,7 +546,7 @@ function createDistrict() {
     console.log('Form Data:', formData);
     
     $.ajax({
-        url: '/api/districts',
+        url: '/districts',
         method: 'POST',
         data: formData,
         headers: {
@@ -567,7 +571,7 @@ function editCommunity(communityId) {
     
     // Fetch community details
     $.ajax({
-        url: `/api/communities/${communityId}`,
+        url: `/communities/${communityId}`,
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${window.authToken}`
@@ -633,7 +637,7 @@ function editCommunity(communityId) {
 function loadRegionsForEditSelect(selectedRegionId = null) {
     
     $.ajax({
-        url: '/api/regions',
+        url: '/regions',
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${window.authToken}`
@@ -671,7 +675,7 @@ function loadRegionsForEditSelect(selectedRegionId = null) {
 function loadDistrictsForEditSelect(regionId, selectedDistrictId = null) {
 
     $.ajax({
-        url: `/api/districts?region=${regionId}`,
+        url: `/districts?region=${regionId}`,
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${window.authToken}`
@@ -721,7 +725,7 @@ function updateCommunity() {
     //console.log('Update Data:', Object.fromEntries(formData));
     
     $.ajax({
-        url: `/api/communities/${communityId}`,
+        url: `/communities/${communityId}`,
         method: 'PUT',
         data: formData,
         processData: false,
@@ -746,7 +750,7 @@ function deleteCommunity(communityId, communityName) {
 
     if (confirm(`Are you sure you want to delete "${communityName}"? This action cannot be undone.`)) {
         $.ajax({
-            url: `/api/communities/${communityId}`,
+            url: `/communities/${communityId}`,
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${window.authToken}`
@@ -770,7 +774,7 @@ function editRegion(regionId) {
 function deleteRegion(regionId, regionName) {
     if (confirm(`Are you sure you want to delete "${regionName}"? This action cannot be undone.`)) {
         $.ajax({
-            url: `/api/regions/${regionId}`,
+            url: `/regions/${regionId}`,
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${window.authToken}`
@@ -795,7 +799,7 @@ function deleteDistrict(districtId, districtName) {
     
     if (confirm(`Are you sure you want to delete "${districtName}"? This action cannot be undone.`)) {
         $.ajax({
-            url: `/api/districts/${districtId}`,
+            url: `/districts/${districtId}`,
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${window.authToken}`
@@ -815,7 +819,7 @@ function deleteDistrict(districtId, districtName) {
 // Load and display regions list
 function loadRegionsList() {
     $.ajax({
-        url: '/api/regions',
+        url: '/regions',
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${window.authToken}`
@@ -843,7 +847,7 @@ function loadRegionsList() {
 function loadDistrictsList() {
     console.log('=== LOADING DISTRICTS LIST ===');
     $.ajax({
-        url: '/api/districts',
+        url: '/districts',
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${window.authToken}`

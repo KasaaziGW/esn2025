@@ -70,29 +70,27 @@ app.use(morgan("dev")); // Log requests
 
 // Note: Upload directories are created automatically by upload.js middleware
 
-// Mount routes with specific rate limiting
-app.use('/', communitiesRoutes);
+// Mount routes with standardized structure - all routes without /api/ prefix
+// Page routes (render views)
 app.use('/', pageRoutes);
-app.use('/chat', chatRoutes);
-app.use('/public-chat', publicChatRoutes);
-app.use('/announcements', announcementRoutes);
-app.use('/alerts', alertsRoutes);
-app.use('/users', userRoutes);
-app.use('/api/users', userRoutes);
-app.use('/dashboard', dashboardRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/auth', authRoutes); // authRateLimit temporarily disabled 
-app.use('/api/regions', regionRoutes);
-app.use('/api/districts', districtRoutes);
-app.use('/api/communities', communityRoutes);
-app.use('/api/notifications', notificationRoutes);
-app.use('/api/community-access', communityAccessRoutes);
-app.use('/api/community-members', communityMemberRoutes);
-app.use('/api/coordinator-requests', coordinatorRequestRoutes);
-app.use('/coordinator-requests', coordinatorRequestRoutes);
+app.use('/', communitiesRoutes);
 app.use('/admin/communities', adminCommunityRoutes);
-app.use('/api/announcements', announcementRoutes);
-app.use('/api/chats', chatRoutes);
+
+// API routes (return JSON) - uniform structure without /api/ prefix
+app.use('/auth', authRoutes);
+app.use('/users', userRoutes);
+app.use('/dashboard', dashboardRoutes);
+app.use('/regions', regionRoutes);
+app.use('/districts', districtRoutes);
+app.use('/communities', communityRoutes);
+app.use('/notifications', notificationRoutes);
+app.use('/community-access', communityAccessRoutes);
+app.use('/community-members', communityMemberRoutes);
+app.use('/coordinator-requests', coordinatorRequestRoutes);
+app.use('/announcements', announcementRoutes);
+app.use('/chats', chatRoutes);
+app.use('/public-chat', publicChatRoutes);
+app.use('/alerts', alertsRoutes);
 
 // API Documentation with Swagger
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {

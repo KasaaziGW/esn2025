@@ -62,11 +62,11 @@ router.get('/profile', sessionAuth, async (req, res) => {
 });
 
 // Profile update route (session-based)
-router.put('/profile', sessionAuth, userController.updateProfile);
+router.post('/profile', sessionAuth, userController.updateProfile);
 
 // Avatar upload routes (session-based)
 router.post('/profile/avatar', sessionAuth, uploadProfilePhoto, userController.uploadAvatar);
-router.delete('/profile/avatar', sessionAuth, userController.removeAvatar);
+router.post('/profile/avatar/remove', sessionAuth, userController.removeAvatar);
 
 // Session-based admin routes (for web interface)
 router.get('/', sessionAuth, sessionAdminOnly, userController.getAllUsers);
@@ -74,17 +74,17 @@ router.get('/stats', sessionAuth, sessionAdminOnly, userController.getUserStats)
 router.get('/export', sessionAuth, sessionAdminOnly, userController.exportUsers);
 router.post('/', sessionAuth, sessionAdminOnly, userController.createUser);
 router.get('/:id', sessionAuth, sessionAdminOnly, userController.getUserById);
-router.put('/:id', sessionAuth, sessionAdminOnly, userController.updateUserByAdmin);
-router.put('/:id/status', sessionAuth, sessionAdminOnly, userController.updateUserStatus);
-router.put('/:id/password', sessionAuth, sessionAdminOnly, userController.changeUserPassword);
-router.delete('/:id', sessionAuth, sessionAdminOnly, userController.deleteUser);
+router.post('/:id/update', sessionAuth, sessionAdminOnly, userController.updateUserByAdmin);
+router.post('/:id/status', sessionAuth, sessionAdminOnly, userController.updateUserStatus);
+router.post('/:id/password', sessionAuth, sessionAdminOnly, userController.changeUserPassword);
+router.post('/:id/delete', sessionAuth, sessionAdminOnly, userController.deleteUser);
 
 // Protected routes (JWT authentication for API)
 router.use(authMiddleware);
 
 // Current user profile
 router.get('/me', userController.getMe);
-router.patch('/me', userController.updateMe);
+router.post('/me', userController.updateMe);
 
 // Directory of users
 router.get('/', userController.getAllUsers);

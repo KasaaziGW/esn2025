@@ -43,7 +43,10 @@ export const upload = multer({
   fileFilter: fileFilter
 });
 
-// Submit a coordinator request
+/**
+ * Submit a coordinator request
+ * POST /coordinator-requests
+ */
 export const submitCoordinatorRequest = catchAsync(async (req, res) => {
   const userId = req.user.id;
   const { position, organization, requestDetails } = req.body;
@@ -114,7 +117,10 @@ export const submitCoordinatorRequest = catchAsync(async (req, res) => {
   });
 });
 
-// Get coordinator requests (for admins)
+/**
+ * Get coordinator requests (for admins)
+ * GET /coordinator-requests
+ */
 export const getCoordinatorRequests = catchAsync(async (req, res) => {
   const { status, community } = req.query;
   
@@ -179,7 +185,10 @@ export const getCoordinatorRequests = catchAsync(async (req, res) => {
   });
 });
 
-// Review coordinator request (approve/reject)
+/**
+ * Review coordinator request (approve/reject)
+ * POST /coordinator-requests/:requestId/review
+ */
 export const reviewCoordinatorRequest = catchAsync(async (req, res) => {
   const { requestId } = req.params;
   const { action, adminComments } = req.body; // action: 'approve' or 'reject'
@@ -235,7 +244,10 @@ export const reviewCoordinatorRequest = catchAsync(async (req, res) => {
   });
 });
 
-// Get user's coordinator request status
+/**
+ * Get user's coordinator request status
+ * GET /coordinator-requests/my-request
+ */
 export const getMyCoordinatorRequest = catchAsync(async (req, res) => {
   const userId = req.user.id;
   

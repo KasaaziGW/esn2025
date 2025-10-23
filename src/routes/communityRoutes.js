@@ -12,7 +12,7 @@ router.post('/', authMiddleware, uploadCommunityBanner, communityController.crea
 
 // Single resource
 router.get('/:identifier', authMiddleware, communityController.getCommunity);
-router.put('/:identifier', authMiddleware, uploadCommunityBanner, communityController.updateCommunity);
-router.delete('/:identifier', authMiddleware, communityController.deleteCommunity);
+router.post('/:identifier/update', authMiddleware, uploadCommunityBanner, communityController.updateCommunity);
+router.post('/:identifier/delete', authMiddleware, communityController.deleteCommunity);
 
 export default router;

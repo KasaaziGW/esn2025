@@ -183,7 +183,7 @@ $(function(){
         }
         
         $.ajax({
-            url: '/api/auth/register',
+            url: '/auth/register',
             method: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(formData),

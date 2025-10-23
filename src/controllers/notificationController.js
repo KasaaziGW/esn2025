@@ -3,7 +3,7 @@ import { sendOK } from '../utils/response.js';
 
 /**
  * Check for notifications
- * GET /api/notifications/check
+ * GET /notifications/check
  */
 export const checkNotifications = catchAsync(async (req, res) => {
   // For now, return empty notifications

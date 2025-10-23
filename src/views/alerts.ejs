@@ -92,7 +92,7 @@ async function loadEmergencyAlerts() {
         showLoading();
         console.log('Loading emergency alerts...');
         
-        const response = await fetch('/api/announcements/emergency/today');
+        const response = await fetch('/announcements/emergency/today');
         console.log('Response status:', response.status);
         
         if (!response.ok) {

@@ -7,14 +7,14 @@ const router = express.Router();
 /**
  * Public
  */
-router.get('/', districtController.getAllDistricts);     // GET /api/districts?region=<regionKey>
-router.get('/:key', districtController.getDistrictByKey); // GET /api/districts/:key
+router.get('/', districtController.getAllDistricts);     // GET /districts?region=<regionKey>
+router.get('/:key', districtController.getDistrictByKey); // GET /districts/:key
 
 /**
  * Admin-protected
  */
-router.post('/', authMiddleware, districtController.createDistrict);   // POST /api/districts
-router.patch('/:key', authMiddleware, districtController.updateDistrict); // PATCH /api/districts/:key
-router.delete('/:key', authMiddleware, districtController.deleteDistrict); // DELETE /api/districts/:key
+router.post('/', authMiddleware, districtController.createDistrict);   // POST /districts
+router.post('/:key/update', authMiddleware, districtController.updateDistrict); // POST /districts/:key/update
+router.post('/:key/delete', authMiddleware, districtController.deleteDistrict); // POST /districts/:key/delete
 
 export default router;

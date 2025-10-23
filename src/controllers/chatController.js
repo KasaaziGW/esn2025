@@ -10,7 +10,7 @@ import { sendOK, sendCreated } from '../utils/response.js';
 
 /**
  * Fetch chat messages (lazy loading / scroll up)
- * GET /api/chats/:chatId/messages?before=<timestamp>&limit=20
+ * GET /chats/:chatId/messages?before=<timestamp>&limit=20
  */
 export const getChatMessages = catchAsync(async (req, res) => {
   const { chatId } = req.params;
@@ -50,7 +50,7 @@ export const getChatMessages = catchAsync(async (req, res) => {
 
 /**
  * Send a message to a chat (REST)
- * POST /api/chats/:chatId/messages
+ * POST /chats/:chatId/messages
  * body: { content, type='text', replyTo, forwardMessageId }
  */
 export const sendMessage = catchAsync(async (req, res) => {
@@ -144,7 +144,7 @@ export const sendMessage = catchAsync(async (req, res) => {
 
 /**
  * Get private chats for current user
- * GET /api/chats/private
+ * GET /chats/private
  */
 export const getPrivateChats = catchAsync(async (req, res) => {
   const userId = req.user._id;
@@ -182,7 +182,7 @@ export const getPrivateChats = catchAsync(async (req, res) => {
 
 /**
  * Create new private chat
- * POST /api/chats/private
+ * POST /chats/private
  * body: { recipientId }
  */
 export const createPrivateChat = catchAsync(async (req, res) => {
@@ -267,7 +267,7 @@ export const createPrivateChat = catchAsync(async (req, res) => {
 
 /**
  * Get private chat with specific user
- * GET /api/chats/private/with/:userId
+ * GET /chats/private/with/:userId
  */
 export const getPrivateChatWithUser = catchAsync(async (req, res) => {
   const { userId: otherUserId } = req.params;
@@ -296,7 +296,7 @@ export const getPrivateChatWithUser = catchAsync(async (req, res) => {
 
 /**
  * Get community chat
- * GET /api/chats/community/:communityId
+ * GET /chats/community/:communityId
  */
 export const getCommunityChat = catchAsync(async (req, res) => {
   const { communityId } = req.params;
@@ -318,7 +318,7 @@ export const getCommunityChat = catchAsync(async (req, res) => {
 
 /**
  * Create community chat
- * POST /api/chats/community
+ * POST /chats/community
  * body: { communityId }
  */
 export const createCommunityChat = catchAsync(async (req, res) => {
@@ -358,7 +358,7 @@ export const createCommunityChat = catchAsync(async (req, res) => {
 
 /**
  * Get all community chats for admin multi-chat interface
- * GET /api/chats/admin/communities
+ * GET /chats/admin/communities
  */
 export const getAllCommunityChats = catchAsync(async (req, res) => {
   const userId = req.user._id;
@@ -421,7 +421,7 @@ export const getAllCommunityChats = catchAsync(async (req, res) => {
 
 /**
  * Get community chat messages for admin
- * GET /api/chats/community/:communityId/messages
+ * GET /chats/community/:communityId/messages
  */
 export const getCommunityChatMessages = catchAsync(async (req, res) => {
   const { communityId } = req.params;

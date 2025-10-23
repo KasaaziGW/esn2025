@@ -27,7 +27,7 @@ async function findRegionByKey(key) {
 }
 
 /**
- * GET /api/regions
+ * GET /regions
  */
 export const getAllRegions = catchAsync(async (req, res) => {
   const regions = await Region.find().sort({ name: 1 }).lean().exec();
@@ -35,7 +35,7 @@ export const getAllRegions = catchAsync(async (req, res) => {
 });
 
 /**
- * GET /api/regions/:key
+ * GET /regions/:key
  * optional ?includeDistricts=true
  */
 export const getRegionByKey = catchAsync(async (req, res) => {
@@ -55,7 +55,7 @@ export const getRegionByKey = catchAsync(async (req, res) => {
 });
 
 /**
- * GET /api/regions/:regionId/districts
+ * GET /regions/:regionId/districts
  */
 export const getDistrictsByRegion = async (req, res) => {
   try {
@@ -73,7 +73,7 @@ export const getDistrictsByRegion = async (req, res) => {
 };
 
 /**
- * POST /api/regions
+ * POST /regions
  * Admin only
  * Body: { name, description }
  */
@@ -96,7 +96,7 @@ export const createRegion = async (req, res) => {
 };
 
 /**
- * PATCH /api/regions/:key
+ * POST /regions/:key/update
  * Admin only
  * Body: { name?, description? }
  */
@@ -124,7 +124,7 @@ export const updateRegion = async (req, res) => {
 };
 
 /**
- * DELETE /api/regions/:key
+ * POST /regions/:key/delete
  * Admin only
  */
 export const deleteRegion = async (req, res) => {

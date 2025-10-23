@@ -26,7 +26,7 @@ router.get('/my-request', sessionAuth, getMyCoordinatorRequest);
 router.get('/', sessionAuth, adminAuth, getCoordinatorRequests);
 
 // Review coordinator request (admins only)
-router.put('/:requestId/review', sessionAuth, adminAuth, reviewCoordinatorRequest);
+router.post('/:requestId/review', sessionAuth, adminAuth, reviewCoordinatorRequest);
 
 // Admin coordinator requests page
 router.get('/manage', sessionAuth, async (req, res) => {

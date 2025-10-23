@@ -9,7 +9,7 @@ export const requireCommunityMembership = async (req, res, next) => {
   try {
     // Check if user is already in session
     if (!req.session || !req.session.user) {
-      if (req.path.startsWith('/api/')) {
+      if (req.path.startsWith('/') && !req.path.startsWith('/admin/') && !req.path.startsWith('/login') && !req.path.startsWith('/register') && !req.path.startsWith('/logout')) {
         return res.status(401).json({ message: 'No active session' });
       } else {
         return res.redirect('/login');
@@ -20,7 +20,7 @@ export const requireCommunityMembership = async (req, res, next) => {
     const communityMembership = await CommunityMember.findOne({ user: req.user._id });
     
     if (!communityMembership) {
-      if (req.path.startsWith('/api/')) {
+      if (req.path.startsWith('/') && !req.path.startsWith('/admin/') && !req.path.startsWith('/login') && !req.path.startsWith('/register') && !req.path.startsWith('/logout')) {
         return sendError(res, 'Community membership required. Please join a community first.', 403);
       } else {
         // For page routes, redirect to communities page
@@ -33,7 +33,7 @@ export const requireCommunityMembership = async (req, res, next) => {
     next();
   } catch (error) {
     console.error('Community membership middleware error:', error);
-    if (req.path.startsWith('/api/')) {
+    if (req.path.startsWith('/') && !req.path.startsWith('/admin/') && !req.path.startsWith('/login') && !req.path.startsWith('/register') && !req.path.startsWith('/logout')) {
       return sendError(res, 'Error checking community membership', 500);
     } else {
       return res.redirect('/dashboard');
@@ -49,7 +49,7 @@ export const requireProfileCompletion = async (req, res, next) => {
   try {
     // Check if user is already in session
     if (!req.session || !req.session.user) {
-      if (req.path.startsWith('/api/')) {
+      if (req.path.startsWith('/') && !req.path.startsWith('/admin/') && !req.path.startsWith('/login') && !req.path.startsWith('/register') && !req.path.startsWith('/logout')) {
         return res.status(401).json({ message: 'No active session' });
       } else {
         return res.redirect('/login');
@@ -66,7 +66,7 @@ export const requireProfileCompletion = async (req, res, next) => {
       .select('username displayName firstName lastName fullName role phone region district');
 
     if (!user) {
-      if (req.path.startsWith('/api/')) {
+      if (req.path.startsWith('/') && !req.path.startsWith('/admin/') && !req.path.startsWith('/login') && !req.path.startsWith('/register') && !req.path.startsWith('/logout')) {
         return sendError(res, 'User not found', 404);
       } else {
         return res.redirect('/login');
@@ -82,7 +82,7 @@ export const requireProfileCompletion = async (req, res, next) => {
                               user.phone !== null;
 
     if (!isProfileComplete) {
-      if (req.path.startsWith('/api/')) {
+      if (req.path.startsWith('/') && !req.path.startsWith('/admin/') && !req.path.startsWith('/login') && !req.path.startsWith('/register') && !req.path.startsWith('/logout')) {
         return sendError(res, 'Profile completion required. Please complete your profile first.', 403);
       } else {
         // For page routes, redirect to profile page
@@ -93,7 +93,7 @@ export const requireProfileCompletion = async (req, res, next) => {
     next();
   } catch (error) {
     console.error('Profile completion middleware error:', error);
-    if (req.path.startsWith('/api/')) {
+    if (req.path.startsWith('/') && !req.path.startsWith('/admin/') && !req.path.startsWith('/login') && !req.path.startsWith('/register') && !req.path.startsWith('/logout')) {
       return sendError(res, 'Error checking profile completion', 500);
     } else {
       return res.redirect('/dashboard');

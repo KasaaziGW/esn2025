@@ -22,10 +22,10 @@ router.get('/id/:id', sessionAuth, requireCommunityMembershipOrAdmin, announceme
 router.post('/', sessionAuth, uploadAnnouncementFiles, announcementController.createAnnouncement);
 
 // Update announcement by ID (author coordinator or admin)
-router.put('/id/:id', sessionAuth, announcementController.updateAnnouncementById);
+router.post('/id/:id/update', sessionAuth, announcementController.updateAnnouncementById);
 
 // Delete announcement by ID
-router.delete('/id/:id', sessionAuth, announcementController.deleteAnnouncementById);
+router.post('/id/:id/delete', sessionAuth, announcementController.deleteAnnouncementById);
 
 // Track announcement view
 router.post('/id/:id/view', sessionAuth, requireCommunityMembershipOrAdmin, announcementController.trackAnnouncementView);

@@ -39,7 +39,7 @@ $(document).ready(function() {
 	window.addEventListener('pageshow', function(event) {
 		if (event && event.persisted) {
 			$.ajax({
-				url: '/api/auth/verify',
+				url: '/auth/verify',
 				method: 'GET',
 				success: function(response) {
 					if (!response || !response.success) {

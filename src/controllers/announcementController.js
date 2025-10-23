@@ -8,6 +8,7 @@ import { sendCreated, sendOK, sendNotFound } from '../utils/response.js';
 
 /**
  * Create a new announcement
+ * POST /announcements
  * Only coordinators and admins can post
  * Supports attachments (array of URLs or uploaded files)
  * Emits 'announcement:new' event via Socket.io
@@ -50,6 +51,7 @@ export const createAnnouncement = catchAsync(async (req, res) => {
 
 /**
  * Get all announcements with search and pagination
+ * GET /announcements/list
  * Admin sees all announcements, others only for their community
  * Populates createdBy info
  */
@@ -156,7 +158,7 @@ export const getAnnouncements = catchAsync(async (req, res) => {
 
 /**
  * Get today's emergency alerts
- * GET /api/announcements/emergency/today
+ * GET /announcements/emergency/today
  * Shows only emergency announcements from active users for today
  */
 export const getTodayEmergencyAlerts = catchAsync(async (req, res) => {
@@ -247,7 +249,10 @@ export const getAnnouncementById = catchAsync(async (req, res) => {
 
 
 
-// Update announcement by ID
+/**
+ * Update announcement by ID
+ * POST /announcements/id/:id/update
+ */
 export const updateAnnouncementById = catchAsync(async (req, res) => {
   const { id } = req.params;
   const { title, body, severity, status, isEmergency, pinned } = req.body;
@@ -285,7 +290,10 @@ export const updateAnnouncementById = catchAsync(async (req, res) => {
   sendOK(res, 'Announcement updated successfully', updatedAnnouncement);
 });
 
-// Delete announcement by ID
+/**
+ * Delete announcement by ID
+ * POST /announcements/id/:id/delete
+ */
 export const deleteAnnouncementById = catchAsync(async (req, res) => {
   const { id } = req.params;
   const { role, _id } = req.user;

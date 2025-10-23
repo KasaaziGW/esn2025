@@ -50,7 +50,7 @@ function loadCommunities() {
     $('#communitiesList').empty();
     
     $.ajax({
-        url: '/api/community-access/user-communities',
+        url: '/community-access/user-communities',
         method: 'GET',
         success: function(response) {
             
@@ -87,7 +87,7 @@ function loadCommunities() {
 
 function loadMyCommunity() {
     $.ajax({
-        url: '/api/community-access/my-community',
+        url: '/community-access/my-community',
         method: 'GET',
         success: function(response) {
             
@@ -293,7 +293,7 @@ function joinCommunity(communityId) {
     });
     
     $.ajax({
-        url: `/api/community-access/join/${communityId}`,
+        url: `/community-access/join/${communityId}`,
         method: 'POST',
         success: function(response) {
             
@@ -349,7 +349,7 @@ function leaveCommunity() {
     });
     
     $.ajax({
-        url: `/api/community-access/leave`,
+        url: `/community-access/leave`,
         method: 'POST',
         success: function(response) {
             

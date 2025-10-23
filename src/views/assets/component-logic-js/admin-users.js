@@ -16,7 +16,7 @@ $(document).ready(function() {
         
         // Check if user is logged in by making a test API call
         $.ajax({
-            url: '/api/auth/verify',
+            url: '/auth/verify',
             method: 'GET',
             xhrFields: {
                 withCredentials: true
@@ -326,7 +326,7 @@ function updateUserRowStatus(userId, isOnline, lastSeenAt) {
 
     function loadUserStats() {
         $.ajax({
-            url: '/api/users/stats',
+            url: '/users/stats',
             method: 'GET',
             xhrFields: {
                 withCredentials: true
@@ -380,7 +380,7 @@ function updateUserRowStatus(userId, isOnline, lastSeenAt) {
         });
 
         $.ajax({
-            url: `/api/users?${params}`,
+            url: `/users?${params}`,
             method: 'GET',
             xhrFields: {
                 withCredentials: true
@@ -640,7 +640,7 @@ function updateUserRowStatus(userId, isOnline, lastSeenAt) {
         }
 
         $.ajax({
-            url: '/api/users',
+            url: '/users',
             method: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(data),
@@ -689,7 +689,7 @@ function updateUserRowStatus(userId, isOnline, lastSeenAt) {
         data.verified = data.verified === 'true';
 
         $.ajax({
-            url: `/api/users/${userId}`,
+            url: `/users/${userId}`,
             method: 'PUT',
             contentType: 'application/json',
             data: JSON.stringify(data),
@@ -737,7 +737,7 @@ function updateUserRowStatus(userId, isOnline, lastSeenAt) {
         showAlert('info', `Changing password for ${user?.username || 'user'}...`);
         
         $.ajax({
-            url: `/api/users/${userId}/password`,
+            url: `/users/${userId}/password`,
             method: 'PUT',
             contentType: 'application/json',
             data: JSON.stringify({ password }),
@@ -766,7 +766,7 @@ function updateUserRowStatus(userId, isOnline, lastSeenAt) {
         showAlert('info', `Deleting user "${user?.username || 'Unknown'}"...`);
         
         $.ajax({
-            url: `/api/users/${userId}`,
+            url: `/users/${userId}`,
             method: 'DELETE',
             xhrFields: {
                 withCredentials: true
@@ -805,7 +805,7 @@ function updateUserRowStatus(userId, isOnline, lastSeenAt) {
         showAlert('info', `${action === 'activate' ? 'Activating' : 'Deactivating'} user...`);
         
         $.ajax({
-            url: `/api/users/${userId}/status`,
+            url: `/users/${userId}/status`,
             method: 'PUT',
             contentType: 'application/json',
             data: JSON.stringify({ isActive: !currentStatus }),
@@ -828,7 +828,7 @@ function updateUserRowStatus(userId, isOnline, lastSeenAt) {
     }
 
     function exportUsers() {
-        window.open('/api/users/export', '_blank');
+        window.open('/users/export', '_blank');
     }
 
     // Test function for debugging

@@ -180,7 +180,7 @@ export const getCommunity = catchAsync(async (req, res, next) => {
 
 /**
  * Update a community
- * PUT /communities/:id
+ * POST /communities/:identifier/update
  */
 export const updateCommunity = catchAsync(async (req, res, next) => {
   if (!req.user || req.user.role !== 'admin') {
@@ -215,7 +215,7 @@ export const updateCommunity = catchAsync(async (req, res, next) => {
 
 /**
  * Delete a community
- * DELETE /communities/:id
+ * POST /communities/:identifier/delete
  */
 export const deleteCommunity = catchAsync(async (req, res, next) => {
   if (!req.user || req.user.role !== 'admin') {

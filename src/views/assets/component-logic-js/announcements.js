@@ -134,7 +134,7 @@
         }
         
         $.ajax({
-            url: `/api/announcements/list?${params}`,
+            url: `/announcements/list?${params}`,
             method: 'GET',
             success: function(response) {
                 
@@ -385,7 +385,7 @@
     // Load community info
     function loadCommunityInfo() {
         $.ajax({
-            url: '/api/community-access/my-community',
+            url: '/community-access/my-community',
             method: 'GET',
             success: function(response) {
                 //console.log('Community info response:', response);
@@ -412,7 +412,7 @@
     // Load announcement statistics
     function loadAnnouncementStats() {
         $.ajax({
-            url: '/api/announcements/list?limit=1000', // Get all announcements for stats
+            url: '/announcements/list?limit=1000', // Get all announcements for stats
             method: 'GET',
             success: function(response) {
                 //console.log('Stats response:', response);
@@ -491,7 +491,7 @@
     function viewAnnouncement(announcementId) {
         // First track the view
         $.ajax({
-            url: `/api/announcements/id/${announcementId}/view`,
+            url: `/announcements/id/${announcementId}/view`,
             method: 'POST',
             success: function(response) {
                 // Then load the announcement details
@@ -508,7 +508,7 @@
     // Load announcement details
     function loadAnnouncementDetails(announcementId) {
         $.ajax({
-            url: `/api/announcements/id/${announcementId}`,
+            url: `/announcements/id/${announcementId}`,
             method: 'GET',
             success: function(response) {
                 const announcement = response.data;
@@ -618,7 +618,7 @@
     function confirmForward(announcementId) {
         // Track the forward
         $.ajax({
-            url: `/api/announcements/id/${announcementId}/forward`,
+            url: `/announcements/id/${announcementId}/forward`,
             method: 'POST',
             success: function(response) {
                 Swal.fire({

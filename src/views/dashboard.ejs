@@ -251,7 +251,7 @@
                 </div>
                 <div class="media-body">
                   <h6 class="mg-b-5">
-                    <a href="/announcements/<%= announcement.id %>" class="tx-color-01"><%= announcement.title %></a>
+                    <%= announcement.title %>
                   </h6>
                   <p class="tx-12 tx-color-03 mg-b-0"><%= announcement.body %></p>
                   <small class="tx-color-03"><%= announcement.time %> by <%= announcement.createdBy %></small>
@@ -270,7 +270,7 @@
   </div><!-- row -->
 
 
-  </div>
+  </div> 
 </div>
 
 <%- include('layouts/partials/footer') %>

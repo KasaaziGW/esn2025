@@ -20,11 +20,11 @@ const options = {
     },
     servers: [
       {
-        url: 'http://localhost:5000/api',
+        url: 'http://localhost:5000',
         description: 'Development server'
       },
       {
-        url: 'https://api.emergencysocialnetwork.com/api',
+        url: 'https://api.emergencysocialnetwork.com',
         description: 'Production server'
       }
     ],

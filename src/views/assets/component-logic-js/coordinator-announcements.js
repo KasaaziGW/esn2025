@@ -129,7 +129,7 @@
         }
         
         $.ajax({
-            url: `/api/announcements/list?${params.toString()}`,
+            url: `/announcements/list?${params.toString()}`,
             method: 'GET',
             success: function(response) {
                 //console.log('Response:', response);
@@ -160,7 +160,7 @@
     // Load community info
     function loadCommunityInfo() {
         $.ajax({
-            url: '/api/community-access/my-community',
+            url: '/community-access/my-community',
             method: 'GET',
             success: function(response) {
                 //console.log('Community info response:', response);
@@ -183,7 +183,7 @@
     // Load community users for private chat
     function loadCommunityUsers() {
         $.ajax({
-            url: '/api/community-access/user-communities',
+            url: '/community-access/user-communities',
             method: 'GET',
             success: function(response) {
                 // This would need to be implemented to get community members
@@ -420,7 +420,7 @@
     function viewAnnouncement(announcementId) {
         // Find announcement in current data or fetch from server
         $.ajax({
-            url: `/api/announcements/id/${announcementId}`,
+            url: `/announcements/id/${announcementId}`,
             method: 'GET',
             success: function(response) {
                 const announcement = response.data;
@@ -490,7 +490,7 @@
     function editAnnouncement(announcementId) {
         // First, fetch the announcement details
         $.ajax({
-            url: `/api/announcements/id/${announcementId}`,
+            url: `/announcements/id/${announcementId}`,
             method: 'GET',
             success: function(response) {
                 const announcement = response.data;
@@ -530,7 +530,7 @@
     function updateAnnouncement(announcementId, data) {
         //console.log('Update announcement called with ID:', announcementId, 'Data:', data);
         $.ajax({
-            url: `/api/announcements/id/${announcementId}`,
+            url: `/announcements/id/${announcementId}`,
             method: 'PUT',
             contentType: 'application/json',
             data: JSON.stringify(data),
@@ -549,7 +549,7 @@
     function deleteAnnouncement(announcementId) {
         // First, fetch the announcement to check permissions
         $.ajax({
-            url: `/api/announcements/id/${announcementId}`,
+            url: `/announcements/id/${announcementId}`,
             method: 'GET',
             success: function(response) {
                 const announcement = response.data;
@@ -578,7 +578,7 @@
                     if (result.isConfirmed) {
                         // Call delete API
                         $.ajax({
-                            url: `/api/announcements/id/${announcementId}`,
+                            url: `/announcements/id/${announcementId}`,
                             method: 'DELETE',
                             success: function(response) {
                                 Swal.fire('Deleted!', 'The announcement has been deleted.', 'success');
@@ -635,7 +635,7 @@
         submitBtn.prop('disabled', true);
         
         $.ajax({
-            url: '/api/announcements',
+            url: '/announcements',
             method: 'POST',
             data: formData,
             processData: false,

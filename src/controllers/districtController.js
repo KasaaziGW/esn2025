@@ -24,7 +24,7 @@ async function findDistrictByKey(key) {
 }
 
 /**
- * GET /api/districts
+ * GET /districts
  * Optional query: ?region=<regionKey>
  */
 export const getAllDistricts = catchAsync(async (req, res) => {
@@ -45,7 +45,7 @@ export const getAllDistricts = catchAsync(async (req, res) => {
 });
 
 /**
- * GET /api/districts/:key
+ * GET /districts/:key
  */
 export const getDistrictByKey = catchAsync(async (req, res) => {
   const { key } = req.params;
@@ -58,7 +58,7 @@ export const getDistrictByKey = catchAsync(async (req, res) => {
 });
 
 /**
- * POST /api/districts
+ * POST /districts
  * Admin only
  * Body: { name, region } where region is slug|publicId|_id
  */
@@ -86,7 +86,7 @@ export const createDistrict = catchAsync(async (req, res) => {
 });
 
 /**
- * PATCH /api/districts/:key
+ * POST /districts/:key/update
  * Admin only
  */
 export const updateDistrict = catchAsync(async (req, res) => {
@@ -115,7 +115,7 @@ export const updateDistrict = catchAsync(async (req, res) => {
 });
 
 /**
- * DELETE /api/districts/:key
+ * POST /districts/:key/delete
  * Admin only
  */
 export const deleteDistrict = catchAsync(async (req, res) => {

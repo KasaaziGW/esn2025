@@ -4,7 +4,7 @@
 	// Expose API functions to global scope for reuse
 	window.refreshDashboardData = function refreshDashboardData() {
 		$.ajax({
-			url: '/api/dashboard/data',
+			url: '/dashboard/data',
 			method: 'GET',
 			success: function(response) {
 				if (response && response.success) {
@@ -30,7 +30,7 @@
 
 	window.checkForNotifications = function checkForNotifications() {
 		$.ajax({
-			url: '/api/notifications/check',
+			url: '/notifications/check',
 			method: 'GET',
 			success: function(response) {
 				if (response && response.success && response.data && response.data.unread > 0) {
@@ -59,7 +59,7 @@
 		}
 		
 		$.ajax({
-			url: '/api/auth/logout',
+			url: '/auth/logout',
 			method: 'POST',
 			success: function(response) {
 				localStorage.clear();

@@ -8,7 +8,7 @@ import fs from 'fs';
 
 /**
  * Get current authenticated user profile
- * GET /api/users/me
+ * GET /users/me
  */
 export const getMe = catchAsync(async (req, res) => {
   const user = req.user; // set by authMiddleware
@@ -19,7 +19,7 @@ export const getMe = catchAsync(async (req, res) => {
 
 /**
  * Update current authenticated user profile (self-update)
- * PATCH /api/users/me
+ * POST /users/me
  */
 export const updateMe = catchAsync(async (req, res) => {
   // Get user ID from session
@@ -92,7 +92,7 @@ export const updateMe = catchAsync(async (req, res) => {
 
 /**
  * Update user profile (session-based for web interface)
- * PUT /api/users/profile
+ * PUT /users/profile
  */
 export const updateProfile = catchAsync(async (req, res) => {
   // Get user ID from session
@@ -259,7 +259,7 @@ export const updateProfile = catchAsync(async (req, res) => {
 
 /**
  * Get all users (directory)
- * GET /api/users
+ * GET /users
  */
 export const getAllUsers = catchAsync(async (req, res) => {
   const { 
@@ -360,7 +360,7 @@ export const getAllUsers = catchAsync(async (req, res) => {
 
 /**
  * Get user by ID
- * GET /api/users/:id
+ * GET /users/:id
  */
 export const getUserById = catchAsync(async (req, res) => {
   const user = await User.findById(req.params.id);
@@ -370,7 +370,7 @@ export const getUserById = catchAsync(async (req, res) => {
 
 /**
  * Admin: update any user's profile
- * PATCH /api/users/:id
+ * POST /users/:id/update
  */
 export const updateUserByAdmin = catchAsync(async (req, res) => {
   // Only admin can access this route (enforced via middleware)
@@ -430,7 +430,7 @@ export const updateUserByAdmin = catchAsync(async (req, res) => {
 
 /**
  * Admin: Create new user
- * POST /api/users
+ * POST /users
  */
 export const createUser = catchAsync(async (req, res) => {
   console.log('Create user request body:', req.body);
@@ -497,7 +497,7 @@ export const createUser = catchAsync(async (req, res) => {
 
 /**
  * Admin: Update user status (activate/deactivate)
- * PUT /api/users/:id/status
+ * POST /users/:id/status
  */
 export const updateUserStatus = catchAsync(async (req, res) => {
   const user = await User.findById(req.params.id);
@@ -521,7 +521,7 @@ export const updateUserStatus = catchAsync(async (req, res) => {
 
 /**
  * Admin: Delete user
- * DELETE /api/users/:id
+ * POST /users/:id/delete
  */
 export const deleteUser = catchAsync(async (req, res) => {
   const user = await User.findById(req.params.id);
@@ -542,7 +542,7 @@ export const deleteUser = catchAsync(async (req, res) => {
 
 /**
  * Admin: Get user statistics
- * GET /api/users/stats
+ * GET /users/stats
  */
 export const getUserStats = catchAsync(async (req, res) => {
   const total = await User.countDocuments();
@@ -570,7 +570,7 @@ export const getUserStats = catchAsync(async (req, res) => {
 
 /**
  * Admin: Export users data
- * GET /api/users/export
+ * GET /users/export
  */
 export const exportUsers = catchAsync(async (req, res) => {
   const users = await User.find().select('-passwordHash -resetPasswordToken -resetPasswordExpires');
@@ -601,7 +601,7 @@ export const exportUsers = catchAsync(async (req, res) => {
 
 /**
  * Admin: Change user password
- * PUT /api/users/:id/password
+ * POST /users/:id/password
  */
 export const changeUserPassword = catchAsync(async (req, res) => {
   const user = await User.findById(req.params.id);
@@ -623,7 +623,7 @@ export const changeUserPassword = catchAsync(async (req, res) => {
 
 /**
  * Upload user avatar
- * POST /api/users/profile/avatar
+ * POST /users/profile/avatar
  */
 export const uploadAvatar = catchAsync(async (req, res) => {
   // Get user ID from session
@@ -664,7 +664,7 @@ export const uploadAvatar = catchAsync(async (req, res) => {
 
 /**
  * Remove user avatar
- * DELETE /api/users/profile/avatar
+ * POST /users/profile/avatar/remove
  */
 export const removeAvatar = catchAsync(async (req, res) => {
   // Get user ID from session

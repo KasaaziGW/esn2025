@@ -10,6 +10,6 @@ router.post('/:communityId/leave', authMiddleware, communityController.leaveComm
 router.get('/:communityId', authMiddleware, communityController.listMembers);
 
 // Admin-only route
-router.patch('/:communityId/:userId/assign-coordinator', authMiddleware, communityController.assignCoordinator);
+router.post('/:communityId/:userId/assign-coordinator', authMiddleware, communityController.assignCoordinator);
 
 export default router;

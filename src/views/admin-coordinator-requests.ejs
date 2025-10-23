@@ -191,7 +191,7 @@
         console.log('=== LOADING COORDINATOR REQUESTS ===');
         
         $.ajax({
-            url: '/api/coordinator-requests',
+            url: '/coordinator-requests',
             method: 'GET',
             success: function(response) {
                 console.log('=== COORDINATOR REQUESTS LOADED ===');
@@ -219,7 +219,7 @@
     // Load communities for filter
     function loadCommunities() {
         $.ajax({
-            url: '/api/communities',
+            url: '/communities',
             method: 'GET',
             success: function(response) {
                 const communities = response.data.communities;
@@ -431,7 +431,7 @@
         console.log('Comments:', adminComments);
         
         $.ajax({
-            url: `/api/coordinator-requests/${currentRequestId}/review`,
+            url: `/coordinator-requests/${currentRequestId}/review`,
             method: 'PUT',
             data: {
                 action: currentAction,

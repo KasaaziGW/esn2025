@@ -331,6 +331,8 @@
 window.currentUser = <%- JSON.stringify(user).replace(/</g, '\\u003c') %>;
 // JWT token for API requests
 window.authToken = '<%- token %>';
+// Communities data from server
+window.communitiesData = <%- JSON.stringify(communities).replace(/</g, '\\u003c') %>;
 </script>
 
 <script src="/assets/component-logic-js/admin-communities.js?v=<%= Date.now() %>"></script>

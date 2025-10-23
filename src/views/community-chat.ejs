@@ -568,7 +568,7 @@
     // Load community information
     function loadCommunityInfo() {
         $.ajax({
-            url: '/api/community-access/my-community',
+            url: '/community-access/my-community',
             method: 'GET',
             success: function(response) {
                 // console.log('Community info loaded:', response);
@@ -640,7 +640,7 @@
     function findOrCreateCommunityChat(communityId) {
             // console.log('Finding or creating community chat for:', communityId);
         $.ajax({
-            url: `/api/chats/community/${communityId}`,
+            url: `/chats/community/${communityId}`,
             method: 'GET',
             success: function(response) {
                     // console.log('Community chat lookup response:', response);
@@ -664,7 +664,7 @@
     function createCommunityChat(communityId) {
             // console.log('Creating community chat for community:', communityId);
         $.ajax({
-            url: '/api/chats/community',
+            url: '/chats/community',
             method: 'POST',
             data: { communityId: communityId },
             success: function(response) {
@@ -686,7 +686,7 @@
     // Load chat messages
     function loadChatMessages(chatId) {
         $.ajax({
-            url: `/api/chats/${chatId}/messages`,
+            url: `/chats/${chatId}/messages`,
             method: 'GET',
             success: function(response) {
                 // console.log('Community chat messages loaded:', response);
@@ -705,7 +705,7 @@
         // Load online members
         function loadOnlineMembers() {
             $.ajax({
-                url: '/api/community-access/members',
+                url: '/community-access/members',
                 method: 'GET',
                 success: function(response) {
                     // console.log('Online members loaded:', response);
@@ -859,7 +859,7 @@
         // Load chat messages
         function loadChatMessages(chatId) {
             $.ajax({
-                url: `/api/chats/${chatId}/messages`,
+                url: `/chats/${chatId}/messages`,
                 method: 'GET',
                 success: function(response) {
                     // console.log('Chat messages loaded:', response);
@@ -1054,7 +1054,7 @@
             
             // Fallback to REST API
             $.ajax({
-                url: `/api/chats/${communityChatId}/messages`,
+                url: `/chats/${communityChatId}/messages`,
                 method: 'POST',
                 data: { content: content, type: 'text' },
                 success: function(response) {
@@ -1097,7 +1097,7 @@
         formData.append('file', file);
         
         $.ajax({
-                url: `/api/chats/${currentChatId}/messages`,
+                url: `/chats/${currentChatId}/messages`,
             method: 'POST',
             data: formData,
             processData: false,
