@@ -1,174 +1,442 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <%- include("templates/head"); %>
-    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js" crossorigin="anonymous"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <%- include('templates/head'); %>
+  <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 
-    <style>
-        /* -------------------- Chat Layout -------------------- */
-        .chat-container {
-            max-width: 800px;
-            margin: 2rem auto;
-            display: flex;
-            flex-direction: column;
-            background: white;
-            border-radius: 15px;
-            border: 1px solid #e5e7eb;
-            overflow: hidden;
-            height: 80vh; /* ensures input stays visible */
-        }
-        .chat-messages {
-            flex: 1;
-            padding: 1.5rem;
-            overflow-y: auto;
-            background: #f8fafc;
-            min-height: 400px;
-        }
-        .chat-input-container {
-            padding: 1rem 1.5rem;
-            background: white;
-            flex-shrink: 0;
-        }
-        .input-group {
-            display: flex;
-            gap: 1rem;
-            align-items: flex-end;
-        }
-        .message-input {
-            flex: 1;
-            padding: 1rem 1.25rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 25px;
-            font-size: 1rem;
-            background: #f8fafc;
-            resize: none;
-        }
-        .send-button {
-            padding: 1rem 1.5rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            min-height: 50px;
-        }
-        .send-button:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(102,126,234,0.4); }
+  <style>
+    /* -------------------- Layout -------------------- */
+    .chat-container {
+        max-width: 900px;
+        margin: 2rem auto;
+        display: flex;
+        flex-direction: column;
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+        overflow: hidden;
+        height: 80vh;
+        position: relative;
+    }
 
-        /* -------------------- Messages -------------------- */
-        .message { margin-bottom: 1rem; display: flex; flex-direction: column; }
-        .message.own { align-items: flex-end; }
-        .message.other { align-items: flex-start; }
-        .message-content { max-width: 70%; padding: 0.75rem 1rem; border-radius: 15px; word-wrap: break-word; }
-        .message.own .message-content { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-        .message.other .message-content { background: white; border: 1px solid #e5e7eb; color: #1f2937; }
-        .message-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; }
-        .message-sender { font-weight: 600; font-size: 0.85rem; }
-        .message-time { font-size: 0.75rem; color: rgba(0,0,0,0.65); }
-    </style>
+    /* Header with status and select user button */
+    .chat-header {
+        height: 56px;
+        border-bottom: 1px solid #eef2f7;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 1rem;
+        background: #ffffff;
+    }
+
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        cursor: pointer;
+        user-select: none;
+        box-shadow: 0 1px 4px rgba(16,24,40,0.06);
+    }
+    .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        box-shadow: 0 1px 0 rgba(0,0,0,0.05);
+    }
+    .status-dot.ok { background: #34d399; }
+    .status-dot.help { background: #facc15; }
+    .status-dot.emergency { background: #f87171; }
+
+    .status-dropdown {
+        position: absolute;
+        top: 64px;
+        right: calc(50% - 60px);
+        background: white;
+        border: 1px solid #e6e9ef;
+        border-radius: 8px;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+        padding: 6px;
+        display: none;
+        z-index: 9999;
+        min-width: 160px;
+    }
+    .status-option {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 8px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+    .status-option:hover { background: #f8fafc; }
+    .status-option .status-dot { width: 12px; height: 12px; }
+
+    .select-user-btn {
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        cursor: pointer;
+        font-weight: 600;
+        border: none;
+    }
+
+    /* -------------------- Messages -------------------- */
+    .chat-messages {
+        flex: 1;
+        padding: 1rem 1.25rem;
+        overflow-y: auto;
+        background: #f8fafc;
+        min-height: 320px;
+    }
+
+    .message {
+        margin-bottom: 0.9rem;
+        display: flex;
+        flex-direction: column;
+    }
+    .message.own { align-items: flex-end; }
+    .message.other { align-items: flex-start; }
+
+    .message-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.25rem;
+        font-size: 0.85rem;
+        color: #111827;
+    }
+    .message-sender { font-weight: 700; color: #374151; }
+    .message-status-inline {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-weight: 600;
+        font-size: 0.78rem;
+        color: #374151;
+        margin-left: 6px;
+        opacity: 0.95;
+    }
+    .message-status-inline .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+    }
+    .message-time { font-size: 0.75rem; color: rgba(0,0,0,0.45); margin-left: 8px; font-weight: 500; }
+
+    .message-content {
+        max-width: 72%;
+        padding: 0.75rem 1rem;
+        border-radius: 14px;
+        word-wrap: break-word;
+    }
+    .message.own .message-content { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+    .message.other .message-content { background: white; color: #111827; border: 1px solid #e6edf3; }
+
+    .chat-input-container {
+        padding: 0.9rem 1rem;
+        background: white;
+        border-top: 1px solid #eef2f7;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    .message-input {
+        flex: 1;
+        padding: 12px 14px;
+        border: 2px solid #e6edf3;
+        border-radius: 999px;
+        font-size: 1rem;
+        background: #fafcff;
+    }
+    .send-button {
+        padding: 10px 16px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 999px;
+        cursor: pointer;
+        font-weight: 700;
+    }
+
+    /* -------------------- Modal -------------------- */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.3);
+        z-index: 9999;
+        display: none;
+    }
+    .user-select-modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e6e9ef;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        padding: 1rem;
+        width: 320px;
+        max-height: 60vh;
+        overflow-y: auto;
+        z-index: 10000;
+        display: none;
+    }
+    .user-search-input {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        margin-bottom: 0.5rem;
+        border-radius: 999px;
+        border: 1px solid #e6edf3;
+        font-size: 1rem;
+    }
+    .user-item-modal {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.5rem 0.75rem;
+        cursor: pointer;
+        border-radius: 8px;
+    }
+    .user-item-modal:hover { background-color: #f0f4ff; }
+    .user-item-modal .status-dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+
+    @media (max-width: 640px) {
+        .chat-container { margin: 1rem; height: 78vh; }
+        .message-content { max-width: 86%; }
+        .status-dropdown { right: 10px; left: auto; top: 62px; }
+    }
+  </style>
 </head>
 <body>
-    <%- include('templates/navbar') %>
+<%- include('templates/navbar'); %>
 
-    <div class="chat-container">
-        <div id="chat-box" class="chat-messages"></div>
+<div class="chat-container">
+    <div class="chat-header">
+        <div id="status-pill" class="status-pill" title="Click to change your status">
+            <span id="status-dot" class="status-dot ok"></span>
+            <span id="status-label">OK</span>
+        </div>
+        <button id="open-user-modal" class="select-user-btn">Select User</button>
 
-        <div class="chat-input-container">
-            <form id="chat-form" class="chat-form">
-                <input type="hidden" id="current-user-email" value="<%= user.email %>">
-                <input type="hidden" id="receiver-email" value="<%= receiverEmail %>">
-
-                <div class="input-group">
-                    <input type="text" id="message-input" class="message-input" placeholder="Type your message..." required autocomplete="off">
-                    <button type="submit" class="send-button" id="sendButton">
-                        <i class="fas fa-paper-plane"></i> Send
-                    </button>
-                </div>
-            </form>
+        <div id="status-dropdown" class="status-dropdown" role="menu" aria-hidden="true">
+            <div class="status-option" data-status="OK"><span class="status-dot ok"></span><span>OK</span></div>
+            <div class="status-option" data-status="Help"><span class="status-dot help"></span><span>Help</span></div>
+            <div class="status-option" data-status="Emergency"><span class="status-dot emergency"></span><span>Emergency</span></div>
         </div>
     </div>
 
-    <script>
-        const socket = io();
-        const chatBox = $("#chat-box");
-        const currentUserEmail = $("#current-user-email").val();
-        const receiverEmail = $("#receiver-email").val();
-        const messageInput = $("#message-input");
-        const chatForm = $("#chat-form");
+    <div id="chat-box" class="chat-messages"></div>
 
-        function escapeHtml(str) { if (!str) return ""; return String(str).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[m]); }
-        function getCurrentTime() {
-            const d = new Date();
-            const pad = n => n < 10 ? '0'+n : n;
-            const date = [pad(d.getDate()), pad(d.getMonth()+1), d.getFullYear()].join("-");
-            const time = [pad(d.getHours()), pad(d.getMinutes()), pad(d.getSeconds())].join(":");
-            const ampm = d.getHours() >= 12 ? "PM" : "AM";
-            return `${date} ${time} ${ampm}`;
-        }
-        function scrollToBottom() { chatBox.scrollTop(chatBox.prop("scrollHeight")); }
+    <div class="chat-input-container">
+        <form id="chat-form" class="chat-form" style="display:flex; width:100%;">
+            <input type="hidden" id="current-user-email" value="<%= user.email %>">
+            <input type="text" id="message-input" class="message-input" placeholder="Type your message..." autocomplete="off" />
+            <button type="submit" class="send-button" id="sendButton">Send</button>
+        </form>
+    </div>
+</div>
 
-        function appendMessage(msg) {
-            const isOwn = msg.sender === currentUserEmail;
-            const html = `
-                <div class="message ${isOwn ? 'own' : 'other'}">
-                    <div class="message-header">
-                        <span class="message-sender">${isOwn ? 'You' : escapeHtml(msg.sender)}</span>
-                        <span class="message-time">${msg.sentTime}</span>
+<!-- Modal overlay & user select modal -->
+<div id="modal-overlay" class="modal-overlay"></div>
+<div id="user-select-modal" class="user-select-modal">
+    <input type="text" id="user-search" class="user-search-input" placeholder="Search users...">
+    <div id="user-list-modal"></div>
+</div>
+
+<script>
+const socket = io();
+const chatBox = $("#chat-box");
+const currentUserEmail = $("#current-user-email").val();
+let activeUser = null;
+let room = null;
+
+// Status UI
+const $statusPill = $("#status-pill");
+const $statusLabel = $("#status-label");
+const $statusDot = $("#status-dot");
+const $statusDropdown = $("#status-dropdown");
+const $statusOptions = $statusDropdown.find(".status-option");
+let currentStatus = "OK";
+
+function statusClass(status) {
+    if (!status) return "ok";
+    const s = status.toLowerCase();
+    if (s === "help") return "help";
+    if (s === "emergency") return "emergency";
+    return "ok";
+}
+
+function setStatusUI(status) {
+    currentStatus = status || "OK";
+    $statusLabel.text(currentStatus);
+    const cls = statusClass(currentStatus);
+    $statusDot.removeClass("ok help emergency").addClass(cls);
+    $statusOptions.each(function() {
+        const $opt = $(this);
+        $opt.toggleClass("selected", $opt.data("status") === currentStatus);
+    });
+}
+
+function fetchCurrentStatus() {
+    $.get("/getUsers").done(users => {
+        const me = users.find(u => u.email === currentUserEmail);
+        setStatusUI(me ? (me.status || "OK") : "OK");
+    }).fail(() => setStatusUI("OK"));
+}
+
+// Messages helpers
+function escapeHtml(str) {
+    if (!str) return "";
+    return String(str).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[m]);
+}
+function getCurrentTime() {
+    const d = new Date();
+    const pad = n => (n < 10 ? '0'+n : n);
+    const date = [pad(d.getDate()), pad(d.getMonth()+1), d.getFullYear()].join("-");
+    const time = [pad(d.getHours()), pad(d.getMinutes()), pad(d.getSeconds())].join(":");
+    const ampm = d.getHours() >= 12 ? "PM" : "AM";
+    return `${date} ${time} ${ampm}`;
+}
+function scrollToBottom() { chatBox.scrollTop(chatBox.prop("scrollHeight")); }
+
+function appendMessage(msg) {
+    const isOwn = msg.sender === currentUserEmail;
+    const status = msg.status || "OK";
+    const sc = statusClass(status);
+
+    const headerHtml = `
+        <div class="message-header">
+            <span class="message-sender">${isOwn ? 'You' : escapeHtml(msg.sender)}</span>
+            <span class="message-status-inline">
+                <span class="status-dot ${sc}"></span>
+                <span style="font-weight:600">${status}</span>
+            </span>
+            <span class="message-time">${escapeHtml(msg.sentTime)}</span>
+        </div>`;
+    const contentHtml = `<div class="message-content">${escapeHtml(msg.message)}</div>`;
+    chatBox.append(`<div class="message ${isOwn ? 'own' : 'other'}">${headerHtml}${contentHtml}</div>`);
+    scrollToBottom();
+}
+
+function joinRoom(receiver) {
+    if (!receiver) return;
+    room = [currentUserEmail, receiver].sort().join("_");
+    socket.emit("joinPrivate", { room });
+}
+
+function fetchMessages(receiver) {
+    $.get(`/fetchPrivateMessages?sender=${encodeURIComponent(currentUserEmail)}&receiver=${encodeURIComponent(receiver)}`)
+        .done(data => { chatBox.empty(); data.forEach(m => appendMessage(m)); });
+}
+
+// Socket listeners
+socket.on("privateMessage", msg => {
+    if (activeUser && (msg.sender === activeUser || msg.receiver === activeUser)) {
+        appendMessage(msg);
+    }
+});
+
+socket.on("statusUpdated", ({ fullname, email, status }) => {
+    // Update your own pill
+    if (email === currentUserEmail) setStatusUI(status);
+    // Update modal
+    const $userItem = $userList.find(`.user-item-modal[data-email='${email}']`);
+    if ($userItem.length) {
+        $userItem.find(".status-dot").removeClass("ok help emergency").addClass(statusClass(status));
+        $userItem.find("small").text(status);
+    }
+});
+
+socket.on("connect", () => { if (activeUser) joinRoom(activeUser); });
+
+// Chat form submit
+$("#chat-form").on("submit", function(e) {
+    e.preventDefault();
+    if (!activeUser) return alert("Select a user to chat with");
+    const text = $("#message-input").val().trim();
+    if (!text) return;
+
+    const msg = { sender: currentUserEmail, receiver: activeUser, message: text, sentTime: getCurrentTime(), status: currentStatus };
+    //appendMessage(msg);
+    $("#message-input").val("");
+    socket.emit("sendPrivateMessage", msg);
+});
+
+// Status interactions
+$statusPill.on("click", e => {
+    e.stopPropagation();
+    $statusDropdown.toggle();
+    $statusDropdown.attr("aria-hidden", $statusDropdown.is(":hidden") ? "true" : "false");
+});
+$statusOptions.on("click", function() {
+    const newStatus = $(this).data("status");
+    setStatusUI(newStatus);
+    $.post("/updateStatus", { email: currentUserEmail, status: newStatus }).fail(() => console.error("Failed to update status"));
+    $statusDropdown.hide();
+});
+$(document).on("click", e => { if (!$(e.target).closest("#status-dropdown, #status-pill").length) $statusDropdown.hide(); });
+
+// -------------------- User select modal --------------------
+const $modal = $("#user-select-modal");
+const $overlay = $("#modal-overlay");
+const $userList = $("#user-list-modal");
+const $userSearch = $("#user-search");
+
+$("#open-user-modal").on("click", () => {
+    $.get("/getUsers").done(users => {
+        $userList.empty();
+        users.forEach(u => {
+            if (u.email !== currentUserEmail) {
+                $userList.append(`
+                    <div class="user-item-modal" data-email="${u.email}" data-name="${u.fullname}">
+                        <div style="display:flex; align-items:center;">
+                            <span class="status-dot ${statusClass(u.status)}"></span>
+                            <strong>${u.fullname}</strong>
+                        </div>
+                        <small>${u.status || "OK"}</small>
                     </div>
-                    <div class="message-content">
-                        <div class="message-text">${escapeHtml(msg.message)}</div>
-                    </div>
-                </div>`;
-            chatBox.append(html);
-            scrollToBottom();
-        }
-
-        // Fetch previous messages
-        function fetchPrivateMessages() {
-            $.get(`/fetchPrivateMessages?sender=${encodeURIComponent(currentUserEmail)}&receiver=${encodeURIComponent(receiverEmail)}`)
-            .done(data => { chatBox.empty(); data.forEach(appendMessage); })
-            .fail(() => console.error("Failed to fetch private messages"));
-        }
-        fetchPrivateMessages();
-
-        // Send message
-        chatForm.on("submit", function(e){
-            e.preventDefault(); // prevent page reload
-            const text = messageInput.val().trim();
-            if(!text) return;
-
-            const msg = {
-                sender: currentUserEmail,
-                receiver: receiverEmail,
-                message: text,
-                sentTime: getCurrentTime()
-            };
-
-            // append immediately
-            appendMessage(msg);
-            messageInput.val("");
-
-            // Save to server
-            $.post("/sendPrivateMessage", msg).fail(() => console.error("Failed to send private message"));
-
-            // Emit via socket
-            socket.emit("sendPrivateMessage", msg);
-        });
-
-        // Join private room
-        socket.emit("joinPrivate", { sender: currentUserEmail, receiver: receiverEmail });
-
-        socket.on("privateMessage", msg => {
-            // Only show messages not sent by current user (avoids duplicates)
-            if(msg.sender !== currentUserEmail &&
-               ((msg.sender === receiverEmail && msg.receiver === currentUserEmail) ||
-                (msg.sender === currentUserEmail && msg.receiver === receiverEmail))) {
-                appendMessage(msg);
+                `);
             }
         });
-    </script>
+        $overlay.show();
+        $modal.show();
+        $userSearch.val("").trigger("input");
+    });
+});
+function closeModal() { $overlay.hide(); $modal.hide(); }
+$overlay.on("click", closeModal);
 
-    <script src="js/navbar.js"></script>
-    <%- include('templates/footer') %>
+$userSearch.on("input", function() {
+    const val = $(this).val().toLowerCase();
+    $(".user-item-modal").each(function() {
+        const name = $(this).data("name").toLowerCase();
+        $(this).toggle(name.includes(val));
+    });
+});
+
+$userList.on("click", ".user-item-modal", function() {
+    activeUser = $(this).data("email");
+    joinRoom(activeUser);
+    fetchMessages(activeUser);
+    closeModal();
+});
+
+fetchCurrentStatus();
+</script>
+
+<%- include('templates/footer'); %>
 </body>
 </html>
