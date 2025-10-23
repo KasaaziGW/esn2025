@@ -7,34 +7,31 @@ const sessions = require("express-session");
 
 const Citizen = require("./models/citizen");
 const { Message } = require("./models/message");
+const PrivateMessage = require("./models/privateMessage");
 
 const app = express();
 const httpServer = require("http").createServer(app);
-const socketIO = require("socket.io")(httpServer);
+const io = require("socket.io")(httpServer);
 
 const PORT = process.env.PORT || 3000;
 var username;
 
-// setting the view engine to ejs
+// --- View engine & static files ---
 app.set("view engine", "ejs");
-// serving static files from the "public" directory
 app.use(express.static("public"));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-// app.use(express.urlencoded({ extended: true }));
-// app.use(express.json());
 
-// setting up the sessions
+// --- Sessions ---
 app.use(
   sessions({
     secret: "ESN2025",
-    cookie: { maxAge: 60000 },
+    cookie: { maxAge: 1000 * 60 * 60 * 24 },
     resave: false,
     saveUninitialized: false,
   })
 );
-
 app.use(flashMessage());
 
 
@@ -72,80 +69,76 @@ mongoose
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("Could not connect to MongoDB...", err));
 
-// Middleware to check if user is logged in
+// Auth middleware
 function isAuthenticated(req, res, next) {
-  if (req.session && req.session.user) {
-    next();
-  } else {
-    res.redirect("/");
-  }
+  if (req.session && req.session.user) next();
+  else res.redirect("/");
 }
 
+// --- Routes ---
 app.get("/", (req, res) => {
-  if (req.session && req.session.user) {
-    res.redirect("/dashboard");
-  } else {
-    res.render("index", { title: "Login" });
-  }
+  if (req.session && req.session.user) res.redirect("/dashboard");
+  else res.render("index", { title: "Login" });
 });
 
 app.get("/dashboard", isAuthenticated, async (req, res) => {
+  const https = require("https");
   const api_url = "https://zenquotes.io/api/random/";
-  const response = await fetch(api_url);
-  var data = await response.json();
-  // console.log(`${data[0]["q"]} - ${data[0]["a"]} - ${data[0]["h"]}`);
-  res.render("dashboard", {
-    title: "Dashboard",
-    user: req.session.user,
-    quote: data,
+
+  https.get(api_url, (apiRes) => {
+    let data = "";
+    apiRes.on("data", (chunk) => (data += chunk));
+    apiRes.on("end", () => {
+      try {
+        const quote = JSON.parse(data);
+        res.render("dashboard", { title: "Dashboard", user: req.session.user, quote });
+      } catch (err) {
+        res.render("dashboard", {
+          title: "Dashboard",
+          user: req.session.user,
+          quote: [{ q: "Preparation is the key to emergency response.", a: "ESN 2025" }],
+        });
+      }
+    });
+  }).on("error", () => {
+    res.render("dashboard", {
+      title: "Dashboard",
+      user: req.session.user,
+      quote: [{ q: "Preparation is the key to emergency response.", a: "ESN 2025" }],
+    });
   });
 });
 
-app.get("/register", (req, res) => {
-  res.render("register", { title: "Register" });
-});
+// Register
+app.get("/register", (req, res) => res.render("register", { title: "Register" }));
 
-// register route
 app.post("/registerUser", (req, res) => {
   const { email, fullname, password, cpassword } = req.body;
   if (password !== cpassword) {
     req.flash("error", "Passwords do not match!");
-    res.redirect("/register");
-  } else {
-    // testing if the email already exists
-    Citizen.findOne({ email: email })
-      .then((citizen) => {
-        if (citizen) {
-          req.flash("error", `${email} already exists!`);
-          res.redirect("/register");
-        } else {
-          // hashing the password
-          bcrypt.hash(password, 10, (err, hash) => {
-            if (err) {
-              console.error(err);
-              req.flash("error", "An error occurred. Please try again!");
-              res.redirect("/register");
-            } else {
-              // create a model to save the data
-              let user = new Citizen({
-                email: email,
-                fullname: fullname,
-                password: hash,
-                online: false,
-              });
-              // saving the data
-              user.save();
-              req.flash("success", "Registration successful!");
-              res.redirect("/register");
-            }
-          });
-        }
-      })
-      .catch((err) => console.error(err));
+    return res.redirect("/register");
   }
+  Citizen.findOne({ email })
+    .then((citizen) => {
+      if (citizen) {
+        req.flash("error", `${email} already exists!`);
+        return res.redirect("/register");
+      }
+      bcrypt.hash(password, 10, (err, hash) => {
+        if (err) {
+          req.flash("error", "An error occurred. Please try again!");
+          return res.redirect("/register");
+        }
+        const user = new Citizen({ email, fullname, password: hash, online: false, status: "OK" });
+        user.save();
+        req.flash("success", "Registration successful!");
+        res.redirect("/register");
+      });
+    })
+    .catch(console.error);
 });
 
-// login route
+// Login
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
   Citizen.findOne({ email: email }).then((citizen) => {
@@ -175,7 +168,7 @@ app.post("/login", (req, res) => {
   });
 });
 
-// ESN Directory route
+// Directory
 app.get("/directory", isAuthenticated, async (req, res) => {
   try {
     const users = await Citizen.find({});
@@ -191,49 +184,41 @@ app.get("/directory", isAuthenticated, async (req, res) => {
       user: req.session.user,
       users: usersWithStatus,
       getStatusBadge
+      users: users.map((u) => ({ fullname: u.fullname, email: u.email, online: u.online || false, status: u.status || "OK" })),
     });
-  } catch (err) {
+  } catch {
     res.status(500).send("Error loading directory");
   }
 });
 
-// chat route
+// Public chat view
 app.get("/public_chat", isAuthenticated, (req, res) => {
   res.render("public_chat", { title: "Public Chat", user: req.session.user,getStatusBadge });
 });
 
-// Logout route
-app.get("/logout", (req, res) => {
-  // Set user online status to false before destroying session
+// Logout
+app.get("/logout", async (req, res) => {
   if (req.session && req.session.user) {
-    Citizen.updateOne(
-      { email: req.session.user.email },
-      { $set: { online: false } }
-    )
-      .then(() => {
-        req.session.destroy(() => {
-          res.redirect("/");
-        });
-      })
-      .catch(() => {
-        req.session.destroy(() => {
-          res.redirect("/");
-        });
-      });
-  } else {
-    req.session.destroy(() => {
-      res.redirect("/");
-    });
+    await Citizen.updateOne({ email: req.session.user.email }, { $set: { online: false } });
+  }
+  req.session.destroy(() => res.redirect("/"));
+});
+
+// Public message routes
+app.post("/sendMessage", async (req, res) => {
+  try {
+    const { sender, message, sentTime } = req.body;
+    if (!sender || !message) return res.status(400).json({ error: "Missing fields" });
+
+    const newMessage = await Message.create({ sender, message, sentTime });
+    io.emit("message", newMessage);
+    res.json({ success: true, message: newMessage });
+  } catch (err) {
+    console.error("Error saving public message:", err);
+    res.status(500).json({ error: "Failed to save message" });
   }
 });
 
-// receiving and emitting a message whenever a user joins
-socketIO.on("connection", () => {
-  socketIO.emit("joined", username);
-});
-
-// saving a message to the database
-app.post("/sendMessage", async (req, res) => {
   var message = new Message(req.body);
   message.sender_status=req.session.user.status;
   await message.save();
@@ -243,6 +228,119 @@ app.post("/sendMessage", async (req, res) => {
 
 // fetching messages from the database
 app.get("/fetchMessages", async (req, res) => {
+  try {
+    const messages = await Message.find({}).sort({ _id: 1 });
+    res.json(messages);
+  } catch (err) {
+    console.error("Error fetching messages:", err);
+    res.status(500).json({ error: "Failed to fetch messages" });
+  }
+});
+
+// Users list
+app.get("/getUsers", isAuthenticated, async (req, res) => {
+  try {
+    const users = await Citizen.find({}, "fullname email online status");
+    res.json(users);
+  } catch (err) {
+    console.error("Error fetching users:", err);
+    res.status(500).json({ error: "Error fetching users" });
+  }
+});
+
+// Private chat
+app.get("/private-chat", isAuthenticated, (req, res) => {
+  const { email, name } = req.query || {};
+  const currentUser = req.session.user;
+  res.render("private-chat", {
+    title: "Private Chat",
+    user: currentUser,
+    currentUser,
+    receiverEmail: email || "",
+    receiverName: name || "",
+  });
+});
+
+app.get("/fetchPrivateMessages", isAuthenticated, async (req, res) => {
+  try {
+    const { sender, receiver } = req.query;
+    const messages = await PrivateMessage.find({
+      $or: [
+        { sender, receiver },
+        { sender: receiver, receiver: sender },
+      ],
+    }).sort({ _id: 1 });
+    res.json(messages);
+  } catch (err) {
+    console.error("Error fetching private messages:", err);
+    res.status(500).json({ error: "Error fetching private messages" });
+  }
+});
+
+app.post("/sendPrivateMessage", isAuthenticated, async (req, res) => {
+  try {
+    const { sender, receiver, message, sentTime } = req.body;
+    const newMsg = new PrivateMessage({ sender, receiver, message, sentTime });
+    await newMsg.save();
+
+    const room = [sender, receiver].sort().join("_");
+    io.to(room).emit("privateMessage", { sender, receiver, message, sentTime });
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Error saving private message:", err);
+    res.status(500).json({ error: "Error sending private message" });
+  }
+});
+
+// --- Socket.IO ---
+const onlineUsers = {};
+
+io.on("connection", (socket) => {
+  console.log("Socket connected:", socket.id);
+
+  // Track joined users
+  socket.on("joined", (fullname) => {
+    onlineUsers[socket.id] = fullname;
+    io.emit("updateUsers", Object.values(onlineUsers));
+  });
+
+  socket.on("disconnect", async () => {
+    delete onlineUsers[socket.id];
+    io.emit("updateUsers", Object.values(onlineUsers));
+  });
+
+  // Public chat
+  socket.on("sendPublicMessage", async (msg) => {
+    try {
+      const { sender, message, sentTime } = msg;
+      const newMessage = await Message.create({ sender, message, sentTime });
+      io.emit("message", newMessage);
+    } catch (err) {
+      console.error("Error sending public message via socket:", err);
+    }
+  });
+
+  // Private chat
+  socket.on("sendPrivateMessage", async (msg) => {
+    try {
+      const { sender, receiver, message, sentTime } = msg;
+      const newMsg = await PrivateMessage.create({ sender, receiver, message, sentTime });
+      const room = [sender, receiver].sort().join("_");
+      io.to(room).emit("privateMessage", { sender, receiver, message, sentTime });
+    } catch (err) {
+      console.error("Error sending private message via socket:", err);
+    }
+  });
+});
+
+// Start server
+httpServer.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`))
+  .on("error", (err) => {
+    if (err.code === "EADDRINUSE") {
+      console.error(`Port ${PORT} in use. Kill process or change port.`);
+    }
+    process.exit(1);
+  });
   const messages = await Message.find({});
   console.log("Fetched messages:", messages);
   res.json(messages);

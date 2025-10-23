@@ -30,151 +30,45 @@
     </div>
 
     <style>
+        /* -------------------- Chat Layout -------------------- */
         .chat-content {
             padding: 2rem;
             height: calc(100vh - 60px);
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
+            gap: 1rem;
+            align-items: stretch;
         }
-        
+
         .chat-container {
             flex: 1;
             display: flex;
             flex-direction: column;
             background: white;
             border-radius: 15px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             border: 1px solid #e5e7eb;
             overflow: hidden;
         }
-        
+
         .chat-messages {
             flex: 1;
             padding: 1.5rem;
             overflow-y: auto;
             background: #f8fafc;
-            border-bottom: 1px solid #e5e7eb;
         }
-        
-        .chat-messages::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        .chat-messages::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        
-        .chat-messages::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 3px;
-        }
-        
-        .chat-messages::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
-        }
-        
-        .message {
-            margin-bottom: 1rem;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .message.own {
-            align-items: flex-end;
-        }
-        
-        .message.other {
-            align-items: flex-start;
-        }
-        
-        .message-content {
-            max-width: 70%;
-            padding: 0.75rem 1rem;
-            border-radius: 15px;
-            position: relative;
-            word-wrap: break-word;
-        }
-        
-        .message.own .message-content {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-bottom-right-radius: 5px;
-        }
-        
-        .message.other .message-content {
-            background: white;
-            color: #1f2937;
-            border: 1px solid #e5e7eb;
-            border-bottom-left-radius: 5px;
-        }
-        
-        .message-header {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.25rem;
-        }
-        
-        .message.own .message-header {
-            justify-content: flex-end;
-        }
-        
-        .message.other .message-header {
-            justify-content: flex-start;
-        }
-        
-        .message-sender {
-            font-weight: 600;
-            font-size: 0.85rem;
-        }
-        
-        .message.own .message-sender {
-            color: rgba(255,255,255,0.8);
-        }
-        
-        .message.other .message-sender {
-            color: #667eea;
-        }
-        
-        .message-time {
-            font-size: 0.75rem;
-            color: rgba(0,0,0,0.5);
-        }
-        
-        .message.own .message-time {
-            color: rgba(255,255,255,0.7);
-        }
-        
-        .message-text {
-            line-height: 1.4;
-        }
-        
-        .join-notification {
-            text-align: center;
-            color: #6b7280;
-            font-style: italic;
-            font-size: 0.9rem;
-            margin: 0.5rem 0;
-            padding: 0.5rem;
-            background: rgba(102, 126, 234, 0.1);
-            border-radius: 10px;
-        }
-        
+
         .chat-input-container {
-            padding: 1.5rem;
+            padding: 1rem 1.5rem;
             background: white;
+            flex-shrink: 0;
         }
-        
-        .chat-form {
-            width: 100%;
-        }
-        
+
+        .chat-form { width: 100%; }
         .input-group {
             display: flex;
             gap: 1rem;
             align-items: flex-end;
         }
-        
         .message-input {
             flex: 1;
             padding: 1rem 1.25rem;
@@ -187,18 +81,12 @@
             min-height: 50px;
             max-height: 120px;
         }
-        
         .message-input:focus {
             outline: none;
             border-color: #667eea;
             background: white;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
-        
-        .message-input::placeholder {
-            color: #9ca3af;
-        }
-        
         .send-button {
             padding: 1rem 1.5rem;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -207,29 +95,164 @@
             border-radius: 25px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             gap: 0.5rem;
             min-height: 50px;
+        }
+        .send-button:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); }
+        .send-button:active { transform: translateY(0); }
+        .send-button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* -------------------- Messages -------------------- */
+        .message {
+            margin-bottom: 1rem;
+            display: flex;
+            flex-direction: column;
+        }
+        .message.own { align-items: flex-end; }
+        .message.other { align-items: flex-start; }
+
+        .message-content {
+            max-width: 70%;
+            padding: 0.75rem 1rem;
+            border-radius: 15px;
+            word-wrap: break-word;
+        }
+        .message.own .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+        .message.other .message-content {
+            background: white;
+            color: #1f2937;
+            border: 1px solid #e5e7eb;
+            border-bottom-left-radius: 5px;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.25rem;
+        }
+        .message.own .message-header { justify-content: flex-end; }
+        .message.other .message-header { justify-content: flex-start; }
+
+        .message-sender { font-weight: 600; font-size: 0.85rem; }
+        .message.own .message-sender { color: rgba(255,255,255,0.9); }
+        .message.other .message-sender { color: #667eea; }
+
+        /* NOTE: message-time made darker and with subtle background for legibility */
+        .message-time {
+            font-size: 0.75rem;
+            padding: 0 0.35rem;
+            border-radius: 4px;
+            color: rgba(0,0,0,0.65);
+            background: rgba(255,255,255,0.6);
+        }
+
+        .message.own .message-time {
+            color: rgba(255,255,255,0.9);
+            background: rgba(0,0,0,0.12);
+        }
+
+        .message-text { line-height: 1.4; }
+
+        .join-notification {
+            text-align: center;
+            color: #6b7280;
+            font-style: italic;
+            font-size: 0.9rem;
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 10px;
+        }
+
+        /* -------------------- Sidebar -------------------- */
+        .users-sidebar {
+            width: 260px; /* slightly wider for icons */
+            background: #f9fafb;
+            padding: 1rem;
+            border-left: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            max-height: calc(100vh - 60px);
+        }
+        .users-sidebar h3 { margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600; color: #111827; }
+        .users-sidebar ul { list-style: none; padding: 0; margin: 0; }
+
+        .user-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.25rem;
+            margin-bottom: 0.25rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: background 0.15s;
+        }
+        .user-item:hover { background-color: #f3f4f6; cursor: default; }
+
+        .status {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .status.online { background-color: #34d399; box-shadow: 0 0 0 3px rgba(52,211,153,0.08); }
+        .status.offline { background-color: #9ca3af; }
+
+        .user-main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: 0;
+        }
+
+        .user-name {
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #111827;
+            font-weight: 500;
         }
-        
-        .send-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+
+        .user-icons {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-left: 0.5rem;
         }
-        
-        .send-button:active {
-            transform: translateY(0);
+
+        .user-status {
+            font-size: 1rem;
+            width: 30px;
+            height: 26px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
         }
-        
-        .send-button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
+
+        /* color icons (we show icon only) */
+        .user-status.ok { color: #10b981; }          /* green check */
+        .user-status.help { color: #f59e0b; }        /* yellow exclamation */
+        .user-status.emergency { color: #ef4444; }   /* red plus */
+
+        .user-email-icon {
+            font-size: 0.95rem;
+            color: #374151;
+            padding: 6px;
+            border-radius: 6px;
+            cursor: pointer;
         }
-        
+        .user-email-icon:hover { background: rgba(55,65,81,0.06); }
+
         @media (max-width: 768px) {
             .chat-content {
                 padding: 1rem;
@@ -256,125 +279,207 @@
 
         }
     </style>
+</head>
+<body>
+    <%- include('templates/navbar') %>
+
+    <div class="chat-content">
+        <!-- Chat Messages -->
+        <div class="chat-container">
+            <div id="chat-box" class="chat-messages"></div>
+
+            <div class="chat-input-container">
+                <form id="chat-form" class="chat-form">
+                    <!-- Hidden user info -->
+                    <input type="text" id="username" value="<%= user.fullname %>" data-email="<%= user.email %>" readonly required hidden>
+
+                    <div class="input-group">
+                        <input type="text" id="message-input" class="message-input" placeholder="Type your message..." required autocomplete="off">
+                        <button type="submit" class="send-button" id="sendButton">
+                            <i class="fas fa-paper-plane"></i> Send
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Users Sidebar -->
+        <div class="users-sidebar">
+            <h3>Users</h3>
+            <ul id="users-list"></ul>
+        </div>
+    </div>
+
     <script>
-        const socket = io();
-        
-        $(() => {
-            $("#sendButton").click(() => {
-                const fullname = $("#username").val();
-                const sentmessage = $("#message-input").val();
-                const currentTime = getCurrentTime();
-                
-                var message = {
-                    sender: fullname,
-                    message: sentmessage,
-                    sentTime: currentTime
-                }
-                saveMessage(message);
-                $("#message-input").val("");
-            });
-            
-            // Allow sending message with Enter key
-            $("#message-input").keypress((e) => {
-                if (e.which === 13) {
-                    $("#sendButton").click();
-                }
-            });
-        });
-        
-        fetchMessages();
-        
-        // Receive the "joined" event from the server
-        socket.on("joined", (user) => {
-            var username = $("#username").val();
-            if(user == username){
-                $("#chat-box").append(`<div class="join-notification">You have joined the chat</div>`);
-            } else {
-                $("#chat-box").append(`<div class="join-notification">${user} has joined the chat</div>`);
-            }
-            scrollToBottom();
-        });
-        
-        socket.on("message", (message) => {
-            var username = $("#username").val();
-            const isOwnMessage = message.sender === username;
-            
-            const messageHtml = `
-                <div class="message ${isOwnMessage ? 'own' : 'other'}">
-                    <div class="message-header">
-                        <span class="message-sender">${isOwnMessage ? 'You' : message.sender}</span>
-                        <span class="message-time">${message.sentTime}</span>
-                       
-                    </div>
-                    <div class="message-content">
-                        <div class="message-text">${message.message}</div>
-                         <div style="font-size:6pt; color:${isOwnMessage ?'white':'grey'}; text-transform:capitalize;"> ${(message?.sender_status)?'Status: '.message?.sender_status?.current_state:''}</div>
-                    </div>
-                </div>
-            `;
-            
-            $("#chat-box").append(messageHtml);
-            scrollToBottom();
-        });
+const socket = io();
 
-        // Function to get current time in HH:MM format
-        function getCurrentTime() {
-            var today = new Date();
-            var currentDate = [
-                today.getDate(),
-                today.getMonth() + 1,
-                today.getFullYear(),
-            ];
-            var currentTime = [today.getHours(), today.getMinutes(), today.getSeconds()];
-            var suffix = currentTime[0] >= 12 ? "PM" : "AM";
-            currentDate[0] = currentDate[0] < 10 ? "0" + currentDate[0] : currentDate[0];
-            currentDate[1] = currentDate[1] < 10 ? "0" + currentDate[1] : currentDate[1];
+const chatBox = $("#chat-box");
+const usernameInput = $("#username");
+const messageInput = $("#message-input");
+const sendButton = $("#sendButton");
 
-            currentTime[0] = currentTime[0] < 10 ? "0" + currentTime[0] : currentTime[0];
-            currentTime[1] = currentTime[1] < 10 ? "0" + currentTime[1] : currentTime[1];
-            currentTime[2] = currentTime[2] < 10 ? "0" + currentTime[2] : currentTime[2];
+const currentUser = usernameInput.val();
 
-            return currentDate.join("-") + " " + currentTime.join(":") + " " + suffix;
-        }
+// -------------------- Helpers --------------------
+function escapeHtml(str) {
+    if (!str) return "";
+    return String(str).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[m]);
+}
 
-        function saveMessage(message){
-            $.post("/sendMessage", message);
-        }
-        
-        // Function to retrieve messages from the server
-        function fetchMessages() {
-            $.get("/fetchMessages", (data) => {
-                data.forEach((message) => {
-                    var username = $("#username").val();
-                    const isOwnMessage = message.sender === username;
-                    
-                    const messageHtml = `
-                        <div class="message ${isOwnMessage ? 'own' : 'other'}">
-                            <div class="message-header">
-                                <span class="message-sender">${isOwnMessage ? 'You' : message.sender}</span>
-                                <span class="message-time">${message.sentTime}</span>
-                             </div>
-                            <div class="message-content">
-                                <div class="message-text">${message.message}</div>
-                                <div style="font-size:6pt; color:${isOwnMessage ?'white':'grey'}; text-transform:capitalize;"> Status: <strong>${message?.sender_status?.current_state || 'undefined'}<strong></div>
+function getCurrentTime() {
+    const d = new Date();
+    const pad = n => n < 10 ? '0' + n : n;
+    const date = [pad(d.getDate()), pad(d.getMonth() + 1), d.getFullYear()].join("-");
+    const time = [pad(d.getHours()), pad(d.getMinutes()), pad(d.getSeconds())].join(":");
+    const ampm = d.getHours() >= 12 ? "PM" : "AM";
+    return `${date} ${time} ${ampm}`;
+}
+
+function scrollToBottom() {
+    chatBox.scrollTop(chatBox.prop("scrollHeight"));
+}
+
+// -------------------- Messages --------------------
+function appendMessage(msg) {
+    const isOwn = msg.sender === currentUser;
+    const html = `
+        <div class="message ${isOwn ? 'own' : 'other'}">
+            <div class="message-header">
+                <span class="message-sender">${isOwn ? 'You' : escapeHtml(msg.sender)}</span>
+                <span class="message-time">${msg.sentTime}</span>
+            </div>
+            <div class="message-content">
+                <div class="message-text">${escapeHtml(msg.message)}</div>
+            </div>
+        </div>
+    `;
+    chatBox.append(html);
+    scrollToBottom();
+}
+
+// Fetch all messages
+function fetchMessages() {
+    $.get("/fetchMessages")
+        .done(data => {
+            chatBox.empty();
+            data.forEach(appendMessage);
+        })
+        .fail(() => console.error("Failed to fetch messages"));
+}
+
+fetchMessages();
+
+// -------------------- Send message --------------------
+sendButton.click(e => {
+    e.preventDefault();
+    const text = messageInput.val().trim();
+    if (!text) return;
+
+    const msg = { sender: currentUser, message: text, sentTime: getCurrentTime() };
+
+    $.post("/sendMessage", msg)
+        .done(response => {
+            appendMessage(response.message);
+            messageInput.val("");
+        })
+        .fail(() => console.error("Failed to send message"));
+});
+
+// -------------------- Socket.IO --------------------
+socket.on("message", msg => {
+    if (msg.sender !== currentUser) appendMessage(msg);
+});
+
+socket.on("joined", user => {
+    const text = user === currentUser ? "You have joined the chat" : `${user} has joined the chat`;
+    chatBox.append(`<div class="join-notification">${escapeHtml(text)}</div>`);
+    scrollToBottom();
+});
+
+// -------------------- Users Sidebar --------------------
+function populateUsers() {
+    $.get("/getUsers")
+        .done(users => {
+            const usersList = $("#users-list");
+            usersList.empty();
+            users.forEach(user => {
+                const statusClass = (user.status || "OK").toLowerCase();
+                const onlineClass = user.online ? "online" : "offline";
+                let statusIcon = '';
+                if (statusClass === 'ok') statusIcon = '<i class="fas fa-check"></i>';
+                else if (statusClass === 'help') statusIcon = '<i class="fas fa-exclamation"></i>';
+                else if (statusClass === 'emergency') statusIcon = '<i class="fas fa-plus"></i>';
+
+                const itemHtml = `
+                    <li class="user-item" data-email="${user.email}" data-fullname="${user.fullname}">
+                        <span class="status ${onlineClass}" title="${user.online ? 'Online' : 'Offline'}"></span>
+                        <div class="user-main">
+                            <span class="user-name">${escapeHtml(user.fullname)}</span>
+                            <div class="user-icons" style="margin-left:auto;">
+                                <span class="user-email-icon" title="Start private chat" data-email="${user.email}" data-name="${escapeHtml(user.fullname)}">
+                                    <i class="fas fa-envelope"></i>
+                                </span>
+                                <span class="user-status ${statusClass}" title="${user.status || 'OK'}">${statusIcon}</span>
                             </div>
                         </div>
-                    `;
-                    
-                    $("#chat-box").append(messageHtml);
-                });
-                scrollToBottom();
+                    </li>
+                `;
+                usersList.append(itemHtml);
             });
+        })
+        .fail(() => console.error("Failed to fetch users"));
+}
+
+populateUsers();
+setInterval(populateUsers, 10000);
+
+// Update status dynamically
+socket.on("statusUpdated", user => {
+    $("#users-list .user-item").each(function () {
+        const li = $(this);
+        const email = li.data("email");
+        if (user.email === email) {
+            const st = (user.status || "").toLowerCase();
+            const iconHtml = st === 'ok' ? '<i class="fas fa-check"></i>' : (st === 'help' ? '<i class="fas fa-exclamation"></i>' : '<i class="fas fa-plus"></i>');
+            li.find(".user-status").attr("class", `user-status ${st}`).html(iconHtml).attr("title", user.status || "");
         }
-        
-        function scrollToBottom() {
-            const chatBox = document.getElementById('chat-box');
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
-    </script>
-    
+    });
+});
+
+// Change own status
+$(document).on("click", ".user-status", function() {
+    const li = $(this).closest(".user-item");
+    const fullname = li.data("fullname");
+    if(fullname !== currentUser) return;
+
+    const newStatus = prompt("Change your status (OK, Help, Emergency):", $(this).attr("title") || "OK");
+    if (!newStatus) return;
+    const allowed = ["OK", "Help", "Emergency"];
+    if (!allowed.includes(newStatus)) { alert("Invalid status"); return; }
+
+    const statusLower = newStatus.toLowerCase();
+    const iconHtml = statusLower === 'ok' ? '<i class="fas fa-check"></i>' : (statusLower === 'help' ? '<i class="fas fa-exclamation"></i>' : '<i class="fas fa-plus"></i>');
+
+    $(this).attr("class", `user-status ${statusLower}`).html(iconHtml).attr("title", newStatus);
+    socket.emit("updateStatus", { email: $("#username").data("email"), status: newStatus });
+});
+
+// Start private chat
+$(document).on("click", ".user-email-icon", function () {
+    const email = $(this).data("email");
+    const name = $(this).data("name");
+    if(!email) return;
+    window.location.href = `/private-chat?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`;
+});
+
+// Emit join on page load
+$(function() {
+    socket.emit("joined", currentUser);
+});
+</script>
+
+
     <script src="js/navbar.js"></script>
     <%- include('templates/footer') %>
-    
 </body>
 </html>
