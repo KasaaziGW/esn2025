@@ -249,16 +249,6 @@
 
               <div class="flex-fill pd-y-20 pd-x-10 bd-t">
                 <div class="d-flex justify-content-between align-items-center mg-b-10">
-                  <p class="tx-10 tx-uppercase tx-medium tx-color-03 tx-sans tx-spacing-1 pd-l-10 mg-b-0">Online Members</p>
-                  <span class="badge text-bg-success" id="onlineMembersCount">0</span>
-                </div>
-                <div id="onlineMembers" class="chat-msg-list">
-                  <!-- Online members will be loaded here -->
-                </div>
-              </div>
-
-              <div class="flex-fill pd-y-20 pd-x-10 bd-t">
-                <div class="d-flex justify-content-between align-items-center mg-b-10">
                   <p class="tx-10 tx-uppercase tx-medium tx-color-03 tx-sans tx-spacing-1 pd-l-10 mg-b-0">All Members</p>
                   <span class="badge text-bg-primary" id="totalMembers">0</span>
                 </div>
@@ -453,8 +443,8 @@
                 }
             }, 1000);
         
-        // Load online members
-        loadOnlineMembers();
+        // Load community members
+        loadCommunityMembers();
             
             // Try to restore last active chat from localStorage
             restoreLastActiveChat();
@@ -545,10 +535,6 @@
             updateRecentActivity(message);
         });
         
-        socket.on('userOnlineStatusChanged', (data) => {
-            // console.log('User online status changed:', data);
-            updateOnlineMembers(data);
-        });
         
         socket.on('typing', (data) => {
             // console.log('Typing indicator:', data);
@@ -702,61 +688,30 @@
         });
     }
     
-        // Load online members
-        function loadOnlineMembers() {
+        // Load community members
+        function loadCommunityMembers() {
             $.ajax({
                 url: '/community-access/members',
                 method: 'GET',
                 success: function(response) {
-                    // console.log('Online members loaded:', response);
+                    // console.log('Community members loaded:', response);
                     if (response.data && response.data.members) {
                         const allMembers = response.data.members;
-                        onlineMembers = allMembers.filter(member => member.isOnline);
                         
-                        renderOnlineMembers(onlineMembers);
                         renderAllMembers(allMembers);
                         updateMemberCounts(allMembers);
                     } else {
                         // console.log('No members found');
-                        $('#onlineMembers').html('<p class="text-muted">No members online</p>');
                         $('#allMembers').html('<p class="text-muted">No members found</p>');
                     }
                 },
                 error: function(xhr) {
-                    console.error('Failed to load online members:', xhr);
-                    $('#onlineMembers').html('<p class="text-danger">Failed to load online members</p>');
+                    console.error('Failed to load community members:', xhr);
+                    $('#allMembers').html('<p class="text-danger">Failed to load community members</p>');
                 }
             });
         }
         
-        // Render online members in sidebar
-        function renderOnlineMembers(members) {
-            const container = $('#onlineMembers');
-            container.empty();
-            
-            members.forEach(member => {
-                const isOnline = member.isOnline || false;
-                const avatarClass = isOnline ? 'avatar-online' : 'avatar-offline';
-                const lastSeen = member.lastSeenAt ? formatTime(member.lastSeenAt) : 'Never';
-                
-                container.append(`
-                    <div class="media mg-b-10" data-member-id="${member._id}">
-                        <div class="avatar avatar-sm ${avatarClass} mg-r-8">
-                            ${member.avatarUrl ? 
-                                `<img src="${member.avatarUrl}" class="rounded-circle" alt="${member.displayName || member.username}">` :
-                                `<span class="avatar-initial rounded-circle">${(member.displayName || member.username || 'U').charAt(0).toUpperCase()}</span>`
-                            }
-                        </div>
-                        <div class="media-body">
-                            <h6 class="mg-b-0">${member.displayName || member.username}</h6>
-                            <small class="d-block tx-color-04">${lastSeen}</small>
-                        </div>
-                    </div>
-                `);
-            });
-            
-            feather.replace();
-        }
         
         // Render all members in sidebar
         function renderAllMembers(members) {
@@ -789,33 +744,12 @@
         
         // Update member counts
         function updateMemberCounts(members) {
-            const onlineCount = members.filter(member => member.isOnline).length;
             const totalCount = members.length;
             
-            $('#onlineCount').text(`${onlineCount} online`);
             $('#memberCount').text(totalCount);
             $('#totalMembers').text(totalCount);
-            $('#onlineMembersCount').text(onlineCount);
         }
         
-        // Update online members
-        function updateOnlineMembers(data) {
-            if (data.isOnline) {
-                // Add new online member
-                onlineMembers.push({
-                    _id: data.userId,
-                    username: data.username,
-                    isOnline: true,
-                    lastSeenAt: data.lastSeenAt
-                });
-            } else {
-                // Remove offline member
-                onlineMembers = onlineMembers.filter(member => member._id !== data.userId);
-            }
-            
-            renderOnlineMembers(onlineMembers);
-            updateMemberCounts(onlineMembers);
-        }
         
         // Update recent activity
         function updateRecentActivity(message) {
@@ -851,7 +785,7 @@
             if (communityChatId) {
                 loadChatMessages(communityChatId);
             }
-            loadOnlineMembers();
+            loadCommunityMembers();
         }
         
         

@@ -231,7 +231,7 @@
             <div class="chat-content-header">
               <div id="chatTitle" class="d-none">
                 <div class="d-flex align-items-center">
-                  <div class="avatar avatar-sm avatar-online mg-r-8">
+                  <div class="avatar avatar-sm mg-r-8">
                     <span class="avatar-initial rounded-circle">U</span>
                   </div>
                   <h6 class="mg-b-0">Select a chat to start messaging</h6>
@@ -260,73 +260,6 @@
               </div>
             </div><!-- chat-content-body -->
 
-            <div class="chat-sidebar-right">
-              <div class="pd-y-20 pd-x-10">
-                <div class="tx-10 tx-uppercase tx-medium tx-color-03 tx-sans tx-spacing-1 pd-l-10">Members List</div>
-                <div class="chat-member-list">
-                  <a href="#" class="media">
-                    <div class="avatar avatar-sm avatar-online"><span class="avatar-initial rounded-circle">b</span></div>
-                    <div class="media-body mg-l-10">
-                      <h6 class="mg-b-0">dfbot</h6>
-                    </div><!-- media-body -->
-                  </a><!-- media -->
-                  <a href="#" class="media">
-                    <div class="avatar avatar-sm avatar-online"><img src="../../assets/img/img6.jpg" class="rounded-circle" alt=""></div>
-                    <div class="media-body mg-l-10">
-                      <h6 class="mg-b-0">situmay</h6>
-                    </div><!-- media-body -->
-                  </a><!-- media -->
-                  <a href="#" class="media">
-                    <div class="avatar avatar-sm avatar-offline"><img src="../../assets/img/img7.jpg" class="rounded-circle" alt=""></div>
-                    <div class="media-body mg-l-10">
-                      <h6 class="mg-b-0">acantones</h6>
-                    </div><!-- media-body -->
-                  </a><!-- media -->
-                  <a href="#" class="media">
-                    <div class="avatar avatar-sm avatar-offline"><img src="../../assets/img/img8.jpg" class="rounded-circle" alt=""></div>
-                    <div class="media-body mg-l-10">
-                      <h6 class="mg-b-0">rlabares</h6>
-                    </div><!-- media-body -->
-                  </a><!-- media -->
-                  <a href="#" class="media">
-                    <div class="avatar avatar-sm avatar-online"><img src="../../assets/img/img9.jpg" class="rounded-circle" alt=""></div>
-                    <div class="media-body mg-l-10">
-                      <h6 class="mg-b-0">h.owen</h6>
-                    </div><!-- media-body -->
-                  </a><!-- media -->
-                  <a href="#" class="media">
-                    <div class="avatar avatar-xs avatar-online"><span class="avatar-initial rounded-circle">k</span></div>
-                    <div class="media-body mg-l-10">
-                      <h6 class="mg-b-0">k.billie</h6>
-                    </div><!-- media-body -->
-                  </a><!-- media -->
-                  <a href="#" class="media">
-                    <div class="avatar avatar-sm avatar-online"><img src="../../assets/img/img10.jpg" class="rounded-circle" alt=""></div>
-                    <div class="media-body mg-l-10">
-                      <h6 class="mg-b-0">m.audrey</h6>
-                    </div><!-- media-body -->
-                  </a><!-- media -->
-                  <a href="#" class="media">
-                    <div class="avatar avatar-sm avatar-online"><span class="avatar-initial rounded-circle">m</span></div>
-                    <div class="media-body mg-l-10">
-                      <h6 class="mg-b-0">macasindil</h6>
-                    </div><!-- media-body -->
-                  </a><!-- media -->
-                  <a href="#" class="media">
-                    <div class="avatar avatar-sm avatar-online"><img src="../../assets/img/img6.jpg" class="rounded-circle" alt=""></div>
-                    <div class="media-body mg-l-10">
-                      <h6 class="mg-b-0">e.ocaba</h6>
-                    </div><!-- media-body -->
-                  </a><!-- media -->
-                  <a href="#" class="media">
-                    <div class="avatar avatar-sm avatar-online"><span class="avatar-initial rounded-circle">k</span></div>
-                    <div class="media-body mg-l-10">
-                      <h6 class="mg-b-0">avendula</h6>
-                    </div><!-- media-body -->
-                  </a><!-- media -->
-                </div><!-- chat-msg-list -->
-              </div>
-            </div><!-- chat-sidebar-right -->
 
             <div id="chatFooter" class="chat-content-footer d-none">
               <a href="#" data-bs-toggle="tooltip" title="Add File" class="chat-plus" onclick="triggerFileUpload()">
@@ -513,14 +446,6 @@
             // Handle typing indicators if needed
         });
         
-        // Handle user online/offline status
-        socket.on('userOnline', (userId) => {
-            updateUserStatus(userId, true);
-        });
-        
-        socket.on('userOffline', (userId) => {
-            updateUserStatus(userId, false);
-        });
     }
     
     // Load community members for starting new chats
@@ -551,13 +476,11 @@
         container.empty();
         
         members.forEach(member => {
-            const isOnline = member.isOnline || false;
-            const avatarClass = isOnline ? 'avatar-online' : 'avatar-offline';
             const lastSeen = member.lastSeenAt ? formatTime(member.lastSeenAt) : 'Never';
             
             container.append(`
                 <a href="#" class="media" data-member-id="${member._id}" onclick="startChatWithUser('${member._id}', '${member.displayName || member.username}')">
-                    <div class="avatar avatar-sm ${avatarClass}">
+                    <div class="avatar avatar-sm">
                         ${member.avatarUrl ? 
                             `<img src="${member.avatarUrl}" class="rounded-circle" alt="${member.displayName || member.username}">` :
                             `<span class="avatar-initial rounded-circle">${(member.displayName || member.username || 'U').charAt(0).toUpperCase()}</span>`
@@ -868,7 +791,7 @@
             const messageHtml = `
                 <div class="media ${isOwnMessage ? 'justify-content-end' : ''}" data-message-id="${message._id}">
                     ${!isOwnMessage ? `
-                        <div class="avatar avatar-sm avatar-online mg-r-10" onclick="viewUserProfile('${message.sender._id}', '${message.sender.displayName || message.sender.username}')" style="cursor: pointer;">
+                        <div class="avatar avatar-sm mg-r-10" onclick="viewUserProfile('${message.sender._id}', '${message.sender.displayName || message.sender.username}')" style="cursor: pointer;">
                             ${message.sender.avatarUrl ? 
                                 `<img src="${message.sender.avatarUrl}" class="rounded-circle" alt="${message.sender.displayName || message.sender.username}">` :
                                 `<span class="avatar-initial rounded-circle">${(message.sender.displayName || message.sender.username || 'U').charAt(0).toUpperCase()}</span>`
@@ -882,7 +805,7 @@
                         </div>
                     </div>
                     ${isOwnMessage ? `
-                        <div class="avatar avatar-sm avatar-online mg-l-10">
+                        <div class="avatar avatar-sm mg-l-10">
                             ${message.sender.avatarUrl ? 
                                 `<img src="${message.sender.avatarUrl}" class="rounded-circle" alt="${message.sender.displayName || message.sender.username}">` :
                                 `<span class="avatar-initial rounded-circle">${(message.sender.displayName || message.sender.username || 'U').charAt(0).toUpperCase()}</span>`
@@ -941,7 +864,7 @@
         const messageHtml = `
             <div class="media ${isOwnMessage ? 'justify-content-end' : ''}" data-message-id="${message._id}">
                 ${!isOwnMessage ? `
-                    <div class="avatar avatar-sm avatar-online mg-r-10" onclick="viewUserProfile('${message.sender._id}', '${message.sender.displayName || message.sender.username}')" style="cursor: pointer;">
+                    <div class="avatar avatar-sm mg-r-10" onclick="viewUserProfile('${message.sender._id}', '${message.sender.displayName || message.sender.username}')" style="cursor: pointer;">
                         ${message.sender.avatarUrl ? 
                             `<img src="${message.sender.avatarUrl}" class="rounded-circle" alt="${message.sender.displayName || message.sender.username}">` :
                             `<span class="avatar-initial rounded-circle">${(message.sender.displayName || message.sender.username || 'U').charAt(0).toUpperCase()}</span>`
@@ -955,7 +878,7 @@
                     </div>
                 </div>
                 ${isOwnMessage ? `
-                    <div class="avatar avatar-sm avatar-online mg-l-10">
+                    <div class="avatar avatar-sm mg-l-10">
                         ${message.sender.avatarUrl ? 
                             `<img src="${message.sender.avatarUrl}" class="rounded-circle" alt="${message.sender.displayName || message.sender.username}">` :
                             `<span class="avatar-initial rounded-circle">${(message.sender.displayName || message.sender.username || 'U').charAt(0).toUpperCase()}</span>`
@@ -1125,25 +1048,6 @@
         window.open(`/profile/${userId}`, '_blank');
     }
     
-    // Update user online/offline status
-    function updateUserStatus(userId, isOnline) {
-        // Update status in chat list
-        const userElements = $(`.media[data-user-id="${userId}"]`);
-        userElements.find('.avatar').removeClass('avatar-online avatar-offline')
-            .addClass(isOnline ? 'avatar-online' : 'avatar-offline');
-        
-        // Update status in community members list
-        const memberElements = $(`.media[data-member-id="${userId}"]`);
-        memberElements.find('.avatar').removeClass('avatar-online avatar-offline')
-            .addClass(isOnline ? 'avatar-online' : 'avatar-offline');
-        
-        // Update status in chat header if current chat user
-        if (currentChatUser && currentChatUser.id === userId) {
-            const headerAvatar = $('#chatTitle .avatar');
-            headerAvatar.removeClass('avatar-online avatar-offline')
-                .addClass(isOnline ? 'avatar-online' : 'avatar-offline');
-        }
-    }
     
     // Save active chat to localStorage
     function saveActiveChat(chatId, userName, userId) {
