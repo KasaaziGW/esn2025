@@ -50,14 +50,14 @@ const sessionAuth = async (req, res, next) => {
     }
 
     // If no user in session, check if this is an API route or page route
-    if (req.path.startsWith('/') && !req.path.startsWith('/admin/') && !req.path.startsWith('/login') && !req.path.startsWith('/register') && !req.path.startsWith('/logout')) {
+    if (req.path.startsWith('/api/') || req.path.startsWith('/users/') || req.path.startsWith('/announcements/') || req.path.startsWith('/dashboard/') || req.path.startsWith('/notifications/')) {
       return res.status(401).json({ message: 'No active session' });
     } else {
       // For page routes, redirect to login
       return res.redirect('/login');
     }
   } catch (err) {
-    if (req.path.startsWith('/') && !req.path.startsWith('/admin/') && !req.path.startsWith('/login') && !req.path.startsWith('/register') && !req.path.startsWith('/logout')) {
+    if (req.path.startsWith('/api/') || req.path.startsWith('/users/') || req.path.startsWith('/announcements/') || req.path.startsWith('/dashboard/') || req.path.startsWith('/notifications/')) {
       return res.status(401).json({ message: 'Invalid session' });
     } else {
       return res.redirect('/login');

@@ -12,7 +12,6 @@
 
     // Initialize page
     $(document).ready(function() {
-        console.log('=== ANNOUNCEMENTS PAGE INITIALIZED ===');
         
         // Current user is set in the EJS template
         console.log('Current user available:', window.currentUser);
@@ -675,12 +674,12 @@
                     console.log('Community users loaded:', window.communityUsers);
                 } else {
                     console.error('Invalid response structure:', response);
-                    Swal.fire('Error', 'Failed to load community members', 'error');
+                    //Swal.fire('Error', 'Failed to load community members', 'error');
                 }
             },
             error: function(xhr) {
                 console.error('Failed to load community users:', xhr);
-                Swal.fire('Error', 'Failed to load community members', 'error');
+                //Swal.fire('Error', 'Failed to load community members', 'error');
             }
         });
     }
@@ -770,12 +769,12 @@
                     $('#userSearchInput').val('');
                     $('#userSearchResults').empty();
                 } else {
-                    Swal.fire('Error', response.message || 'Failed to forward announcement', 'error');
+                    //Swal.fire('Error', response.message || 'Failed to forward announcement', 'error');
                 }
             },
             error: function(xhr) {
                 console.error('Forward announcement error:', xhr);
-                Swal.fire('Error', 'Failed to forward announcement', 'error');
+                //Swal.fire('Error', 'Failed to forward announcement', 'error');
             }
         });
     }

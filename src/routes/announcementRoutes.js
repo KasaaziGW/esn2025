@@ -11,6 +11,9 @@ const router = express.Router();
 // Get all announcements (user sees only their community if not admin)
 router.get('/list', sessionAuth.sessionAuth, adminAccess.requireCommunityMembershipOrAdmin, announcementController.getAnnouncements);
 
+// Get this week's emergency alerts (must come before /:slug route)
+router.get('/emergency/week', sessionAuth.sessionAuth, adminAccess.requireCommunityMembershipOrAdmin, announcementController.getWeekEmergencyAlerts);
+
 // Get today's emergency alerts (must come before /:slug route)
 router.get('/emergency/today', sessionAuth.sessionAuth, adminAccess.requireCommunityMembershipOrAdmin, announcementController.getTodayEmergencyAlerts);
 

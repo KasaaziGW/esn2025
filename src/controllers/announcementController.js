@@ -187,6 +187,74 @@ export const getAnnouncements = errorHandler.catchAsync(async (req, res) => {
 });
 
 /**
+ * Get this week's emergency alerts
+ * GET /announcements/emergency/week
+ * Shows only emergency announcements from active users for this week
+ */
+export const getWeekEmergencyAlerts = errorHandler.catchAsync(async (req, res) => {
+  try {
+    const user = req.user;
+    console.log('Getting this week\'s emergency alerts for user:', user._id, 'role:', user.role, 'community:', user.community);
+    
+    // Get start and end of this week
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 7);
+    
+    console.log('Week date range:', startOfWeek, 'to', endOfWeek);
+    
+    // Base query - admin sees all, others see only their community
+    let query = {};
+    if (user.role !== 'admin') {
+      if (!user.community) {
+        console.log('User has no community assigned');
+        return response.sendOK(res, 'No community assigned', { 
+          alerts: [],
+          count: 0
+        });
+      }
+      query.community = user.community;
+    }
+    
+    // Add emergency and date filters
+    query.isEmergency = true;
+    query.createdAt = { $gte: startOfWeek, $lt: endOfWeek };
+    
+    console.log('Query:', query);
+    
+    // Get emergency alerts for this week
+    const alerts = await Announcement.find(query)
+      .populate({
+        path: 'createdBy',
+        select: 'username displayName role isActive',
+        match: user.role === 'admin' ? {} : { isActive: true } // Admins see all, others only see active users
+      })
+      .select('title slug createdAt emergencyType severity status')
+      .sort({ severity: -1, createdAt: -1 }); // Critical first, then by time
+
+    console.log('Found alerts:', alerts.length);
+    console.log('Raw alerts:', JSON.stringify(alerts, null, 2));
+
+    // Filter out alerts from inactive users (for non-admins)
+    const filteredAlerts = user.role === 'admin' ? alerts : 
+      alerts.filter(alert => alert.createdBy);
+
+    console.log('Filtered alerts:', filteredAlerts.length);
+
+    response.sendOK(res, 'This week\'s emergency alerts retrieved successfully', { 
+      alerts: filteredAlerts,
+      count: filteredAlerts.length
+    });
+  } catch (error) {
+    console.error('Error in getWeekEmergencyAlerts:', error);
+    throw error;
+  }
+});
+
+/**
  * Get today's emergency alerts
  * GET /announcements/emergency/today
  * Shows only emergency announcements from active users for today
@@ -503,6 +571,7 @@ export const forwardAnnouncement = errorHandler.catchAsync(async (req, res) => {
 export default {
   createAnnouncement,
   getAnnouncements,
+  getWeekEmergencyAlerts,
   getTodayEmergencyAlerts,
   getAnnouncementById,
   updateAnnouncementById,

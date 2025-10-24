@@ -1,7 +1,7 @@
 import express from 'express';
 import auth from '../middleware/auth.js';
 import sessionAuth from '../middleware/sessionAuth.js';
-import * as userController from '../controllers/userController.js';
+import userController from '../controllers/userController.js';
 import User from '../models/User.js';
 import CommunityMember from '../models/communityMember.js';
 import upload from '../middleware/upload.js';
@@ -79,6 +79,10 @@ router.post('/:id/update', sessionAuth.sessionAuth, sessionAdminOnly, userContro
 router.post('/:id/status', sessionAuth.sessionAuth, sessionAdminOnly, userController.updateUserStatus);
 router.post('/:id/password', sessionAuth.sessionAuth, sessionAdminOnly, userController.changeUserPassword);
 router.post('/:id/delete', sessionAuth.sessionAuth, sessionAdminOnly, userController.deleteUser);
+
+// Emergency status routes (session-based)
+router.get('/emergency-status', sessionAuth.sessionAuth, userController.getEmergencyStatuses);
+router.post('/emergency-status', sessionAuth.sessionAuth, userController.updateEmergencyStatus);
 
 // Protected routes (JWT authentication for API) - only applies to routes defined after this line
 router.use(auth.authMiddleware);

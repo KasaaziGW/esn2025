@@ -25,15 +25,16 @@
 
         <!-- Emergency Alerts Section -->
         <div class="row">
-            <div class="col-lg-12">
+            <!-- Emergency Announcements (col-8) -->
+            <div class="col-lg-8">
                 <div class="card">
                     <div class="card-header">
-                        <h6 class="card-title mg-b-0">Today's Emergency Alerts</h6>
+                        <h6 class="card-title mg-b-0">This Week's Emergency Alerts</h6>
                         <div class="card-options">
                             <span class="badge badge-danger" id="alertCount">0 alerts</span>
                         </div>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body" style="max-height: 600px; overflow-y: auto;">
                         <!-- Loading State -->
                         <div id="loadingAlerts" class="text-center py-4">
                             <div class="spinner-border text-primary" role="status">
@@ -46,12 +47,48 @@
                         <div id="noAlerts" class="text-center py-5" style="display: none;">
                             <i data-feather="shield-check" class="wd-48 ht-48 tx-success mg-b-20"></i>
                             <h5 class="mg-b-10">No Emergency Alerts</h5>
-                            <p class="tx-color-03">There are no emergency alerts for today. Stay safe!</p>
+                            <p class="tx-color-03">There are no emergency alerts for this week. Stay safe!</p>
                         </div>
 
                         <!-- Alerts List -->
                         <div id="alertsList" style="display: none;">
                             <!-- Alerts will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Emergency Statuses (col-4) -->
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="card-title mg-b-0">Community Emergency Status</h6>
+                        <div class="card-options">
+                            <button class="btn btn-sm btn-primary" onclick="updateMyStatus()">
+                                <i data-feather="edit" class="wd-10 mg-r-2"></i>
+                                Update Status
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body" style="max-height: 600px; overflow-y: auto;">
+                        <!-- Loading State -->
+                        <div id="loadingStatuses" class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
+                            <p class="mg-t-10">Loading status updates...</p>
+                        </div>
+
+                        <!-- User Statuses List -->
+                        <div id="userStatuses" style="display: none;">
+                            <!-- User statuses will be populated here -->
+                        </div>
+
+                        <!-- No Status Updates -->
+                        <div id="noStatusUpdates" class="text-center py-5" style="display: none;">
+                            <i data-feather="users" class="wd-48 ht-48 tx-info mg-b-20"></i>
+                            <h5 class="mg-b-10">No Status Updates</h5>
+                            <p class="tx-color-03">No community members have updated their emergency status.</p>
                         </div>
                     </div>
                 </div>
@@ -80,11 +117,33 @@
 <script>
 // Global variables
 let alerts = [];
+let userStatuses = [];
 
 // Load emergency alerts on page load
 document.addEventListener('DOMContentLoaded', function() {
     loadEmergencyAlerts();
+    loadUserStatuses();
+    
+    // Initialize feather icons after content is loaded
+    setTimeout(() => {
+        initializeFeatherIcons();
+    }, 1000);
 });
+
+// Initialize feather icons safely
+function initializeFeatherIcons() {
+    if (typeof feather !== 'undefined') {
+        try {
+            feather.replace();
+        } catch (error) {
+            console.log('Feather icons initialization failed:', error.message);
+        }
+    } else {
+        console.log('Feather library not loaded yet');
+        // Retry after another delay
+        setTimeout(initializeFeatherIcons, 500);
+    }
+}
 
 // Load emergency alerts from API
 async function loadEmergencyAlerts() {
@@ -92,10 +151,12 @@ async function loadEmergencyAlerts() {
         showLoading();
         console.log('Loading emergency alerts...');
         
-        const response = await fetch('/announcements/emergency/today');
+        const response = await fetch('/announcements/emergency/week');
         console.log('Response status:', response.status);
         
         if (!response.ok) {
+            const errorText = await response.text();
+            console.error('API Error:', errorText);
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
@@ -171,9 +232,9 @@ function displayAlerts() {
     noAlerts.style.display = 'none';
     
     // Refresh feather icons
-    if (typeof feather !== 'undefined') {
-        feather.replace();
-    }
+    setTimeout(() => {
+        initializeFeatherIcons();
+    }, 300);
 }
 
 // Get severity class for styling
@@ -267,9 +328,256 @@ function showError(message) {
     }
 }
 
+// Load user emergency statuses
+async function loadUserStatuses() {
+    try {
+        showStatusLoading();
+        console.log('Loading user statuses...');
+        
+        const response = await fetch('/users/emergency-status');
+        console.log('Status response:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Status data:', data);
+        
+        if (data.success) {
+            userStatuses = data.data.statuses || [];
+            displayUserStatuses();
+        } else {
+            showStatusError('Failed to load user statuses: ' + (data.message || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error loading user statuses:', error);
+        showStatusError('Error loading user statuses: ' + error.message);
+    }
+}
+
+// Display user statuses in the UI
+function displayUserStatuses() {
+    const noStatusUpdates = document.getElementById('noStatusUpdates');
+    const userStatusesDiv = document.getElementById('userStatuses');
+    
+    if (userStatuses.length === 0) {
+        hideStatusLoading();
+        noStatusUpdates.style.display = 'block';
+        userStatusesDiv.style.display = 'none';
+        return;
+    }
+    
+    // Generate user statuses HTML
+    let statusesHTML = '';
+    userStatuses.forEach(status => {
+        const statusClass = getStatusClass(status.emergencyStatus);
+        const statusIcon = getStatusIcon(status.emergencyStatus);
+        const timeAgo = getTimeAgo(status.updatedAt);
+        const displayName = getDisplayName(status.user);
+        
+        statusesHTML += `
+            <div class="media mg-b-15">
+                <div class="avatar avatar-sm mg-r-10">
+                    ${status.user.avatarUrl ? 
+                        `<img src="${status.user.avatarUrl}" class="rounded-circle" alt="${displayName}">` :
+                        `<span class="avatar-initial rounded-circle bg-primary">${displayName.charAt(0).toUpperCase()}</span>`
+                    }
+                </div>
+                <div class="media-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h6 class="mg-b-2">${displayName}</h6>
+                            <div class="d-flex align-items-center mg-b-5">
+                                <span class="badge ${statusClass} mg-r-8">
+                                    <i data-feather="${statusIcon}" class="wd-8 mg-r-1"></i>
+                                    ${status.emergencyStatus.replace('_', ' ').toUpperCase()}
+                                </span>
+                                <span class="tx-color-03 tx-11">${timeAgo}</span>
+                            </div>
+                            ${status.statusMessage ? `<p class="tx-12 tx-color-03 mg-b-0">${escapeHtml(status.statusMessage)}</p>` : ''}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    userStatusesDiv.innerHTML = statusesHTML;
+    hideStatusLoading();
+    userStatusesDiv.style.display = 'block';
+    noStatusUpdates.style.display = 'none';
+    
+    // Refresh feather icons
+    setTimeout(() => {
+        initializeFeatherIcons();
+    }, 300);
+}
+
+// Get status class for styling
+function getStatusClass(status) {
+    switch (status) {
+        case 'needs_help': return 'badge-danger';
+        case 'injured': return 'badge-danger';
+        case 'missing': return 'badge-warning';
+        case 'lost': return 'badge-warning';
+        case 'available_to_help': return 'badge-success';
+        default: return 'badge-secondary';
+    }
+}
+
+// Get status icon
+function getStatusIcon(status) {
+    switch (status) {
+        case 'needs_help': return 'help-circle';
+        case 'injured': return 'heart';
+        case 'missing': return 'user-x';
+        case 'lost': return 'map-pin';
+        case 'available_to_help': return 'check-circle';
+        default: return 'info';
+    }
+}
+
+// Get display name helper
+function getDisplayName(user) {
+    if (!user) return 'Unknown';
+    
+    if (user.firstName && user.lastName) {
+        return `${user.firstName} ${user.lastName}`;
+    }
+    
+    if (user.displayName) {
+        return user.displayName;
+    }
+    
+    return user.username || 'Unknown';
+}
+
+// Update my emergency status
+function updateMyStatus() {
+    // Create a simple modal for status update
+    const modal = `
+        <div class="modal fade" id="statusModal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Update Emergency Status</h5>
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="statusForm">
+                            <div class="form-group">
+                                <label>Emergency Status</label>
+                                <select class="form-control" name="emergencyStatus" required>
+                                    <option value="">Select Status</option>
+                                    <option value="needs_help">Needs Help</option>
+                                    <option value="injured">Injured</option>
+                                    <option value="missing">Missing</option>
+                                    <option value="lost">Lost</option>
+                                    <option value="available_to_help">Available to Help</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Status Message (Optional)</label>
+                                <textarea class="form-control" name="statusMessage" rows="3" placeholder="Add any additional details..."></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" onclick="submitStatusUpdate()">Update Status</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing modal if any
+    const existingModal = document.getElementById('statusModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Add modal to body
+    document.body.insertAdjacentHTML('beforeend', modal);
+    
+    // Show modal
+    $('#statusModal').modal('show');
+}
+
+// Submit status update
+async function submitStatusUpdate() {
+    const form = document.getElementById('statusForm');
+    const formData = new FormData(form);
+    
+    const statusData = {
+        emergencyStatus: formData.get('emergencyStatus'),
+        statusMessage: formData.get('statusMessage')
+    };
+    
+    if (!statusData.emergencyStatus) {
+        alert('Please select a status');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/users/emergency-status', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(statusData)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            $('#statusModal').modal('hide');
+            loadUserStatuses(); // Refresh the statuses list
+            alert('Status updated successfully!');
+        } else {
+            alert('Failed to update status: ' + (data.message || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error updating status:', error);
+        alert('Error updating status: ' + error.message);
+    }
+}
+
+// Show status loading state
+function showStatusLoading() {
+    document.getElementById('loadingStatuses').style.display = 'block';
+    document.getElementById('userStatuses').style.display = 'none';
+    document.getElementById('noStatusUpdates').style.display = 'none';
+}
+
+// Hide status loading state
+function hideStatusLoading() {
+    document.getElementById('loadingStatuses').style.display = 'none';
+}
+
+// Show status error state
+function showStatusError(message) {
+    hideStatusLoading();
+    const userStatuses = document.getElementById('userStatuses');
+    userStatuses.innerHTML = `
+        <div class="alert alert-danger" role="alert">
+            <i data-feather="alert-circle" class="wd-16 mg-r-5"></i>
+            ${message}
+        </div>
+    `;
+    userStatuses.style.display = 'block';
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+}
+
 // Refresh alerts
 function refreshAlerts() {
     loadEmergencyAlerts();
+    loadUserStatuses();
 }
 
 // Escape HTML to prevent XSS

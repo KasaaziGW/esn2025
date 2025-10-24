@@ -728,6 +728,102 @@ export const removeAvatar = errorHandler.catchAsync(async (req, res) => {
   });
 });
 
+// Get emergency statuses for community members
+const getEmergencyStatuses = async (req, res) => {
+  try {
+    const user = req.user;
+    
+    // Get user's community
+    const CommunityMember = (await import('../models/communityMember.js')).default;
+    const communityMember = await CommunityMember.findOne({ user: user._id }).populate('community');
+    
+    if (!communityMember || !communityMember.community) {
+      return res.json({
+        success: true,
+        data: { statuses: [] }
+      });
+    }
+    
+    // Get all community members with emergency statuses
+    const communityMembers = await CommunityMember.find({ 
+      community: communityMember.community._id 
+    }).populate({
+      path: 'user',
+      select: 'username displayName firstName lastName avatarUrl currentStatus statusMessage updatedAt',
+      match: { 
+        currentStatus: { 
+          $in: ['needs_help', 'injured', 'missing', 'lost', 'available_to_help'] 
+        } 
+      }
+    });
+    
+    // Filter out null users and format the response
+    const statuses = communityMembers
+      .filter(member => member.user)
+      .map(member => ({
+        user: member.user,
+        emergencyStatus: member.user.currentStatus,
+        statusMessage: member.user.statusMessage,
+        updatedAt: member.user.updatedAt
+      }))
+      .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+    
+    res.json({
+      success: true,
+      data: { statuses }
+    });
+    
+  } catch (error) {
+    console.error('Error getting emergency statuses:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get emergency statuses',
+      error: error.message
+    });
+  }
+};
+
+// Update emergency status
+const updateEmergencyStatus = async (req, res) => {
+  try {
+    const { emergencyStatus, statusMessage } = req.body;
+    const user = req.user;
+    
+    // Validate emergency status
+    const validStatuses = ['needs_help', 'injured', 'missing', 'lost', 'available_to_help'];
+    if (!validStatuses.includes(emergencyStatus)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid emergency status'
+      });
+    }
+    
+    // Update user's emergency status
+    user.currentStatus = emergencyStatus;
+    user.statusMessage = statusMessage;
+    user.updatedAt = new Date();
+    
+    await user.save();
+    
+    res.json({
+      success: true,
+      message: 'Emergency status updated successfully',
+      data: {
+        currentStatus: user.currentStatus,
+        statusMessage: user.statusMessage
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error updating emergency status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update emergency status',
+      error: error.message
+    });
+  }
+};
+
 export default {
   getMe, 
   updateMe, 
@@ -742,5 +838,7 @@ export default {
   deleteUser,
   getUserStats,
   exportUsers,
-  changeUserPassword
+  changeUserPassword,
+  getEmergencyStatuses,
+  updateEmergencyStatus
 }

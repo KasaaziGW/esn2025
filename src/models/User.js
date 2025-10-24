@@ -65,6 +65,7 @@ const UserSchema = new Schema({
     ],
     default: 'safe'
   },
+  statusMessage: { type: String }, // Optional message with the status update
   lastSeenAt: { type: Date },
   location: GeoPointSchema, // optional user-shared location
 
