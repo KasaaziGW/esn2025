@@ -98,58 +98,124 @@
         .send-button:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); }
         .send-button:active { transform: translateY(0); }
 
-        /* Messages */
-        .message {
-            margin-bottom: 1rem;
+        /* New Message Design */
+        .message-container {
+            margin-bottom: 1.5rem;
             display: flex;
             flex-direction: column;
         }
-        .message.own { align-items: flex-end; }
-        .message.other { align-items: flex-start; }
+        .message-container.own { align-items: flex-end; }
+        .message-container.other { align-items: flex-start; }
 
-        .message-content {
+        .message-bubble {
             max-width: 70%;
-            padding: 0.75rem 1rem;
-            border-radius: 15px;
+            padding: 1rem 1.25rem;
+            border-radius: 18px;
             word-wrap: break-word;
+            position: relative;
         }
-        .message.own .message-content {
+        .message-container.own .message-bubble {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            border-bottom-right-radius: 5px;
+            border-bottom-right-radius: 6px;
         }
-        .message.other .message-content {
+        .message-container.other .message-bubble {
             background: white;
             color: #1f2937;
             border: 1px solid #e5e7eb;
-            border-bottom-left-radius: 5px;
+            border-bottom-left-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .message-header {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.25rem;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+            flex-wrap: wrap;
         }
-        .message.own .message-header { justify-content: flex-end; }
-        .message.other .message-header { justify-content: flex-start; }
+        .message-container.own .message-header { justify-content: flex-end; }
+        .message-container.other .message-header { justify-content: flex-start; }
 
-        .message-sender { font-weight: 600; font-size: 0.85rem; }
-        .message.own .message-sender { color: rgba(255,255,255,0.9); }
-        .message.other .message-sender { color: #667eea; }
+        .user-name {
+            font-weight: 600;
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+        .message-container.own .user-name { color: rgba(255,255,255,0.9); }
+        .message-container.other .user-name { color: #667eea; }
 
         .message-time {
-            font-size: 0.75rem;
-            padding: 0 0.35rem;
-            border-radius: 4px;
-            color: rgba(0,0,0,0.65);
-            background: rgba(255,255,255,0.6);
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            opacity: 0.8;
         }
-        .message.own .message-time {
+        .message-container.own .message-time {
+            color: rgba(255,255,255,0.8);
+            background: rgba(0,0,0,0.15);
+        }
+        .message-container.other .message-time {
+            color: #6b7280;
+            background: #f3f4f6;
+        }
+
+        .user-status {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.2rem 0.5rem;
+            border-radius: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .message-container.own .user-status {
+            background: rgba(0,0,0,0.15);
             color: rgba(255,255,255,0.9);
-            background: rgba(0,0,0,0.12);
         }
-        .message-text { line-height: 1.4; }
+        .message-container.other .user-status {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .user-status.ok {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+        .user-status.help {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+        .user-status.emergency {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        .message-container.own .user-status.ok {
+            background: rgba(16, 185, 129, 0.3);
+            color: rgba(255,255,255,0.9);
+        }
+        .message-container.own .user-status.help {
+            background: rgba(245, 158, 11, 0.3);
+            color: rgba(255,255,255,0.9);
+        }
+        .message-container.own .user-status.emergency {
+            background: rgba(239, 68, 68, 0.3);
+            color: rgba(255,255,255,0.9);
+        }
+
+        .status-icon {
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .message-text {
+            font-size: 1rem;
+            line-height: 1.5;
+            font-weight: 400;
+        }
 
         .join-notification {
             text-align: center;
@@ -166,7 +232,10 @@
             .chat-content { padding: 1rem; }
             .input-group { flex-direction: column; gap: 0.75rem; }
             .send-button { width: 100%; justify-content: center; }
-            .message-content { max-width: 85%; }
+            .message-bubble { max-width: 85%; }
+            .message-header { gap: 0.5rem; }
+            .user-name, .message-time, .user-status { font-size: 0.7rem; }
+            .message-text { font-size: 0.9rem; }
         }
     </style>
 
@@ -199,27 +268,98 @@
         chatBox.scrollTop(chatBox.prop("scrollHeight"));
     }
 
-    // ✅ Append messages with real-time status icon + label
+    // ✅ Format time to 09:01PM format
+    function formatTime(timeString) {
+        if (!timeString) return '';
+        
+        let date;
+        
+        try {
+            // Handle the specific format: "24-10-2025 19:27:36 PM"
+            if (timeString.includes('-') && timeString.includes(':')) {
+                const parts = timeString.split(' ');
+                if (parts.length >= 2) {
+                    const datePart = parts[0]; // "24-10-2025"
+                    const timePart = parts[1]; // "19:27:36"
+                    const ampmPart = parts[2] || ''; // "PM"
+                    
+                    // Parse date components: DD-MM-YYYY
+                    const dateComponents = datePart.split('-');
+                    if (dateComponents.length === 3) {
+                        const day = parseInt(dateComponents[0]);
+                        const month = parseInt(dateComponents[1]) - 1; // JavaScript months are 0-based
+                        const year = parseInt(dateComponents[2]);
+                        
+                        // Parse time components: HH:MM:SS
+                        const timeComponents = timePart.split(':');
+                        if (timeComponents.length >= 2) {
+                            let hours = parseInt(timeComponents[0]);
+                            const minutes = parseInt(timeComponents[1]);
+                            
+                            // Handle AM/PM if present
+                            if (ampmPart.toUpperCase() === 'PM' && hours !== 12) {
+                                hours += 12;
+                            } else if (ampmPart.toUpperCase() === 'AM' && hours === 12) {
+                                hours = 0;
+                            }
+                            
+                            date = new Date(year, month, day, hours, minutes, 0);
+                        }
+                    }
+                }
+            } else {
+                // Try direct parsing for other formats
+                date = new Date(timeString);
+            }
+            
+            // If date is still invalid, use current time
+            if (isNaN(date.getTime())) {
+                date = new Date();
+            }
+            
+        } catch (e) {
+            // Fallback to current time if parsing fails
+            date = new Date();
+        }
+        
+        const hours = date.getHours();
+        const minutes = date.getMinutes();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const displayHours = hours % 12 || 12;
+        const displayMinutes = minutes < 10 ? '0' + minutes : minutes;
+        return `${displayHours}:${displayMinutes}${ampm}`;
+    }
+
+    // ✅ Append messages with redesigned layout
     function appendMessage(msg) {
         const isOwn = msg.sender === currentUser;
         const status = (msg.sender_status || "OK").toLowerCase();
 
         // Choose icons dynamically
-        const statusIcon = status === "ok" ? "✔️"
-            : status === "help" ? "⚠️"
-            : status === "emergency" ? "🚨"
-            : "❔";
+        const statusIcon = status === "ok" ? "✓"
+            : status === "help" ? "!"
+            : status === "emergency" ? "+"
+            : "?";
+
+        const formattedTime = formatTime(msg.sentTime);
+        const displayName = isOwn ? 'You' : escapeHtml(msg.sender);
+        
+        // Debug logging to help identify time format issues
+        if (formattedTime.includes('NaN')) {
+            console.log('Time formatting issue:', msg.sentTime, '->', formattedTime);
+        }
 
         const html = `
-            <div class="message ${isOwn ? 'own' : 'other'}">
-                <div class="message-header">
-                    <span class="message-sender">${isOwn ? 'You' : escapeHtml(msg.sender)}</span>
-                    <span class="message-time">${escapeHtml(msg.sentTime)}</span>
-                    <span class="user-status ${status}" title="${escapeHtml(msg.sender_status)}">
-                        ${statusIcon} ${escapeHtml(msg.sender_status || 'OK')}
-                    </span>
-                </div>
-                <div class="message-content">
+            <div class="message-container ${isOwn ? 'own' : 'other'}">
+                <div class="message-bubble">
+                    <div class="message-header">
+                        <span class="user-name">${displayName}</span>
+                        <span class="message-time">${formattedTime}</span>
+                        <span class="user-status ${status}">
+                            <span class="status-icon">${statusIcon}</span>
+                            <span class="status-text">${escapeHtml(msg.sender_status || 'OK')}</span>
+                        </span>
+                    </div>
                     <div class="message-text">${escapeHtml(msg.message)}</div>
                 </div>
             </div>
