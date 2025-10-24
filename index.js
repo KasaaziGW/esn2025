@@ -218,72 +218,131 @@ app.get("/search", isAuthenticated, (req, res) => {
 });
 
 // Search API endpoint
+// Search API endpoint (enhanced)
 app.get("/api/search", isAuthenticated, async (req, res) => {
-  const { context, term, page = 1 } = req.query;
+  const { context, term = "", page = 1 } = req.query;
+
   const limit = 10;
-  const skip = (page - 1) * limit;
+  const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+  const skip = (pageNum - 1) * limit;
+  const q = String(term).trim();
+
   let results = [];
   let hasMore = false;
 
   try {
-    switch(context) {
-      case 'citizens':
-        // Search citizens by username (fullname)
-        const citizenResults = await Citizen.find({
-          fullname: { $regex: term, $options: 'i' }
+    switch (context) {
+      // -------------------------------------------------------------------
+      // Citizens: by fullname (existing behavior)
+      // -------------------------------------------------------------------
+      case "citizens": {
+        const docs = await Citizen.find({
+          fullname: { $regex: q, $options: "i" },
         })
-        .sort({ online: -1, fullname: 1 }) // Online first, then alphabetical
-        .select('fullname online status')
-        .skip(skip)
-        .limit(limit + 1); // Get one extra to check if there are more
-
-        hasMore = citizenResults.length > limit;
-        results = citizenResults.slice(0, limit);
-        break;
-
-      case 'status':
-        // Search citizens by status
-        if (['OK', 'Help', 'Emergency'].includes(term.toUpperCase())) {
-          const statusResults = await Citizen.find({
-            status:{current_state: term.toUpperCase()}
-          })
           .sort({ online: -1, fullname: 1 })
-          .select('fullname online status')
+          .select("fullname email online status")
           .skip(skip)
           .limit(limit + 1);
 
-          hasMore = statusResults.length > limit;
-          results = statusResults.slice(0, limit);
+        hasMore = docs.length > limit;
+        results = docs.slice(0, limit);
+        break;
+      }
+
+      // -------------------------------------------------------------------
+      // Status: now supports BOTH exact status enums and name search
+      // - If q looks like a status (ok/help/emergency), filter by status.
+      // - Otherwise, search citizens by name and return their status.
+      // -------------------------------------------------------------------
+      case "status": {
+        const STATUS_ENUM = ["OK", "HELP", "EMERGENCY"];
+        const maybeStatus = q.toUpperCase();
+
+        let filter;
+        if (STATUS_ENUM.includes(maybeStatus)) {
+          filter = { status: maybeStatus };
+        } else if (!q) {
+          // If no term, return everyone with their status (pageable)
+          filter = {};
+        } else {
+          // Name search, but return status fields
+          filter = { fullname: { $regex: q, $options: "i" } };
         }
-        break;
 
-      case 'public-messages':
-        // Search public messages
-        const messageResults = await Message.find({
-          message: { $regex: term, $options: 'i' }
+        const docs = await Citizen.find(filter)
+          .sort({ online: -1, fullname: 1 })
+          .select("fullname email online status")
+          .skip(skip)
+          .limit(limit + 1);
+
+        hasMore = docs.length > limit;
+        results = docs.slice(0, limit);
+        break;
+      }
+
+      // -------------------------------------------------------------------
+      // Public messages: unchanged (text contains term)
+      // -------------------------------------------------------------------
+      case "public-messages": {
+        const docs = await Message.find({
+          message: { $regex: q, $options: "i" },
         })
-        .sort({ _id: -1 }) // Latest first
-        .skip(skip)
-        .limit(limit + 1);
+          .sort({ _id: -1 })
+          .skip(skip)
+          .limit(limit + 1);
 
-        hasMore = messageResults.length > limit;
-        results = messageResults.slice(0, limit);
+        hasMore = docs.length > limit;
+        results = docs.slice(0, limit);
         break;
+      }
 
-      case 'private-messages':
-        // For private messages (placeholder for future implementation)
-        // This would need a PrivateMessage model and proper filtering
+      // -------------------------------------------------------------------
+      // Private messages: NEW
+      // - Search in message body
+      // - Also match participants (sender/receiver) if term looks like an email
+      //   or a name fragment.
+      // Returned fields match your UI renderer (sender, receiver, message, sentTime)
+      // -------------------------------------------------------------------
+      case "private-messages": {
+        const or = [];
+
+        if (q) {
+          // message body text
+          or.push({ message: { $regex: q, $options: "i" } });
+
+          // participant search: email equality or name/email contains fragment
+          // (We don't know your exact schema for sender/receiver - assuming strings (emails).
+          // If you store names, tweak as needed.)
+          or.push({ sender: { $regex: q, $options: "i" } });
+          or.push({ receiver: { $regex: q, $options: "i" } });
+        }
+
+        const filter = or.length ? { $or: or } : {};
+
+        const docs = await PrivateMessage.find(filter)
+          .sort({ _id: -1 })
+          .select("sender receiver message sentTime")
+          .skip(skip)
+          .limit(limit + 1);
+
+        hasMore = docs.length > limit;
+        results = docs.slice(0, limit);
+        break;
+      }
+
+      default:
+        // Unknown context — return empty
         results = [];
         hasMore = false;
-        break;
     }
 
     res.json({ results, hasMore });
   } catch (error) {
-    console.error('Search error:', error);
-    res.status(500).json({ error: 'An error occurred while searching' });
+    console.error("Search error:", error);
+    res.status(500).json({ error: "An error occurred while searching" });
   }
 });
+
 
 
 // Public chat
