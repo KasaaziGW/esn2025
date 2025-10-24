@@ -6,5 +6,6 @@ const citizenSchema = new Schema({
   password: { type: String, required: true },
   online: { type: Boolean, default: false },
   status: { type: String, enum: ['OK', 'Help', 'Emergency'], default: 'Undefined' },
+  statusUpdatedAt: { type: Date, default: Date.now },
 });
 module.exports = mongoose.model("Citizen", citizenSchema);

@@ -48,6 +48,10 @@
                                   <%- getStatusBadge(u?.status?.current_state || 'undefined') %>
                             </span>
                         </div>
+                        <div class="status-timestamp">
+                            <i class="fas fa-clock"></i>
+                            <span class="timestamp-text">Updated <span class="time-ago" data-timestamp="<%= u.statusUpdatedAt %>">Loading...</span></span>
+                        </div>
                     </div>
                     <% if (u.online && u.email !== user.email) { %>
                         <div class="user-actions">
@@ -309,7 +313,92 @@
         .undefined {
             color: rgb(183, 181, 181)
         }
+
+        .status-timestamp {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
+        .status-timestamp i {
+            color: #9ca3af;
+            font-size: 0.75rem;
+        }
+
+        .timestamp-text {
+            color: #6b7280;
+        }
+
+        .time-ago {
+            font-weight: 500;
+            color: #374151;
+        }
     </style>
+
+    <script>
+        // Function to format time ago
+        function timeAgo(date) {
+            const now = new Date();
+            const diffInSeconds = Math.floor((now - new Date(date)) / 1000);
+            
+            if (diffInSeconds < 60) {
+                return 'just now';
+            } else if (diffInSeconds < 3600) {
+                const minutes = Math.floor(diffInSeconds / 60);
+                return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+            } else if (diffInSeconds < 86400) {
+                const hours = Math.floor(diffInSeconds / 3600);
+                return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+            } else {
+                const days = Math.floor(diffInSeconds / 86400);
+                return `${days} day${days > 1 ? 's' : ''} ago`;
+            }
+        }
+
+        // Update all timestamps on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const timeElements = document.querySelectorAll('.time-ago');
+            timeElements.forEach(element => {
+                const timestamp = element.getAttribute('data-timestamp');
+                if (timestamp) {
+                    element.textContent = timeAgo(timestamp);
+                }
+            });
+        });
+
+        // Update timestamps every minute
+        setInterval(function() {
+            const timeElements = document.querySelectorAll('.time-ago');
+            timeElements.forEach(element => {
+                const timestamp = element.getAttribute('data-timestamp');
+                if (timestamp) {
+                    element.textContent = timeAgo(timestamp);
+                }
+            });
+        }, 60000); // Update every minute
+
+        // Socket.IO for real-time updates
+        const socket = io();
+        
+        socket.on('statusUpdated', function(data) {
+            // Find the user card for the updated user
+            const userCards = document.querySelectorAll('.user-card');
+            userCards.forEach(card => {
+                const emailElement = card.querySelector('.user-email');
+                if (emailElement && emailElement.textContent === data.email) {
+                    // Update the timestamp for this user
+                    const timeElement = card.querySelector('.time-ago');
+                    if (timeElement) {
+                        timeElement.setAttribute('data-timestamp', data.statusUpdatedAt);
+                        timeElement.textContent = timeAgo(data.statusUpdatedAt);
+                    }
+                }
+            });
+        });
+    </script>
 
     <script src="js/navbar.js"></script>
     <%- include('templates/footer') %>

@@ -8,17 +8,76 @@
     <%- include('templates/navbar') %>
     
     <!-- Directory Content -->
-    <div class="directory-content">
+    <div class="directory-content share-status-page">
         <div class="page-header">
             <h2>Share Status</h2>
             <p>Update your status </p>
         </div>
 
-       <select id="statusSelect" onchange="updateStatus(event)" class="status-select">
-    <option value="OK" <%= user?.status === 'OK' ? 'selected' : '' %>>OK</option>
-    <option value="Emergency" <%= user?.status === 'Emergency' ? 'selected' : '' %>>Emergency</option>
-    <option value="Help" <%= user?.status === 'Help' ? 'selected' : '' %>>Help</option>
-</select>
+        <!-- Status Update Container -->
+        <div class="status-container">
+            <select id="statusSelect" onchange="updateStatus(event)" class="status-select">
+                <option value="OK" <%= user?.status === 'OK' ? 'selected' : '' %>>OK</option>
+                <option value="Emergency" <%= user?.status === 'Emergency' ? 'selected' : '' %>>Emergency</option>
+                <option value="Help" <%= user?.status === 'Help' ? 'selected' : '' %>>Help</option>
+            </select>
+        </div>
+
+        <!-- Flash Notification -->
+        <div id="statusNotification" class="status-notification">
+            <span id="notificationText"></span>
+        </div>
+
+        <!-- Status Guide Table -->
+        <div class="status-guide">
+            <h3>Status Guide</h3>
+            <div class="table-container">
+                <table class="status-table">
+                <thead>
+                    <tr>
+                        <th>Status</th>
+                        <th>Explanation</th>
+                        <th>Color Code</th>
+                        <th>Icon</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="status-name ok">OK</td>
+                        <td>I am OK, I do not need help.</td>
+                        <td class="color-code green">Green</td>
+                        <td class="icon-cell">
+                            <div class="status-icon ok-icon">✓</div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="status-name help">Help</td>
+                        <td>I need help, but this is not a life threatening emergency.</td>
+                        <td class="color-code yellow">Yellow</td>
+                        <td class="icon-cell">
+                            <div class="status-icon help-icon">!</div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="status-name emergency">Emergency</td>
+                        <td>I need help now, as this is a life threatening emergency!</td>
+                        <td class="color-code red">Red</td>
+                        <td class="icon-cell">
+                            <div class="status-icon emergency-icon">+</div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="status-name undefined">Undefined</td>
+                        <td>The user has not provided his/her status yet.</td>
+                        <td class="color-code gray">-</td>
+                        <td class="icon-cell">
+                            <div class="status-icon undefined-icon">-</div>
+                        </td>
+                    </tr>
+                </tbody>
+                </table>
+            </div>
+        </div>
 
 <script>
 const socket = io();
@@ -30,10 +89,24 @@ function updateStatus(event) {
     $.post("/updateStatus", { status: newStatus })
         .done(() => {
             console.log("Status updated successfully");
+            showStatusNotification(`Status changed to: ${newStatus}`);
         })
         .fail(() => {
             alert("Failed to update status");
         });
+}
+
+function showStatusNotification(message) {
+    const notification = document.getElementById('statusNotification');
+    const notificationText = document.getElementById('notificationText');
+    
+    notificationText.textContent = message;
+    notification.classList.add('show');
+    
+    // Hide notification after 3 seconds
+    setTimeout(() => {
+        notification.classList.remove('show');
+    }, 3000);
 }
 
 // Listen for status updates from other users

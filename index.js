@@ -203,6 +203,7 @@ app.get("/directory", isAuthenticated, async (req, res) => {
         email: u.email,
         online: u.online || false,
         status: { current_state: u.status || "OK" }, // wrap in object
+        statusUpdatedAt: u.statusUpdatedAt || new Date(),
       })),
     });
   } catch {
@@ -366,10 +367,15 @@ app.post("/updateStatus", isAuthenticated, async (req, res) => {
       return res.status(400).json({ error: "Invalid status" });
     }
 
-    await Citizen.updateOne({ email }, { $set: { status } });
+    await Citizen.updateOne({ email }, { 
+      $set: { 
+        status, 
+        statusUpdatedAt: new Date() 
+      } 
+    });
     req.session.user.status = status;
 
-    io.emit("statusUpdated", { email, status }); // Broadcast to all sockets
+    io.emit("statusUpdated", { email, status, statusUpdatedAt: new Date() }); // Broadcast to all sockets
     res.sendStatus(200);
   } catch (err) {
     console.error("Error updating status:", err);
