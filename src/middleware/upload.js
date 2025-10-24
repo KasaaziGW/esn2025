@@ -7,7 +7,7 @@ import { customAlphabet } from 'nanoid';
 const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 10);
 
 //Directories
-export const UPLOAD_DIRS = {
+const UPLOAD_DIRS = {
   chat: path.join(process.cwd(), 'src', 'uploads', 'chats'),
   announcement: path.join(process.cwd(), 'src', 'uploads', 'announcements'),
   profile: path.join(process.cwd(), 'src', 'uploads', 'profiles'),
@@ -55,39 +55,46 @@ const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
 
 
 // Single chat file upload
-export const uploadSingleChatFile = multer({
+const uploadSingleChatFile = multer({
   storage: storageFactory(UPLOAD_DIRS.chat),
   limits: { fileSize: MAX_SIZE_BYTES },
   fileFilter
 }).single('file'); // expects field name 'file'
 
 // Multiple announcement attachments (max 5)
-export const uploadAnnouncementFiles = multer({
+const uploadAnnouncementFiles = multer({
   storage: storageFactory(UPLOAD_DIRS.announcement),
   limits: { fileSize: MAX_SIZE_BYTES },
   fileFilter
 }).array('attachments', 5); // expects field 'attachments'
 
 // Single profile photo upload
-export const uploadProfilePhoto = multer({
+const uploadProfilePhoto = multer({
   storage: storageFactory(UPLOAD_DIRS.profile),
   limits: { fileSize: MAX_SIZE_BYTES },
   fileFilter
 }).single('profile');
 
 // Single system logo/icon upload
-export const uploadSystemFile = multer({
+const uploadSystemFile = multer({
   storage: storageFactory(UPLOAD_DIRS.system),
   limits: { fileSize: MAX_SIZE_BYTES },
   fileFilter
 }).single('file');
 
 // Single community banner upload
-export const uploadCommunityBanner = multer({
+const uploadCommunityBanner = multer({
   storage: storageFactory(UPLOAD_DIRS.community),
   limits: { fileSize: MAX_SIZE_BYTES },
   fileFilter
 }).single('banner');
 
-// Export directories in case controllers need them
-export default UPLOAD_DIRS;
+// Export all upload functions and directories
+export default {
+  UPLOAD_DIRS,
+  uploadSingleChatFile,
+  uploadAnnouncementFiles,
+  uploadProfilePhoto,
+  uploadSystemFile,
+  uploadCommunityBanner
+};

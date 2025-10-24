@@ -1,10 +1,10 @@
 import Announcement from '../models/Announcement.js';
 import Message from '../models/Message.js';
-import { getIO } from '../services/Socket.js';
+import socketService from '../services/Socket.js';
 import path from 'path';
 import fs from 'fs';
-import { catchAsync, AuthorizationError, NotFoundError } from '../middleware/errorHandler.js';
-import { sendCreated, sendOK, sendNotFound } from '../utils/response.js';
+import errorHandler from '../middleware/errorHandler.js';
+import response from '../utils/response.js';
 
 /**
  * Create a new announcement
@@ -13,7 +13,7 @@ import { sendCreated, sendOK, sendNotFound } from '../utils/response.js';
  * Supports attachments (array of URLs or uploaded files)
  * Emits 'announcement:new' event via Socket.io
  */
-export const createAnnouncement = catchAsync(async (req, res) => {
+export const createAnnouncement = errorHandler.catchAsync(async (req, res) => {
   const { title, body, community } = req.body;
   const attachments = req.files?.map(file => ({
     url: `/uploads/announcements/${file.filename}`,
@@ -24,7 +24,7 @@ export const createAnnouncement = catchAsync(async (req, res) => {
   const { role, _id } = req.user;
 
   if (!['coordinator', 'admin'].includes(role)) {
-    throw new AuthorizationError('Not authorized to post announcements');
+    throw new errorHandler.AuthorizationError('Not authorized to post announcements');
   }
 
   const communityId = role === 'admin' ? community || null : req.user.community;
@@ -39,14 +39,14 @@ export const createAnnouncement = catchAsync(async (req, res) => {
   });
 
   // Emit real-time notification
-  const io = getIO();
+  const io = socketService.getIO();
   io.emit('announcement:new', {
     slug: announcement.slug,
     title: announcement.title,
     community: announcement.community
   });
 
-  sendCreated(res, 'Announcement created successfully', announcement);
+  response.sendCreated(res, 'Announcement created successfully', announcement);
 });
 
 /**
@@ -55,7 +55,7 @@ export const createAnnouncement = catchAsync(async (req, res) => {
  * Admin sees all announcements, others only for their community
  * Populates createdBy info
  */
-export const getAnnouncements = catchAsync(async (req, res) => {
+export const getAnnouncements = errorHandler.catchAsync(async (req, res) => {
   const user = req.user;
   const { 
     search, 
@@ -139,7 +139,7 @@ export const getAnnouncements = catchAsync(async (req, res) => {
   const hasNext = pageNum < totalPages;
   const hasPrev = pageNum > 1;
   
-  sendOK(res, 'Announcements retrieved successfully', {
+  response.sendOK(res, 'Announcements retrieved successfully', {
     announcements: filteredAnnouncements,
     pagination: {
       totalItems,
@@ -161,7 +161,7 @@ export const getAnnouncements = catchAsync(async (req, res) => {
  * GET /announcements/emergency/today
  * Shows only emergency announcements from active users for today
  */
-export const getTodayEmergencyAlerts = catchAsync(async (req, res) => {
+export const getTodayEmergencyAlerts = errorHandler.catchAsync(async (req, res) => {
   try {
     const user = req.user;
     console.log('Getting today\'s emergency alerts for user:', user._id, 'role:', user.role, 'community:', user.community);
@@ -178,7 +178,7 @@ export const getTodayEmergencyAlerts = catchAsync(async (req, res) => {
     if (user.role !== 'admin') {
       if (!user.community) {
         console.log('User has no community assigned');
-        return sendOK(res, 'No community assigned', { 
+        return response.sendOK(res, 'No community assigned', { 
           alerts: [],
           count: 0
         });
@@ -210,7 +210,7 @@ export const getTodayEmergencyAlerts = catchAsync(async (req, res) => {
 
     console.log('Filtered alerts:', filteredAlerts.length);
 
-    sendOK(res, 'Today\'s emergency alerts retrieved successfully', { 
+    response.sendOK(res, 'Today\'s emergency alerts retrieved successfully', { 
       alerts: filteredAlerts,
       count: filteredAlerts.length
     });
@@ -225,7 +225,7 @@ export const getTodayEmergencyAlerts = catchAsync(async (req, res) => {
  * Get single announcement by ID
  * Populates createdBy info
  */
-export const getAnnouncementById = catchAsync(async (req, res) => {
+export const getAnnouncementById = errorHandler.catchAsync(async (req, res) => {
   const { id } = req.params;
   const user = req.user;
 
@@ -236,14 +236,14 @@ export const getAnnouncementById = catchAsync(async (req, res) => {
       match: user.role === 'admin' ? {} : { isActive: true }
     });
 
-  if (!announcement) throw new NotFoundError('Announcement not found');
+  if (!announcement) throw new errorHandler.NotFoundError('Announcement not found');
 
   // Check if announcement is from an inactive user (for non-admins)
   if (user.role !== 'admin' && !announcement.createdBy) {
-    throw new NotFoundError('Announcement not found');
+    throw new errorHandler.NotFoundError('Announcement not found');
   }
 
-  sendOK(res, 'Announcement retrieved successfully', announcement);
+  response.sendOK(res, 'Announcement retrieved successfully', announcement);
 });
 
 
@@ -253,24 +253,24 @@ export const getAnnouncementById = catchAsync(async (req, res) => {
  * Update announcement by ID
  * POST /announcements/id/:id/update
  */
-export const updateAnnouncementById = catchAsync(async (req, res) => {
+export const updateAnnouncementById = errorHandler.catchAsync(async (req, res) => {
   const { id } = req.params;
   const { title, body, severity, status, isEmergency, pinned } = req.body;
   const { role, _id } = req.user;
 
   if (!['coordinator', 'admin'].includes(role)) {
-    throw new AuthorizationError('Not authorized to update announcements');
+    throw new errorHandler.AuthorizationError('Not authorized to update announcements');
   }
 
   const announcement = await Announcement.findById(id);
 
   if (!announcement) {
-    throw new NotFoundError('Announcement not found');
+    throw new errorHandler.NotFoundError('Announcement not found');
   }
 
   // Check if user can edit this announcement
   if (role === 'coordinator' && announcement.createdBy.toString() !== _id) {
-    throw new AuthorizationError('You can only edit your own announcements');
+    throw new errorHandler.AuthorizationError('You can only edit your own announcements');
   }
 
   // Update the announcement
@@ -287,46 +287,46 @@ export const updateAnnouncementById = catchAsync(async (req, res) => {
     { new: true, runValidators: true }
   ).populate('createdBy', 'username displayName role profile');
 
-  sendOK(res, 'Announcement updated successfully', updatedAnnouncement);
+  response.sendOK(res, 'Announcement updated successfully', updatedAnnouncement);
 });
 
 /**
  * Delete announcement by ID
  * POST /announcements/id/:id/delete
  */
-export const deleteAnnouncementById = catchAsync(async (req, res) => {
+export const deleteAnnouncementById = errorHandler.catchAsync(async (req, res) => {
   const { id } = req.params;
   const { role, _id } = req.user;
 
   if (!['coordinator', 'admin'].includes(role)) {
-    throw new AuthorizationError('Not authorized to delete announcements');
+    throw new errorHandler.AuthorizationError('Not authorized to delete announcements');
   }
 
   const announcement = await Announcement.findById(id);
 
   if (!announcement) {
-    throw new NotFoundError('Announcement not found');
+    throw new errorHandler.NotFoundError('Announcement not found');
   }
 
   // Check if user can delete this announcement
   if (role === 'coordinator' && announcement.createdBy.toString() !== _id) {
-    throw new AuthorizationError('You can only delete your own announcements');
+    throw new errorHandler.AuthorizationError('You can only delete your own announcements');
   }
 
   await Announcement.findByIdAndDelete(id);
 
-  sendOK(res, 'Announcement deleted successfully');
+  response.sendOK(res, 'Announcement deleted successfully');
 });
 
 // Track announcement view
-export const trackAnnouncementView = catchAsync(async (req, res) => {
+export const trackAnnouncementView = errorHandler.catchAsync(async (req, res) => {
   const { id } = req.params;
   const { _id } = req.user;
 
   const announcement = await Announcement.findById(id);
 
   if (!announcement) {
-    throw new NotFoundError('Announcement not found');
+    throw new errorHandler.NotFoundError('Announcement not found');
   }
 
   // Check if user has already viewed this announcement
@@ -336,21 +336,21 @@ export const trackAnnouncementView = catchAsync(async (req, res) => {
     await announcement.save();
   }
 
-  sendOK(res, 'View tracked successfully', {
+  response.sendOK(res, 'View tracked successfully', {
     viewCount: announcement.viewCount,
     forwardCount: announcement.forwardCount
   });
 });
 
 // Track announcement forward
-export const trackAnnouncementForward = catchAsync(async (req, res) => {
+export const trackAnnouncementForward = errorHandler.catchAsync(async (req, res) => {
   const { id } = req.params;
   const { _id } = req.user;
 
   const announcement = await Announcement.findById(id);
 
   if (!announcement) {
-    throw new NotFoundError('Announcement not found');
+    throw new errorHandler.NotFoundError('Announcement not found');
   }
 
   // Check if user has already forwarded this announcement
@@ -360,7 +360,7 @@ export const trackAnnouncementForward = catchAsync(async (req, res) => {
     await announcement.save();
   }
 
-  sendOK(res, 'Forward tracked successfully', {
+  response.sendOK(res, 'Forward tracked successfully', {
     viewCount: announcement.viewCount,
     forwardCount: announcement.forwardCount
   });

@@ -1,12 +1,12 @@
-import { sendOK, sendError } from '../utils/response.js';
-import { catchAsync } from '../middleware/errorHandler.js';
+import response from '../utils/response.js';
+import errorHandler from '../middleware/errorHandler.js';
 import User from '../models/User.js';
 import CommunityMember from '../models/communityMember.js';
 import Announcement from '../models/Announcement.js';
 import Community from '../models/Community.js';
 
 // Render dashboard page
-export const getDashboard = catchAsync(async (req, res) => {
+const getDashboard = errorHandler.catchAsync(async (req, res) => {
   // Fetch user data from database with populated fields
   const user = await User.findById(req.user.id)
     .populate('region', 'name')
@@ -30,7 +30,7 @@ export const getDashboard = catchAsync(async (req, res) => {
 });
 
 // Get dashboard data based on user role
-export const getDashboardData = catchAsync(async (req, res) => {
+const getDashboardData = errorHandler.catchAsync(async (req, res) => {
   const user = await User.findById(req.user.id)
     .populate('region', 'name')
     .populate('district', 'name')
@@ -38,7 +38,7 @@ export const getDashboardData = catchAsync(async (req, res) => {
     .select('username displayName firstName lastName fullName role phone region district community avatarUrl emergencyContacts');
   
   const dashboardData = await getRealDashboardData(user);
-  sendOK(res, 'Dashboard data retrieved successfully', dashboardData);
+  response.sendOK(res, 'Dashboard data retrieved successfully', dashboardData);
 });
 
 // Get real dashboard data from database
@@ -191,3 +191,5 @@ function formatTimeAgo(date) {
   if (hours < 24) return `${hours}h ago`;
   return `${days}d ago`;
 }
+
+export default { getDashboard, getDashboardData };

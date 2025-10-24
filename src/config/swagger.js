@@ -317,4 +317,4 @@ const options = {
 
 const specs = swaggerJsdoc(options);
 
-export { specs, swaggerUi };
+export default { specs, swaggerUi };

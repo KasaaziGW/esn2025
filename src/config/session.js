@@ -4,7 +4,7 @@ import MongoStore from 'connect-mongo';
 /**
  * Session configuration for secure authentication
  */
-export const getSessionConfig = () => {
+const getSessionConfig = () => {
   const isProduction = process.env.NODE_ENV === 'production';
   
   return {
@@ -26,4 +26,4 @@ export const getSessionConfig = () => {
   };
 };
 
-export default getSessionConfig;
+export default { getSessionConfig };

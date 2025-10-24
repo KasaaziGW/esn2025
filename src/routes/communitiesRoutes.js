@@ -1,5 +1,5 @@
 import express from 'express';
-import { sessionAuth } from '../middleware/sessionAuth.js';
+import sessionAuth from '../middleware/sessionAuth.js';
 import CommunityMember from '../models/communityMember.js';
 import Community from '../models/Community.js';
 import jwt from 'jsonwebtoken';
@@ -17,7 +17,7 @@ const generateToken = (user) => {
 };
 
 // Communities page route and API endpoint
-router.get('/communities', sessionAuth, async (req, res) => {
+router.get('/communities', sessionAuth.sessionAuth, async (req, res) => {
   try {
     // Check if this is an API request (looking for JSON response)
     if (req.headers.accept && req.headers.accept.includes('application/json')) {
@@ -74,7 +74,7 @@ router.get('/communities', sessionAuth, async (req, res) => {
 });
 
 // Admin communities management page route
-router.get('/', sessionAuth, async (req, res) => {
+router.get('/', sessionAuth.sessionAuth, async (req, res) => {
   // Check if user is admin
   if (req.user.role !== 'admin') {
     return res.status(403).render('error', {

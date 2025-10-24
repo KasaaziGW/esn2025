@@ -1,12 +1,12 @@
 import express from 'express';
-import { sessionAuth } from '../middleware/sessionAuth.js';
-import { requireCommunityMembershipOrAdmin } from '../middleware/adminAccess.js';
+import sessionAuth from '../middleware/sessionAuth.js';
+import adminAccess from '../middleware/adminAccess.js';
 import CommunityMember from '../models/communityMember.js';
 
 const router = express.Router();
 
 // Public/Community chat page
-router.get('/', sessionAuth, requireCommunityMembershipOrAdmin, async (req, res) => {
+router.get('/', sessionAuth.sessionAuth, adminAccess.requireCommunityMembershipOrAdmin, async (req, res) => {
   // Check if user has joined any community or is an administrator
   const communityMembership = await CommunityMember.findOne({ user: req.user._id });
   const hasJoinedCommunity = !!communityMembership || req.user.role === 'admin';

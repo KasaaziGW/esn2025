@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import Community from '../models/Community.js';
-import { catchAsync, ValidationError, NotFoundError, ConflictError, AuthorizationError } from '../middleware/errorHandler.js';
-import { sendCreated, sendOK, sendNotFound } from '../utils/response.js';
+import errorHandler from '../middleware/errorHandler.js';
+import response from '../utils/response.js';
 
 /**
  * Helper to find a community by flexible identifier:
@@ -27,10 +27,10 @@ async function findCommunityByIdentifier(identifier) {
  * Create a new community
  * POST /communities
  */
-export const createCommunity = catchAsync(async (req, res, next) => {
+export const createCommunity = errorHandler.catchAsync(async (req, res, next) => {
   const { name, description, region, district, isPublic = true, metadata } = req.body;
   if (!name || !region || !district) {
-    throw new ValidationError('name, region and district are required');
+    throw new errorHandler.ValidationError('name, region and district are required');
   }
 
   const createdBy = req.user?.id || req.user?._id || undefined;
@@ -59,14 +59,14 @@ export const createCommunity = catchAsync(async (req, res, next) => {
     { path: 'createdBy', select: 'name email' }
   ]);
 
-  sendCreated(res, 'Community created successfully', community);
+  response.sendCreated(res, 'Community created successfully', community);
 });
 
 /**
  * List communities with filters, search, pagination, sort
  * GET /communities
  */
-export const listCommunities = catchAsync(async (req, res, next) => {
+export const listCommunities = errorHandler.catchAsync(async (req, res, next) => {
   const {
     q,
     region,
@@ -102,7 +102,7 @@ export const listCommunities = catchAsync(async (req, res, next) => {
       { path: 'createdBy', select: 'displayName email' }
     ]);
 
-  sendOK(res, 'Communities retrieved successfully', {
+  response.sendOK(res, 'Communities retrieved successfully', {
     total,
     page: parseInt(page, 10),
     limit: parseInt(limit, 10),
@@ -115,11 +115,11 @@ export const listCommunities = catchAsync(async (req, res, next) => {
  * Get communities for a specific user based on their address
  * GET /communities/user-communities
  */
-export const getUserCommunities = catchAsync(async (req, res, next) => {
+export const getUserCommunities = errorHandler.catchAsync(async (req, res, next) => {
   const user = req.user;
   
   if (!user.region || !user.district) {
-    return sendOK(res, 'Please complete your profile to see communities', {
+    return response.sendOK(res, 'Please complete your profile to see communities', {
       communities: [],
       profileComplete: false,
       message: 'Please set your region and district in your profile to see available communities.'
@@ -149,7 +149,7 @@ export const getUserCommunities = catchAsync(async (req, res, next) => {
     memberCount: community.members.length
   }));
 
-  sendOK(res, 'User communities retrieved successfully', {
+  response.sendOK(res, 'User communities retrieved successfully', {
     communities: communitiesWithStatus,
     profileComplete: true,
     userAddress: {
@@ -163,11 +163,11 @@ export const getUserCommunities = catchAsync(async (req, res, next) => {
  * Get one community by id/slug/publicId
  * GET /communities/:identifier
  */
-export const getCommunity = catchAsync(async (req, res, next) => {
+export const getCommunity = errorHandler.catchAsync(async (req, res, next) => {
   const { identifier } = req.params;
   const community = await findCommunityByIdentifier(identifier);
 
-  if (!community) throw new NotFoundError('Community not found');
+  if (!community) throw new errorHandler.NotFoundError('Community not found');
 
   await community.populate([
     { path: 'region', select: 'name' },
@@ -175,23 +175,23 @@ export const getCommunity = catchAsync(async (req, res, next) => {
     { path: 'createdBy', select: 'displayName email' }
   ]);
 
-  sendOK(res, 'Community retrieved successfully', community);
+  response.sendOK(res, 'Community retrieved successfully', community);
 });
 
 /**
  * Update a community
  * POST /communities/:identifier/update
  */
-export const updateCommunity = catchAsync(async (req, res, next) => {
+export const updateCommunity = errorHandler.catchAsync(async (req, res, next) => {
   if (!req.user || req.user.role !== 'admin') {
-    throw new AuthorizationError('Forbidden: admin only');
+    throw new errorHandler.AuthorizationError('Forbidden: admin only');
   }
 
   const { identifier } = req.params;
   const updates = req.body || {};
 
   const community = await findCommunityByIdentifier(identifier);
-  if (!community) throw new NotFoundError('Community not found');
+  if (!community) throw new errorHandler.NotFoundError('Community not found');
 
   // Handle banner upload
   if (req.file) {
@@ -210,24 +210,24 @@ export const updateCommunity = catchAsync(async (req, res, next) => {
     { path: 'createdBy', select: 'name email' }
   ]);
 
-  sendOK(res, 'Community updated successfully', community);
+  response.sendOK(res, 'Community updated successfully', community);
 });
 
 /**
  * Delete a community
  * POST /communities/:identifier/delete
  */
-export const deleteCommunity = catchAsync(async (req, res, next) => {
+export const deleteCommunity = errorHandler.catchAsync(async (req, res, next) => {
   if (!req.user || req.user.role !== 'admin') {
-    throw new AuthorizationError('Forbidden: admin only');
+    throw new errorHandler.AuthorizationError('Forbidden: admin only');
   }
 
   const { identifier } = req.params;
   const community = await findCommunityByIdentifier(identifier);
-  if (!community) throw new NotFoundError('Community not found');
+  if (!community) throw new errorHandler.NotFoundError('Community not found');
 
   await community.deleteOne();
-  sendOK(res, 'Community deleted successfully');
+  response.sendOK(res, 'Community deleted successfully');
 });
 
 export default {

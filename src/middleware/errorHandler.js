@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 /**
  * Error Classes for different error types
  */
-export class AppError extends Error {
+class AppError extends Error {
   constructor(message, statusCode) {
     super(message);
     this.statusCode = statusCode;
@@ -14,31 +14,31 @@ export class AppError extends Error {
   }
 }
 
-export class ValidationError extends AppError {
+class ValidationError extends AppError {
   constructor(message) {
     super(message, 400);
   }
 }
 
-export class AuthenticationError extends AppError {
+class AuthenticationError extends AppError {
   constructor(message = 'Authentication failed') {
     super(message, 401);
   }
 }
 
-export class AuthorizationError extends AppError {
+class AuthorizationError extends AppError {
   constructor(message = 'Access denied') {
     super(message, 403);
   }
 }
 
-export class NotFoundError extends AppError {
+class NotFoundError extends AppError {
   constructor(message = 'Resource not found') {
     super(message, 404);
   }
 }
 
-export class ConflictError extends AppError {
+class ConflictError extends AppError {
   constructor(message = 'Resource already exists') {
     super(message, 409);
   }
@@ -116,7 +116,7 @@ const sendErrorProd = (err, res) => {
  * Global Error Handler Middleware
  * This should be the last middleware in your app
  */
-export const globalErrorHandler = (err, req, res, next) => {
+const globalErrorHandler = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
 
@@ -141,7 +141,7 @@ export const globalErrorHandler = (err, req, res, next) => {
  * Catch async errors wrapper
  * Use this to wrap async route handlers
  */
-export const catchAsync = (fn) => {
+const catchAsync = (fn) => {
   return (req, res, next) => {
     fn(req, res, next).catch(next);
   };
@@ -150,7 +150,7 @@ export const catchAsync = (fn) => {
 /**
  * Handle unhandled routes
  */
-export const handleNotFound = (req, res, next) => {
+const handleNotFound = (req, res, next) => {
   const err = new NotFoundError(`Can't find ${req.originalUrl} on this server!`);
   next(err);
 };

@@ -1,11 +1,11 @@
 import CommunityMember from '../models/communityMember.js';
-import { sendError } from '../utils/response.js';
+import response from '../utils/response.js';
 
 /**
  * Middleware to check if user has joined a community OR is an admin
  * Admins can access all features without community membership
  */
-export const requireCommunityMembershipOrAdmin = async (req, res, next) => {
+const requireCommunityMembershipOrAdmin = async (req, res, next) => {
   try {
     // Check if user is already in session
     if (!req.session || !req.session.user) {
@@ -30,7 +30,7 @@ export const requireCommunityMembershipOrAdmin = async (req, res, next) => {
     
     if (!communityMembership) {
       if (req.path.startsWith('/') && !req.path.startsWith('/admin/') && !req.path.startsWith('/login') && !req.path.startsWith('/register') && !req.path.startsWith('/logout')) {
-        return sendError(res, 'Community membership required. Please join a community first.', 403);
+        return response.sendError(res, 'Community membership required. Please join a community first.', 403);
       } else {
         // For page routes, redirect to communities page
         return res.redirect('/communities?message=Please join a community first to access this feature.');
@@ -45,7 +45,7 @@ export const requireCommunityMembershipOrAdmin = async (req, res, next) => {
   } catch (error) {
     console.error('Community membership or admin middleware error:', error);
     if (req.path.startsWith('/') && !req.path.startsWith('/admin/') && !req.path.startsWith('/login') && !req.path.startsWith('/register') && !req.path.startsWith('/logout')) {
-      return sendError(res, 'Error checking community membership', 500);
+      return response.sendError(res, 'Error checking community membership', 500);
     } else {
       return res.redirect('/dashboard');
     }
@@ -56,7 +56,7 @@ export const requireCommunityMembershipOrAdmin = async (req, res, next) => {
  * Middleware specifically for admin-only features
  * Ensures only admins can access certain routes
  */
-export const requireAdmin = async (req, res, next) => {
+const requireAdmin = async (req, res, next) => {
   try {
     if (!req.session || !req.session.user) {
       if (req.path.startsWith('/') && !req.path.startsWith('/admin/') && !req.path.startsWith('/login') && !req.path.startsWith('/register') && !req.path.startsWith('/logout')) {
@@ -68,7 +68,7 @@ export const requireAdmin = async (req, res, next) => {
 
     if (req.user.role !== 'admin') {
       if (req.path.startsWith('/') && !req.path.startsWith('/admin/') && !req.path.startsWith('/login') && !req.path.startsWith('/register') && !req.path.startsWith('/logout')) {
-        return sendError(res, 'Admin privileges required', 403);
+        return response.sendError(res, 'Admin privileges required', 403);
       } else {
         return res.status(403).render('error', {
           title: 'Access Denied',
@@ -86,9 +86,14 @@ export const requireAdmin = async (req, res, next) => {
   } catch (error) {
     console.error('Admin middleware error:', error);
     if (req.path.startsWith('/') && !req.path.startsWith('/admin/') && !req.path.startsWith('/login') && !req.path.startsWith('/register') && !req.path.startsWith('/logout')) {
-      return sendError(res, 'Error checking admin privileges', 500);
+      return response.sendError(res, 'Error checking admin privileges', 500);
     } else {
       return res.redirect('/dashboard');
     }
   }
+};
+
+export default {
+  requireCommunityMembershipOrAdmin,
+  requireAdmin
 };

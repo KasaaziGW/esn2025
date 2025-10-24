@@ -1,35 +1,29 @@
 import express from 'express';
-import { 
-  submitCoordinatorRequest, 
-  getCoordinatorRequests, 
-  reviewCoordinatorRequest, 
-  getMyCoordinatorRequest,
-  upload
-} from '../controllers/coordinatorRequestController.js';
-import { sessionAuth } from '../middleware/sessionAuth.js';
-import { adminAuth } from '../middleware/auth.js';
+import coordinatorRequestController from '../controllers/coordinatorRequestController.js';
+import sessionAuth from '../middleware/sessionAuth.js';
+import auth from '../middleware/auth.js';
 import CommunityMember from '../models/communityMember.js';
 
 const router = express.Router();
 
 // Submit coordinator request (citizens only)
 router.post('/', 
-  sessionAuth, 
-  upload.single('attachment'), 
-  submitCoordinatorRequest
+  sessionAuth.sessionAuth, 
+  coordinatorRequestController.upload.single('attachment'), 
+  coordinatorRequestController.submitCoordinatorRequest
 );
 
 // Get my coordinator request status
-router.get('/my-request', sessionAuth, getMyCoordinatorRequest);
+router.get('/my-request', sessionAuth.sessionAuth, coordinatorRequestController.getMyCoordinatorRequest);
 
 // Get all coordinator requests (admins only)
-router.get('/', sessionAuth, adminAuth, getCoordinatorRequests);
+router.get('/', sessionAuth.sessionAuth, auth.adminAuth, coordinatorRequestController.getCoordinatorRequests);
 
 // Review coordinator request (admins only)
-router.post('/:requestId/review', sessionAuth, adminAuth, reviewCoordinatorRequest);
+router.post('/:requestId/review', sessionAuth.sessionAuth, auth.adminAuth, coordinatorRequestController.reviewCoordinatorRequest);
 
 // Admin coordinator requests page
-router.get('/manage', sessionAuth, async (req, res) => {
+router.get('/manage', sessionAuth.sessionAuth, async (req, res) => {
   // Check if user is admin
   if (req.user.role !== 'admin') {
     return res.status(403).render('error', {

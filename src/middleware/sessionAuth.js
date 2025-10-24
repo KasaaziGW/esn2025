@@ -6,7 +6,7 @@ import User from '../models/User.js';
  * Session-based authentication middleware
  * Checks for user in session instead of JWT in headers
  */
-export const sessionAuth = async (req, res, next) => {
+const sessionAuth = async (req, res, next) => {
   try {
     // Check if user is already in session
     if (req.session && req.session.user) {
@@ -68,7 +68,7 @@ export const sessionAuth = async (req, res, next) => {
 /**
  * Login and create session
  */
-export const createSession = async (req, user) => {
+const createSession = async (req, user) => {
   // Store user in session
   req.session.user = {
     id: user._id,
@@ -95,7 +95,7 @@ export const createSession = async (req, user) => {
 /**
  * Logout and destroy session
  */
-export const destroySession = (req) => {
+const destroySession = (req) => {
   return new Promise((resolve, reject) => {
     // Clear session data
     if (req.session) {

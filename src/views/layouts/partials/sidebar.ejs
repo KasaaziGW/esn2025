@@ -80,7 +80,7 @@
                 </a>
             </li>
             <li class="nav-item <%= activePage === 'chat' ? 'active' : '' %>">
-                <a href="<%= (hasJoinedCommunity || user.role === 'admin') ? '/chat' : '#' %>" 
+                <a href="<%= (hasJoinedCommunity || user.role === 'admin') ? '/chats' : '#' %>" 
                    class="nav-link <%= (hasJoinedCommunity || user.role === 'admin') ? '' : 'text-muted' %>" 
                    <%= (hasJoinedCommunity || user.role === 'admin') ? '' : 'onclick="event.preventDefault(); alert(\'Please join a community first to access Private Chat.\'); return false;"' %>>
                     <i data-feather="message-circle"></i> <span>Private Chat</span>

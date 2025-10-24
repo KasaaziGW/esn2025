@@ -4,29 +4,29 @@ import Message from '../models/Message.js';
 import User from '../models/User.js';
 import CommunityMember from '../models/communityMember.js';
 import getIO from '../services/Socket.js';
-import { UPLOAD_DIRS } from '../middleware/upload.js';
-import { catchAsync, NotFoundError, AuthorizationError, ValidationError } from '../middleware/errorHandler.js';
-import { sendOK, sendCreated } from '../utils/response.js';
+import upload from '../middleware/upload.js';
+import errorHandler from '../middleware/errorHandler.js';
+import response from '../utils/response.js';
 
 /**
  * Fetch chat messages (lazy loading / scroll up)
  * GET /chats/:chatId/messages?before=<timestamp>&limit=20
  */
-export const getChatMessages = catchAsync(async (req, res) => {
+export const getChatMessages = errorHandler.catchAsync(async (req, res) => {
   const { chatId } = req.params;
   const { before, limit = 20 } = req.query;
   const userId = req.user._id;
 
   const chat = await Chat.findById(chatId);
-  if (!chat) throw new NotFoundError('Chat not found');
+  if (!chat) throw new errorHandler.NotFoundError('Chat not found');
 
   // Permission check
   if (chat.type === 'private' && !chat.participants.includes(userId)) {
-    throw new AuthorizationError('Access denied');
+    throw new errorHandler.AuthorizationError('Access denied');
   }
   if (chat.type === 'community' && req.user.role !== 'admin') {
     const membership = await CommunityMember.findOne({ community: chat.community, user: userId });
-    if (!membership) throw new AuthorizationError('Access denied');
+    if (!membership) throw new errorHandler.AuthorizationError('Access denied');
   }
 
   const filter = { chat: chatId };
@@ -45,7 +45,7 @@ export const getChatMessages = catchAsync(async (req, res) => {
     { $addToSet: { readBy: userId } }
   );
 
-  sendOK(res, 'Messages retrieved successfully', messages.reverse()); // oldest first for frontend
+  response.sendOK(res, 'Messages retrieved successfully', messages.reverse()); // oldest first for frontend
 });
 
 /**
@@ -53,7 +53,7 @@ export const getChatMessages = catchAsync(async (req, res) => {
  * POST /chats/:chatId/messages
  * body: { content, type='text', replyTo, forwardMessageId }
  */
-export const sendMessage = catchAsync(async (req, res) => {
+export const sendMessage = errorHandler.catchAsync(async (req, res) => {
   const { chatId } = req.params;
   let { content, type = 'text', replyTo, forwardMessageId } = req.body;
   const userId = req.user._id;
@@ -73,19 +73,19 @@ export const sendMessage = catchAsync(async (req, res) => {
 
   // require either content (text or file) or a forwardMessageId (which may provide content)
   if (!content && !forwardMessageId) {
-    throw new ValidationError('Content or file or forwardMessageId required');
+    throw new errorHandler.ValidationError('Content or file or forwardMessageId required');
   }
 
   const chat = await Chat.findById(chatId);
-  if (!chat) throw new NotFoundError('Chat not found');
+  if (!chat) throw new errorHandler.NotFoundError('Chat not found');
 
   // Permission checks
   if (chat.type === 'private' && !chat.participants.map(String).includes(String(userId))) {
-    throw new AuthorizationError('Access denied');
+    throw new errorHandler.AuthorizationError('Access denied');
   }
   if (chat.type === 'community' && req.user.role !== 'admin') {
     const membership = await CommunityMember.findOne({ community: chat.community, user: userId });
-    if (!membership) throw new AuthorizationError('Access denied');
+    if (!membership) throw new errorHandler.AuthorizationError('Access denied');
   }
 
   const messageData = { chat: chat._id, sender: userId, content, type };
@@ -139,14 +139,14 @@ export const sendMessage = catchAsync(async (req, res) => {
     console.error('Socket emit error (sendMessage):', emitErr.message || emitErr);
   }
 
-  sendCreated(res, 'Message sent successfully', populated);
+  response.sendCreated(res, 'Message sent successfully', populated);
 });
 
 /**
  * Get private chats for current user
  * GET /chats/private
  */
-export const getPrivateChats = catchAsync(async (req, res) => {
+export const getPrivateChats = errorHandler.catchAsync(async (req, res) => {
   const userId = req.user._id;
   const isAdmin = req.user.role === 'admin';
 
@@ -177,7 +177,7 @@ export const getPrivateChats = catchAsync(async (req, res) => {
     return { ...chat.toObject(), unreadCount };
   }));
 
-  sendOK(res, 'Private chats retrieved successfully', { chats: chatsWithUnread });
+  response.sendOK(res, 'Private chats retrieved successfully', { chats: chatsWithUnread });
 });
 
 /**
@@ -185,14 +185,14 @@ export const getPrivateChats = catchAsync(async (req, res) => {
  * POST /chats/private
  * body: { recipientId }
  */
-export const createPrivateChat = catchAsync(async (req, res) => {
+export const createPrivateChat = errorHandler.catchAsync(async (req, res) => {
   const { recipientId } = req.body;
   const userId = req.user._id;
 
   console.log('Creating private chat:', { recipientId, userId, userRole: req.user.role });
 
   if (!recipientId) {
-    throw new ValidationError('Recipient ID is required');
+    throw new errorHandler.ValidationError('Recipient ID is required');
   }
 
   console.log('Checking if user is trying to chat with themselves...');
@@ -202,7 +202,7 @@ export const createPrivateChat = catchAsync(async (req, res) => {
   // Prevent users from creating chats with themselves
   if (recipientId === userId.toString() || recipientId.toString() === userId || recipientId === userId) {
     console.log('User is trying to chat with themselves - rejecting');
-    throw new ValidationError('You cannot create a chat with yourself');
+    throw new errorHandler.ValidationError('You cannot create a chat with yourself');
   }
 
   console.log('Finding recipient user...');
@@ -213,19 +213,19 @@ export const createPrivateChat = catchAsync(async (req, res) => {
     console.log('User.findById completed successfully');
   } catch (error) {
     console.error('Error in User.findById:', error);
-    throw new NotFoundError('Error finding recipient: ' + error.message);
+    throw new errorHandler.NotFoundError('Error finding recipient: ' + error.message);
   }
   
   if (!recipient) {
     console.log('Recipient not found');
-    throw new NotFoundError('Recipient not found');
+    throw new errorHandler.NotFoundError('Recipient not found');
   }
 
   console.log('Recipient found:', recipient.username);
   
   // Check if recipient is active (admins can chat with anyone, others only with active users)
   if (req.user.role !== 'admin' && !recipient.isActive) {
-    throw new ValidationError('Cannot create chat with inactive user');
+    throw new errorHandler.ValidationError('Cannot create chat with inactive user');
   }
   
   // Check if recipient is an administrator
@@ -258,7 +258,7 @@ export const createPrivateChat = catchAsync(async (req, res) => {
     }
 
     console.log('Sending response for chat:', chat._id);
-    sendCreated(res, 'Private chat created successfully', { chat });
+    response.sendCreated(res, 'Private chat created successfully', { chat });
   } catch (error) {
     console.error('Error in chat creation:', error);
     throw error;
@@ -269,7 +269,7 @@ export const createPrivateChat = catchAsync(async (req, res) => {
  * Get private chat with specific user
  * GET /chats/private/with/:userId
  */
-export const getPrivateChatWithUser = catchAsync(async (req, res) => {
+export const getPrivateChatWithUser = errorHandler.catchAsync(async (req, res) => {
   const { userId: otherUserId } = req.params;
   const currentUserId = req.user._id;
   const isAdmin = req.user.role === 'admin';
@@ -287,25 +287,25 @@ export const getPrivateChatWithUser = catchAsync(async (req, res) => {
   if (!isAdmin && chat) {
     const otherParticipant = chat.participants.find(p => p._id.toString() !== currentUserId.toString());
     if (!otherParticipant || !otherParticipant.isActive) {
-      throw new NotFoundError('Chat not found');
+      throw new errorHandler.NotFoundError('Chat not found');
     }
   }
 
-  sendOK(res, 'Private chat retrieved successfully', { chat });
+  response.sendOK(res, 'Private chat retrieved successfully', { chat });
 });
 
 /**
  * Get community chat
  * GET /chats/community/:communityId
  */
-export const getCommunityChat = catchAsync(async (req, res) => {
+export const getCommunityChat = errorHandler.catchAsync(async (req, res) => {
   const { communityId } = req.params;
   const userId = req.user._id;
 
   // Check community membership
   const membership = await CommunityMember.findOne({ community: communityId, user: userId });
   if (!membership && req.user.role !== 'admin') {
-    throw new AuthorizationError('Access denied');
+    throw new errorHandler.AuthorizationError('Access denied');
   }
 
   const chat = await Chat.findOne({
@@ -313,7 +313,7 @@ export const getCommunityChat = catchAsync(async (req, res) => {
     community: communityId
   }).populate('participants', 'username displayName role profile avatarUrl');
 
-  sendOK(res, 'Community chat retrieved successfully', { chat });
+  response.sendOK(res, 'Community chat retrieved successfully', { chat });
 });
 
 /**
@@ -321,18 +321,18 @@ export const getCommunityChat = catchAsync(async (req, res) => {
  * POST /chats/community
  * body: { communityId }
  */
-export const createCommunityChat = catchAsync(async (req, res) => {
+export const createCommunityChat = errorHandler.catchAsync(async (req, res) => {
   const { communityId } = req.body;
   const userId = req.user._id;
 
   if (!communityId) {
-    throw new ValidationError('Community ID is required');
+    throw new errorHandler.ValidationError('Community ID is required');
   }
 
   // Check community membership
   const membership = await CommunityMember.findOne({ community: communityId, user: userId });
   if (!membership && req.user.role !== 'admin') {
-    throw new AuthorizationError('Access denied');
+    throw new errorHandler.AuthorizationError('Access denied');
   }
 
   // Check if chat already exists
@@ -353,19 +353,19 @@ export const createCommunityChat = catchAsync(async (req, res) => {
       .populate('participants', 'username displayName role profile avatarUrl');
   }
 
-  sendCreated(res, 'Community chat created successfully', { chat });
+  response.sendCreated(res, 'Community chat created successfully', { chat });
 });
 
 /**
  * Get all community chats for admin multi-chat interface
  * GET /chats/admin/communities
  */
-export const getAllCommunityChats = catchAsync(async (req, res) => {
+export const getAllCommunityChats = errorHandler.catchAsync(async (req, res) => {
   const userId = req.user._id;
   
   // Only admins can access this endpoint
   if (req.user.role !== 'admin') {
-    throw new AuthorizationError('Admin access required');
+    throw new errorHandler.AuthorizationError('Admin access required');
   }
 
   // Get all communities
@@ -416,21 +416,21 @@ export const getAllCommunityChats = catchAsync(async (req, res) => {
     };
   }));
 
-  sendOK(res, 'All community chats retrieved successfully', { communityChats });
+  response.sendOK(res, 'All community chats retrieved successfully', { communityChats });
 });
 
 /**
  * Get community chat messages for admin
  * GET /chats/community/:communityId/messages
  */
-export const getCommunityChatMessages = catchAsync(async (req, res) => {
+export const getCommunityChatMessages = errorHandler.catchAsync(async (req, res) => {
   const { communityId } = req.params;
   const userId = req.user._id;
   const { before, limit = 50 } = req.query;
 
   // Only admins can access this endpoint
   if (req.user.role !== 'admin') {
-    throw new AuthorizationError('Admin access required');
+    throw new errorHandler.AuthorizationError('Admin access required');
   }
 
   // Find or create community chat
@@ -465,7 +465,7 @@ export const getCommunityChatMessages = catchAsync(async (req, res) => {
     { $addToSet: { readBy: userId } }
   );
 
-  sendOK(res, 'Community chat messages retrieved successfully', { 
+  response.sendOK(res, 'Community chat messages retrieved successfully', { 
     messages: messages.reverse(), // oldest first
     chat: {
       id: chat._id,

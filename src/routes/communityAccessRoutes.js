@@ -1,11 +1,11 @@
 import express from 'express';
 import communityAccessController from '../controllers/communityAccessController.js';
-import { sessionAuth } from '../middleware/sessionAuth.js';
+import sessionAuth from '../middleware/sessionAuth.js';
 
 const router = express.Router();
 
 // All routes require authentication
-router.use(sessionAuth);
+router.use(sessionAuth.sessionAuth);
 
 // Get communities available to user based on their location
 router.get('/available', communityAccessController.getAvailableCommunities);
@@ -31,7 +31,5 @@ router.get('/online-members', communityAccessController.getOnlineMembers);
 // Check if user can access communities
 router.get('/access-status', communityAccessController.checkCommunityAccess);
 
-// Temporary endpoint to inspect database state
-router.get('/inspect-db', communityAccessController.inspectDatabaseState);
 
 export default router;

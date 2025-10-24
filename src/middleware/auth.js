@@ -6,7 +6,7 @@ import User from '../models/User.js';
  * Express middleware: verifies Authorization header and attaches req.user
  * Usage: app.use('/api', authMiddleware, ...)
  */
-export const authMiddleware = async (req, res, next) => {
+const authMiddleware = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ message: 'No token provided' });
@@ -42,7 +42,7 @@ export const authMiddleware = async (req, res, next) => {
  * Use this in Socket.io auth middleware: call verifyJWT(handshake.auth.token)
  * It returns the userId (string) if token is valid, otherwise throws.
  */
-export const verifyJWT = (rawToken) => {
+const verifyJWT = (rawToken) => {
   if (!rawToken) throw new Error('No token provided');
   // strip "Bearer " if present
   const token = rawToken.startsWith('Bearer ') ? rawToken.split(' ')[1] : rawToken;
@@ -61,7 +61,7 @@ export const verifyJWT = (rawToken) => {
  * Admin authentication middleware
  * Checks if user is authenticated and has admin role
  */
-export const adminAuth = async (req, res, next) => {
+const adminAuth = async (req, res, next) => {
   // First check if user is authenticated (from sessionAuth middleware)
   if (!req.user) {
     return res.status(401).json({ message: 'Authentication required' });

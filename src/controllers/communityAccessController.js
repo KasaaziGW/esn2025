@@ -1,11 +1,10 @@
-import { catchAsync } from '../middleware/errorHandler.js';
-import { sendOK, sendCreated, sendNoContent } from '../utils/response.js';
+import errorHandler from '../middleware/errorHandler.js';
+import response from '../utils/response.js';
 import Community from '../models/Community.js';
 import User from '../models/User.js';
 import Region from '../models/Region.js';
 import District from '../models/District.js';
 import CommunityMember from '../models/communityMember.js';
-import { ValidationError, NotFoundError, AuthorizationError } from '../middleware/errorHandler.js';
 
 // Centralized function to check if user is in any community
 async function getUserCommunityStatus(userId) {
@@ -73,18 +72,18 @@ async function getUserCommunityStatus(userId) {
 }
 
 // Get communities available to user based on their region/district
-export const getAvailableCommunities = catchAsync(async (req, res) => {
+const getAvailableCommunities = errorHandler.catchAsync(async (req, res) => {
   const userId = req.user.id;
   
   // Get user's current region and district
   const user = await User.findById(userId).select('region district community');
   if (!user) {
-    throw new NotFoundError('User not found');
+    throw new errorHandler.NotFoundError('User not found');
   }
 
   // Check if user has completed profile (has region and district)
   if (!user.region || !user.district) {
-    return sendOK(res, 'Profile incomplete - please update your location', {
+    return response.sendOK(res, 'Profile incomplete - please update your location', {
       communities: [],
       message: 'Please complete your profile by setting your region and district to see available communities.',
       profileComplete: false
@@ -109,7 +108,7 @@ export const getAvailableCommunities = catchAsync(async (req, res) => {
     memberCount: community.membersCount || 0
   }));
 
-  sendOK(res, 'Available communities retrieved successfully', {
+  response.sendOK(res, 'Available communities retrieved successfully', {
     communities: communitiesWithStatus,
     userCommunity: user.community,
     profileComplete: true
@@ -117,19 +116,19 @@ export const getAvailableCommunities = catchAsync(async (req, res) => {
 });
 
 // Join a community
-export const joinCommunity = catchAsync(async (req, res) => {
+const joinCommunity = errorHandler.catchAsync(async (req, res) => {
   const userId = req.user.id;
   const { communityId } = req.params;
 
   // Get user's current region and district
   const user = await User.findById(userId).select('region district community');
   if (!user) {
-    throw new NotFoundError('User not found');
+    throw new errorHandler.NotFoundError('User not found');
   }
 
   // Check if user has completed profile
   if (!user.region || !user.district) {
-    throw new ValidationError('Please complete your profile by setting your region and district before joining communities.');
+    throw new errorHandler.ValidationError('Please complete your profile by setting your region and district before joining communities.');
   }
 
   // Get the community
@@ -138,13 +137,13 @@ export const joinCommunity = catchAsync(async (req, res) => {
     .populate('district', 'name');
   
   if (!community) {
-    throw new NotFoundError('Community not found');
+    throw new errorHandler.NotFoundError('Community not found');
   }
 
   // Check if community is in user's region and district
   if (community.region._id.toString() !== user.region.toString() || 
       community.district._id.toString() !== user.district.toString()) {
-    throw new AuthorizationError('You can only join communities in your current region and district. Please update your profile to change your location.');
+    throw new errorHandler.AuthorizationError('You can only join communities in your current region and district. Please update your profile to change your location.');
   }
 
   // Check if user is already in a community using centralized function
@@ -156,19 +155,19 @@ export const joinCommunity = catchAsync(async (req, res) => {
   
   if (communityStatus.isInCommunity) {
     console.log('BLOCKING JOIN: User is already in community:', communityStatus.currentCommunity);
-    throw new ValidationError('You are already a member of a community. Please leave your current community before joining another one.');
+    throw new errorHandler.ValidationError('You are already a member of a community. Please leave your current community before joining another one.');
   }
 
   // Check if community is active
   if (!community.isActive) {
-    throw new ValidationError('This community is not currently active.');
+    throw new errorHandler.ValidationError('This community is not currently active.');
   }
 
   // Check if user is already a member
   const CommunityMember = (await import('../models/communityMember.js')).default;
   const existingMembership = await CommunityMember.findOne({ community: communityId, user: userId });
   if (existingMembership) {
-    throw new ValidationError('You are already a member of this community');
+    throw new errorHandler.ValidationError('You are already a member of this community');
   }
 
   // Create CommunityMember record
@@ -193,7 +192,7 @@ export const joinCommunity = catchAsync(async (req, res) => {
     });
   }
 
-  sendOK(res, 'Successfully joined community', {
+  response.sendOK(res, 'Successfully joined community', {
     community: {
       id: community._id,
       name: community.name,
@@ -205,7 +204,7 @@ export const joinCommunity = catchAsync(async (req, res) => {
 });
 
 // Leave a community
-export const leaveCommunity = catchAsync(async (req, res) => {
+const leaveCommunity = errorHandler.catchAsync(async (req, res) => {
   const userId = req.user.id;
   console.log('=== LEAVE COMMUNITY ===');
   console.log('User ID:', userId);
@@ -225,13 +224,13 @@ export const leaveCommunity = catchAsync(async (req, res) => {
       user: communityStatus.user?.community,
       memberships: communityStatus.communityMemberships?.length
     });
-    throw new ValidationError('You are not currently a member of any community.');
+    throw new errorHandler.ValidationError('You are not currently a member of any community.');
   }
 
   // Get the community
   const community = await Community.findById(communityStatus.currentCommunity._id);
   if (!community) {
-    throw new NotFoundError('Community not found');
+    throw new errorHandler.NotFoundError('Community not found');
   }
 
   // Remove CommunityMember record
@@ -258,7 +257,7 @@ export const leaveCommunity = catchAsync(async (req, res) => {
     });
   }
 
-  sendOK(res, 'Successfully left community', {
+  response.sendOK(res, 'Successfully left community', {
     community: {
       id: community._id,
       name: community.name
@@ -267,7 +266,7 @@ export const leaveCommunity = catchAsync(async (req, res) => {
 });
 
 // Get user's current community details
-export const getMyCommunity = catchAsync(async (req, res) => {
+const getMyCommunity = errorHandler.catchAsync(async (req, res) => {
   console.log('=== GET MY COMMUNITY ===');
   console.log('User ID:', req.user.id);
   console.log('User role:', req.user.role);
@@ -284,7 +283,7 @@ export const getMyCommunity = catchAsync(async (req, res) => {
     // First check if admin has selected a community in session
     if (req.session.activeCommunity) {
       console.log('Admin has selected community in session:', req.session.activeCommunity);
-      return sendOK(res, 'Community details retrieved successfully', {
+      return response.sendOK(res, 'Community details retrieved successfully', {
         community: {
           id: req.session.activeCommunity._id,
           name: req.session.activeCommunity.name,
@@ -306,7 +305,7 @@ export const getMyCommunity = catchAsync(async (req, res) => {
       .sort({ createdAt: 1 });
     
     if (firstCommunity) {
-      return sendOK(res, 'Community details retrieved successfully', {
+      return response.sendOK(res, 'Community details retrieved successfully', {
         community: {
           id: firstCommunity._id,
           name: firstCommunity.name,
@@ -327,7 +326,7 @@ export const getMyCommunity = catchAsync(async (req, res) => {
     
     if (!communityStatus.isInCommunity) {
       console.log('User not in any community');
-      return sendOK(res, 'User not in any community', {
+      return response.sendOK(res, 'User not in any community', {
         community: null,
         message: 'You are not currently a member of any community.'
       });
@@ -352,7 +351,7 @@ export const getMyCommunity = catchAsync(async (req, res) => {
     })
     .select('community region district');
 
-  sendOK(res, 'Community details retrieved successfully', {
+  response.sendOK(res, 'Community details retrieved successfully', {
     community: {
       id: user.community._id,
       name: user.community.name,
@@ -365,18 +364,18 @@ export const getMyCommunity = catchAsync(async (req, res) => {
 });
 
 // Check if user can access communities (profile completion check)
-export const checkCommunityAccess = catchAsync(async (req, res) => {
+const checkCommunityAccess = errorHandler.catchAsync(async (req, res) => {
   const userId = req.user.id;
 
   const user = await User.findById(userId).select('region district community');
   if (!user) {
-    throw new NotFoundError('User not found');
+    throw new errorHandler.NotFoundError('User not found');
   }
 
   const profileComplete = !!(user.region && user.district);
   const hasCommunity = !!user.community;
 
-  sendOK(res, 'Community access status retrieved', {
+  response.sendOK(res, 'Community access status retrieved', {
     profileComplete,
     hasCommunity,
     canJoinCommunities: profileComplete,
@@ -387,7 +386,7 @@ export const checkCommunityAccess = catchAsync(async (req, res) => {
 });
 
 // Get user communities (session-based version)
-export const getUserCommunities = catchAsync(async (req, res) => {
+const getUserCommunities = errorHandler.catchAsync(async (req, res) => {
   console.log('=== GET USER COMMUNITIES ===');
   console.log('User from session:', req.user);
   console.log('User ID:', req.user?.id);
@@ -409,7 +408,7 @@ export const getUserCommunities = catchAsync(async (req, res) => {
     .populate('community', 'name');
     
   if (!user) {
-    throw new NotFoundError('User not found');
+    throw new errorHandler.NotFoundError('User not found');
   }
   
   console.log('User from database:', user);
@@ -419,7 +418,7 @@ export const getUserCommunities = catchAsync(async (req, res) => {
   
   if (!user.region || !user.district) {
     console.log('User profile incomplete - no region or district');
-    return sendOK(res, 'Please complete your profile to see communities', {
+    return response.sendOK(res, 'Please complete your profile to see communities', {
       communities: [],
       profileComplete: false,
       message: 'Please set your region and district in your profile to see available communities.'
@@ -467,7 +466,7 @@ export const getUserCommunities = catchAsync(async (req, res) => {
   
   console.log('Communities with status:', communitiesWithStatus.map(c => ({ name: c.name, isMember: c.isMember, memberCount: c.memberCount })));
 
-  sendOK(res, 'User communities retrieved successfully', {
+  response.sendOK(res, 'User communities retrieved successfully', {
     communities: communitiesWithStatus,
     profileComplete: true,
     userAddress: {
@@ -477,69 +476,9 @@ export const getUserCommunities = catchAsync(async (req, res) => {
   });
 });
 
-// Temporary endpoint to inspect database state
-export const inspectDatabaseState = catchAsync(async (req, res) => {
-  const userId = req.user.id;
-  console.log('=== INSPECTING DATABASE STATE ===');
-  console.log('User ID:', userId);
-  
-  // Get user data
-  const user = await User.findById(userId);
-  console.log('User from database:', {
-    id: user?._id,
-    username: user?.username,
-    community: user?.community,
-    communityType: typeof user?.community
-  });
-  
-  // Get CommunityMember records
-  const CommunityMember = (await import('../models/communityMember.js')).default;
-  const communityMemberships = await CommunityMember.find({ user: userId }).populate('community', 'name');
-  console.log('CommunityMember records:', communityMemberships.map(cm => ({
-    id: cm._id,
-    community: cm.community?._id,
-    communityName: cm.community?.name,
-    user: cm.user,
-    role: cm.role,
-    joinedAt: cm.joinedAt
-  })));
-  
-  // Get all communities
-  const allCommunities = await Community.find({}).select('name _id membersCount');
-  console.log('All communities:', allCommunities.map(c => ({
-    id: c._id,
-    name: c.name,
-    membersCount: c.membersCount
-  })));
-  
-  res.json({
-    status: 'success',
-    data: {
-      user: {
-        id: user?._id,
-        username: user?.username,
-        community: user?.community,
-        communityType: typeof user?.community
-      },
-      communityMemberships: communityMemberships.map(cm => ({
-        id: cm._id,
-        community: cm.community?._id,
-        communityName: cm.community?.name,
-        user: cm.user,
-        role: cm.role,
-        joinedAt: cm.joinedAt
-      })),
-      allCommunities: allCommunities.map(c => ({
-        id: c._id,
-        name: c.name,
-        membersCount: c.membersCount
-      }))
-    }
-  });
-});
 
 // Get community members
-export const getCommunityMembers = catchAsync(async (req, res) => {
+const getCommunityMembers = errorHandler.catchAsync(async (req, res) => {
   const userId = req.user._id;
   
   // Get user's community
@@ -600,7 +539,7 @@ export const getCommunityMembers = catchAsync(async (req, res) => {
   } else {
     // Regular users can only see community members and administrators
     if (!user || !user.community) {
-      throw new NotFoundError('User not in any community');
+      throw new errorHandler.NotFoundError('User not in any community');
     }
 
     // Get all community members (excluding current user) - only active users for non-admins
@@ -658,11 +597,11 @@ export const getCommunityMembers = catchAsync(async (req, res) => {
     members = [...communityMembersList, ...adminMembers];
   }
 
-  sendOK(res, 'Community members retrieved successfully', { members });
+  response.sendOK(res, 'Community members retrieved successfully', { members });
 });
 
 // Get online members
-export const getOnlineMembers = catchAsync(async (req, res) => {
+const getOnlineMembers = errorHandler.catchAsync(async (req, res) => {
   const userId = req.user._id;
   
   // Get user's community
@@ -721,7 +660,7 @@ export const getOnlineMembers = catchAsync(async (req, res) => {
   } else {
     // Regular users can only see online members of their community
     if (!user || !user.community) {
-      throw new NotFoundError('User not in any community');
+      throw new errorHandler.NotFoundError('User not in any community');
     }
 
     // Get online community members
@@ -741,7 +680,7 @@ export const getOnlineMembers = catchAsync(async (req, res) => {
     }));
   }
 
-  sendOK(res, 'Online members retrieved successfully', { members });
+  response.sendOK(res, 'Online members retrieved successfully', { members });
 });
 
 export default {
@@ -752,6 +691,5 @@ export default {
   getMyCommunity,
   getCommunityMembers,
   getOnlineMembers,
-  checkCommunityAccess,
-  inspectDatabaseState
+  checkCommunityAccess
 };

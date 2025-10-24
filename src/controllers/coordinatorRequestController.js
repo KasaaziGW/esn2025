@@ -1,9 +1,8 @@
-import { catchAsync } from '../middleware/errorHandler.js';
-import { sendOK, sendCreated } from '../utils/response.js';
+import errorHandler from '../middleware/errorHandler.js';
+import response from '../utils/response.js';
 import CoordinatorRequest from '../models/CoordinatorRequest.js';
 import User from '../models/User.js';
 import Community from '../models/Community.js';
-import { ValidationError, NotFoundError, AuthorizationError } from '../middleware/errorHandler.js';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -31,11 +30,11 @@ const fileFilter = (req, file, cb) => {
   if (mimetype && extname) {
     return cb(null, true);
   } else {
-    cb(new ValidationError('Only PDF, Word documents, and image files are allowed'));
+    cb(new errorHandler.ValidationError('Only PDF, Word documents, and image files are allowed'));
   }
 };
 
-export const upload = multer({
+const upload = multer({
   storage: storage,
   limits: {
     fileSize: 5 * 1024 * 1024 // 5MB limit
@@ -47,7 +46,7 @@ export const upload = multer({
  * Submit a coordinator request
  * POST /coordinator-requests
  */
-export const submitCoordinatorRequest = catchAsync(async (req, res) => {
+const submitCoordinatorRequest = errorHandler.catchAsync(async (req, res) => {
   const userId = req.user.id;
   const { position, organization, requestDetails } = req.body;
   
@@ -59,11 +58,11 @@ export const submitCoordinatorRequest = catchAsync(async (req, res) => {
   // Check if user is in a community
   const user = await User.findById(userId).populate('community');
   if (!user) {
-    throw new NotFoundError('User not found');
+    throw new errorHandler.NotFoundError('User not found');
   }
   
   if (!user.community) {
-    throw new ValidationError('You must be a member of a community to request coordinator role');
+    throw new errorHandler.ValidationError('You must be a member of a community to request coordinator role');
   }
   
   // Check if user already has a pending or approved request
@@ -74,7 +73,7 @@ export const submitCoordinatorRequest = catchAsync(async (req, res) => {
   });
   
   if (existingRequest) {
-    throw new ValidationError('You already have a coordinator request for this community');
+    throw new errorHandler.ValidationError('You already have a coordinator request for this community');
   }
   
   // Handle file upload
@@ -106,7 +105,7 @@ export const submitCoordinatorRequest = catchAsync(async (req, res) => {
   
   console.log('Coordinator request created:', coordinatorRequest._id);
   
-  sendCreated(res, 'Coordinator request submitted successfully', {
+  response.sendCreated(res, 'Coordinator request submitted successfully', {
     request: {
       id: coordinatorRequest._id,
       position,
@@ -121,7 +120,7 @@ export const submitCoordinatorRequest = catchAsync(async (req, res) => {
  * Get coordinator requests (for admins)
  * GET /coordinator-requests
  */
-export const getCoordinatorRequests = catchAsync(async (req, res) => {
+const getCoordinatorRequests = errorHandler.catchAsync(async (req, res) => {
   const { status, community } = req.query;
   
   console.log('=== GET COORDINATOR REQUESTS ===');
@@ -151,7 +150,7 @@ export const getCoordinatorRequests = catchAsync(async (req, res) => {
   
   console.log('Found requests:', requests.length);
   
-  sendOK(res, 'Coordinator requests retrieved successfully', {
+  response.sendOK(res, 'Coordinator requests retrieved successfully', {
     requests: requests.map(req => ({
       id: req._id,
       user: {
@@ -189,7 +188,7 @@ export const getCoordinatorRequests = catchAsync(async (req, res) => {
  * Review coordinator request (approve/reject)
  * POST /coordinator-requests/:requestId/review
  */
-export const reviewCoordinatorRequest = catchAsync(async (req, res) => {
+const reviewCoordinatorRequest = errorHandler.catchAsync(async (req, res) => {
   const { requestId } = req.params;
   const { action, adminComments } = req.body; // action: 'approve' or 'reject'
   const adminId = req.user.id;
@@ -200,7 +199,7 @@ export const reviewCoordinatorRequest = catchAsync(async (req, res) => {
   console.log('Admin ID:', adminId);
   
   if (!['approve', 'reject'].includes(action)) {
-    throw new ValidationError('Action must be either "approve" or "reject"');
+    throw new errorHandler.ValidationError('Action must be either "approve" or "reject"');
   }
   
   const request = await CoordinatorRequest.findById(requestId)
@@ -208,11 +207,11 @@ export const reviewCoordinatorRequest = catchAsync(async (req, res) => {
     .populate('community');
   
   if (!request) {
-    throw new NotFoundError('Coordinator request not found');
+    throw new errorHandler.NotFoundError('Coordinator request not found');
   }
   
   if (request.status !== 'pending') {
-    throw new ValidationError('This request has already been reviewed');
+    throw new errorHandler.ValidationError('This request has already been reviewed');
   }
   
   // Update request status
@@ -234,7 +233,7 @@ export const reviewCoordinatorRequest = catchAsync(async (req, res) => {
   
   console.log('Request reviewed:', action);
   
-  sendOK(res, `Coordinator request ${action}d successfully`, {
+  response.sendOK(res, `Coordinator request ${action}d successfully`, {
     request: {
       id: request._id,
       status: request.status,
@@ -248,7 +247,7 @@ export const reviewCoordinatorRequest = catchAsync(async (req, res) => {
  * Get user's coordinator request status
  * GET /coordinator-requests/my-request
  */
-export const getMyCoordinatorRequest = catchAsync(async (req, res) => {
+const getMyCoordinatorRequest = errorHandler.catchAsync(async (req, res) => {
   const userId = req.user.id;
   
   console.log('=== GET MY COORDINATOR REQUEST ===');
@@ -257,11 +256,11 @@ export const getMyCoordinatorRequest = catchAsync(async (req, res) => {
   const user = await User.findById(userId).populate('coordinatorRequest');
   
   if (!user) {
-    throw new NotFoundError('User not found');
+    throw new errorHandler.NotFoundError('User not found');
   }
   
   if (!user.coordinatorRequest) {
-    return sendOK(res, 'No coordinator request found', {
+    return response.sendOK(res, 'No coordinator request found', {
       request: null
     });
   }
@@ -277,7 +276,7 @@ export const getMyCoordinatorRequest = catchAsync(async (req, res) => {
     })
     .populate('reviewedBy', 'username displayName');
   
-  sendOK(res, 'Coordinator request retrieved successfully', {
+  response.sendOK(res, 'Coordinator request retrieved successfully', {
     request: {
       id: request._id,
       community: {
@@ -302,3 +301,11 @@ export const getMyCoordinatorRequest = catchAsync(async (req, res) => {
     }
   });
 });
+
+export default {
+  upload,
+  submitCoordinatorRequest,
+  getCoordinatorRequests,
+  reviewCoordinatorRequest,
+  getMyCoordinatorRequest
+};

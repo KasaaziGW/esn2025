@@ -1,6 +1,6 @@
 import express from 'express';
 import regionController from '../controllers/regionController.js';
-import { authMiddleware } from '../middleware/auth.js';
+import auth from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -14,8 +14,8 @@ router.get('/:regionId/districts', regionController.getDistrictsByRegion); // GE
 /**
  * Admin-protected (authMiddleware must set req.user and role)
  */
-router.post('/', authMiddleware, regionController.createRegion);    // POST /regions
-router.post('/:key/update', authMiddleware, regionController.updateRegion); // POST /regions/:key/update
-router.post('/:key/delete', authMiddleware, regionController.deleteRegion); // POST /regions/:key/delete
+router.post('/', auth.authMiddleware, regionController.createRegion);    // POST /regions
+router.post('/:key/update', auth.authMiddleware, regionController.updateRegion); // POST /regions/:key/update
+router.post('/:key/delete', auth.authMiddleware, regionController.deleteRegion); // POST /regions/:key/delete
 
 export default router;

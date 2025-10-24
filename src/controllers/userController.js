@@ -1,7 +1,7 @@
 import User from '../models/User.js';
-import { catchAsync, NotFoundError, ValidationError, AuthorizationError } from '../middleware/errorHandler.js';
-import { sendOK, sendCreated } from '../utils/response.js';
-import { validateAdminCount } from '../utils/initAdmin.js';
+import errorHandler from '../middleware/errorHandler.js';
+import response from '../utils/response.js';
+import initAdmin from '../utils/initAdmin.js';
 import path from 'path';
 import fs from 'fs';
 // import { emitUserCreated, emitUserUpdated, emitUserDeleted, emitUserStatusChanged, emitUserPasswordChanged, emitUserStatsUpdated } from '../services/Socket.js';
@@ -10,25 +10,25 @@ import fs from 'fs';
  * Get current authenticated user profile
  * GET /users/me
  */
-export const getMe = catchAsync(async (req, res) => {
+export const getMe = errorHandler.catchAsync(async (req, res) => {
   const user = req.user; // set by authMiddleware
-  if (!user) throw new NotFoundError('User not found');
+  if (!user) throw new errorHandler.NotFoundError('User not found');
 
-  sendOK(res, 'User profile retrieved successfully', user);
+  response.sendOK(res, 'User profile retrieved successfully', user);
 });
 
 /**
  * Update current authenticated user profile (self-update)
  * POST /users/me
  */
-export const updateMe = catchAsync(async (req, res) => {
+export const updateMe = errorHandler.catchAsync(async (req, res) => {
   // Get user ID from session
   const userId = req.user.id;
   
   // Fetch the actual user document from database
   const user = await User.findById(userId);
   if (!user) {
-    throw new NotFoundError('User not found');
+    throw new errorHandler.NotFoundError('User not found');
   }
 
   // Fields user is allowed to update
@@ -62,16 +62,16 @@ export const updateMe = catchAsync(async (req, res) => {
       !Array.isArray(loc.coordinates) ||
       loc.coordinates.length !== 2
     ) {
-      throw new ValidationError('Invalid location format. Must be GeoJSON Point with coordinates [lng, lat]');
+      throw new errorHandler.ValidationError('Invalid location format. Must be GeoJSON Point with coordinates [lng, lat]');
     }
   }
 
   // Validate region and district
   if (updates.region && updates.region.trim() === '') {
-    throw new ValidationError('Region cannot be empty');
+    throw new errorHandler.ValidationError('Region cannot be empty');
   }
   if (updates.district && updates.district.trim() === '') {
-    throw new ValidationError('District cannot be empty');
+    throw new errorHandler.ValidationError('District cannot be empty');
   }
 
   Object.assign(user, updates);
@@ -81,7 +81,7 @@ export const updateMe = catchAsync(async (req, res) => {
   const profileComplete =
     user.region && user.district && user.firstName && user.lastName && user.phone;
 
-  sendOK(res, 'Profile updated successfully', {
+  response.sendOK(res, 'Profile updated successfully', {
     user,
     profileComplete,
     nextStep: profileComplete
@@ -94,14 +94,14 @@ export const updateMe = catchAsync(async (req, res) => {
  * Update user profile (session-based for web interface)
  * PUT /users/profile
  */
-export const updateProfile = catchAsync(async (req, res) => {
+export const updateProfile = errorHandler.catchAsync(async (req, res) => {
   // Get user ID from session
   const userId = req.user.id;
   
   // Fetch the actual user document from database
   const user = await User.findById(userId);
   if (!user) {
-    throw new NotFoundError('User not found');
+    throw new errorHandler.NotFoundError('User not found');
   }
 
   // Fields user is allowed to update (excluding username, role, isActive)
@@ -133,7 +133,7 @@ export const updateProfile = catchAsync(async (req, res) => {
   if (updates.email && updates.email !== user.email) {
     const existingUser = await User.findOne({ email: updates.email });
     if (existingUser) {
-      throw new ValidationError('Email already exists');
+      throw new errorHandler.ValidationError('Email already exists');
     }
   }
 
@@ -141,7 +141,7 @@ export const updateProfile = catchAsync(async (req, res) => {
   if (updates.phone && updates.phone !== user.phone) {
     const existingUser = await User.findOne({ phone: updates.phone });
     if (existingUser) {
-      throw new ValidationError('Phone number already exists');
+      throw new errorHandler.ValidationError('Phone number already exists');
     }
   }
 
@@ -153,7 +153,7 @@ export const updateProfile = catchAsync(async (req, res) => {
       !Array.isArray(loc.coordinates) ||
       loc.coordinates.length !== 2
     ) {
-      throw new ValidationError('Invalid location format. Must be GeoJSON Point with coordinates [lng, lat]');
+      throw new errorHandler.ValidationError('Invalid location format. Must be GeoJSON Point with coordinates [lng, lat]');
     }
   }
 
@@ -166,7 +166,7 @@ export const updateProfile = catchAsync(async (req, res) => {
         name: { $regex: new RegExp(`^${updates.region}$`, 'i') } 
       });
       if (!region) {
-        throw new ValidationError(`Region "${updates.region}" not found`);
+        throw new errorHandler.ValidationError(`Region "${updates.region}" not found`);
       }
       updates.region = region._id;
     }
@@ -180,7 +180,7 @@ export const updateProfile = catchAsync(async (req, res) => {
         name: { $regex: new RegExp(`^${updates.district}$`, 'i') } 
       });
       if (!district) {
-        throw new ValidationError(`District "${updates.district}" not found`);
+        throw new errorHandler.ValidationError(`District "${updates.district}" not found`);
       }
       updates.district = district._id;
     }
@@ -189,16 +189,16 @@ export const updateProfile = catchAsync(async (req, res) => {
   // Validate emergency contacts if provided
   if (updates.emergencyContacts) {
     if (!Array.isArray(updates.emergencyContacts)) {
-      throw new ValidationError('Emergency contacts must be an array');
+      throw new errorHandler.ValidationError('Emergency contacts must be an array');
     }
     
     // Validate each emergency contact
     updates.emergencyContacts.forEach((contact, index) => {
       if (!contact.name || !contact.phone) {
-        throw new ValidationError(`Emergency contact ${index + 1} must have name and phone`);
+        throw new errorHandler.ValidationError(`Emergency contact ${index + 1} must have name and phone`);
       }
       if (contact.priority && (contact.priority < 1 || contact.priority > 5)) {
-        throw new ValidationError(`Emergency contact ${index + 1} priority must be between 1 and 5`);
+        throw new errorHandler.ValidationError(`Emergency contact ${index + 1} priority must be between 1 and 5`);
       }
     });
   }
@@ -254,14 +254,14 @@ export const updateProfile = catchAsync(async (req, res) => {
     response.message = `You have been automatically removed from "${removedCommunityName}" community because your address changed. You can now join communities in your new location.`;
   }
 
-  sendOK(res, 'Profile updated successfully', response);
+  response.sendOK(res, 'Profile updated successfully', response);
 });
 
 /**
  * Get all users (directory)
  * GET /users
  */
-export const getAllUsers = catchAsync(async (req, res) => {
+export const getAllUsers = errorHandler.catchAsync(async (req, res) => {
   const { 
     page = 1, 
     limit = 10, 
@@ -346,7 +346,7 @@ export const getAllUsers = catchAsync(async (req, res) => {
   // Calculate pagination info
   const totalPages = Math.ceil(total / parseInt(limit));
   
-  sendOK(res, 'Users retrieved successfully', {
+  response.sendOK(res, 'Users retrieved successfully', {
     users,
     pagination: {
       currentPage: parseInt(page),
@@ -362,20 +362,20 @@ export const getAllUsers = catchAsync(async (req, res) => {
  * Get user by ID
  * GET /users/:id
  */
-export const getUserById = catchAsync(async (req, res) => {
+export const getUserById = errorHandler.catchAsync(async (req, res) => {
   const user = await User.findById(req.params.id);
-  if (!user) throw new NotFoundError('User not found');
-  sendOK(res, 'User retrieved successfully', user);
+  if (!user) throw new errorHandler.NotFoundError('User not found');
+  response.sendOK(res, 'User retrieved successfully', user);
 });
 
 /**
  * Admin: update any user's profile
  * POST /users/:id/update
  */
-export const updateUserByAdmin = catchAsync(async (req, res) => {
+export const updateUserByAdmin = errorHandler.catchAsync(async (req, res) => {
   // Only admin can access this route (enforced via middleware)
   const user = await User.findById(req.params.id);
-  if (!user) throw new NotFoundError('User not found');
+  if (!user) throw new errorHandler.NotFoundError('User not found');
 
   const allowedFields = [
     'displayName',
@@ -404,7 +404,7 @@ export const updateUserByAdmin = catchAsync(async (req, res) => {
 
   // At-least-One-Administrator Rule: Prevent changing the last admin's role
   if (updates.role && user.role === 'admin' && updates.role !== 'admin') {
-    await validateAdminCount(req.params.id);
+    await initAdmin.validateAdminCount(req.params.id);
   }
 
   // Validate location if provided
@@ -415,7 +415,7 @@ export const updateUserByAdmin = catchAsync(async (req, res) => {
       !Array.isArray(loc.coordinates) ||
       loc.coordinates.length !== 2
     ) {
-      throw new ValidationError('Invalid location format. Must be GeoJSON Point with coordinates [lng, lat]');
+      throw new errorHandler.ValidationError('Invalid location format. Must be GeoJSON Point with coordinates [lng, lat]');
     }
   }
 
@@ -425,36 +425,36 @@ export const updateUserByAdmin = catchAsync(async (req, res) => {
   // Emit real-time event for user update
   // emitUserUpdated(user);
 
-  sendOK(res, 'User profile updated by admin', user);
+  response.sendOK(res, 'User profile updated by admin', user);
 });
 
 /**
  * Admin: Create new user
  * POST /users
  */
-export const createUser = catchAsync(async (req, res) => {
+export const createUser = errorHandler.catchAsync(async (req, res) => {
   console.log('Create user request body:', req.body);
   const { username, email, phone, password, role, firstName, lastName, region, district } = req.body;
 
   // Validate required fields
   if (!username) {
-    throw new ValidationError('Username is required');
+    throw new errorHandler.ValidationError('Username is required');
   }
   if (!password) {
-    throw new ValidationError('Password is required');
+    throw new errorHandler.ValidationError('Password is required');
   }
 
   // Check if username already exists
   const existingUser = await User.findOne({ username });
   if (existingUser) {
-    throw new ValidationError('Username already exists');
+    throw new errorHandler.ValidationError('Username already exists');
   }
 
   // Check if email already exists (if provided)
   if (email) {
     const existingEmail = await User.findOne({ email });
     if (existingEmail) {
-      throw new ValidationError('Email already exists');
+      throw new errorHandler.ValidationError('Email already exists');
     }
   }
 
@@ -462,7 +462,7 @@ export const createUser = catchAsync(async (req, res) => {
   if (phone) {
     const existingPhone = await User.findOne({ phone });
     if (existingPhone) {
-      throw new ValidationError('Phone number already exists');
+      throw new errorHandler.ValidationError('Phone number already exists');
     }
   }
 
@@ -488,10 +488,10 @@ export const createUser = catchAsync(async (req, res) => {
     // Emit real-time event for user creation
     // emitUserCreated(user);
 
-    sendCreated(res, 'User created successfully', user);
+    response.sendCreated(res, 'User created successfully', user);
   } catch (error) {
     console.error('Error creating user:', error);
-    throw new ValidationError(`Failed to create user: ${error.message}`);
+    throw new errorHandler.ValidationError(`Failed to create user: ${error.message}`);
   }
 });
 
@@ -499,15 +499,15 @@ export const createUser = catchAsync(async (req, res) => {
  * Admin: Update user status (activate/deactivate)
  * POST /users/:id/status
  */
-export const updateUserStatus = catchAsync(async (req, res) => {
+export const updateUserStatus = errorHandler.catchAsync(async (req, res) => {
   const user = await User.findById(req.params.id);
-  if (!user) throw new NotFoundError('User not found');
+  if (!user) throw new errorHandler.NotFoundError('User not found');
 
   const { isActive } = req.body;
   
   // At-least-One-Administrator Rule: Prevent deactivating the last admin
   if (user.role === 'admin' && !isActive) {
-    await validateAdminCount(req.params.id);
+    await initAdmin.validateAdminCount(req.params.id);
   }
   
   user.isActive = isActive;
@@ -516,20 +516,20 @@ export const updateUserStatus = catchAsync(async (req, res) => {
   // Emit real-time event for user status change
   // emitUserStatusChanged(user);
 
-  sendOK(res, `User ${isActive ? 'activated' : 'deactivated'} successfully`, user);
+  response.sendOK(res, `User ${isActive ? 'activated' : 'deactivated'} successfully`, user);
 });
 
 /**
  * Admin: Delete user
  * POST /users/:id/delete
  */
-export const deleteUser = catchAsync(async (req, res) => {
+export const deleteUser = errorHandler.catchAsync(async (req, res) => {
   const user = await User.findById(req.params.id);
-  if (!user) throw new NotFoundError('User not found');
+  if (!user) throw new errorHandler.NotFoundError('User not found');
 
   // At-least-One-Administrator Rule: Prevent deleting the last admin
   if (user.role === 'admin') {
-    await validateAdminCount(req.params.id);
+    await initAdmin.validateAdminCount(req.params.id);
   }
 
   await User.findByIdAndDelete(req.params.id);
@@ -537,14 +537,14 @@ export const deleteUser = catchAsync(async (req, res) => {
   // Emit real-time event for user deletion
   // emitUserDeleted(req.params.id);
 
-  sendOK(res, 'User deleted successfully');
+  response.sendOK(res, 'User deleted successfully');
 });
 
 /**
  * Admin: Get user statistics
  * GET /users/stats
  */
-export const getUserStats = catchAsync(async (req, res) => {
+export const getUserStats = errorHandler.catchAsync(async (req, res) => {
   const total = await User.countDocuments();
   const active = await User.countDocuments({ isActive: true });
   const online = await User.countDocuments({ isOnline: true });
@@ -558,7 +558,7 @@ export const getUserStats = catchAsync(async (req, res) => {
     createdAt: { $gte: today } 
   });
 
-  sendOK(res, 'User statistics retrieved successfully', {
+  response.sendOK(res, 'User statistics retrieved successfully', {
     total,
     active,
     online,
@@ -572,7 +572,7 @@ export const getUserStats = catchAsync(async (req, res) => {
  * Admin: Export users data
  * GET /users/export
  */
-export const exportUsers = catchAsync(async (req, res) => {
+export const exportUsers = errorHandler.catchAsync(async (req, res) => {
   const users = await User.find().select('-passwordHash -resetPasswordToken -resetPasswordExpires');
   
   // Convert to CSV format
@@ -603,13 +603,13 @@ export const exportUsers = catchAsync(async (req, res) => {
  * Admin: Change user password
  * POST /users/:id/password
  */
-export const changeUserPassword = catchAsync(async (req, res) => {
+export const changeUserPassword = errorHandler.catchAsync(async (req, res) => {
   const user = await User.findById(req.params.id);
-  if (!user) throw new NotFoundError('User not found');
+  if (!user) throw new errorHandler.NotFoundError('User not found');
 
   const { password } = req.body;
   if (!password) {
-    throw new ValidationError('Password is required');
+    throw new errorHandler.ValidationError('Password is required');
   }
 
   await user.setPassword(password);
@@ -618,25 +618,25 @@ export const changeUserPassword = catchAsync(async (req, res) => {
   // Emit real-time event for password change
   // emitUserPasswordChanged(req.params.id);
 
-  sendOK(res, 'Password changed successfully');
+  response.sendOK(res, 'Password changed successfully');
 });
 
 /**
  * Upload user avatar
  * POST /users/profile/avatar
  */
-export const uploadAvatar = catchAsync(async (req, res) => {
+export const uploadAvatar = errorHandler.catchAsync(async (req, res) => {
   // Get user ID from session
   const userId = req.user.id;
   
   // Fetch the actual user document from database
   const user = await User.findById(userId);
   if (!user) {
-    throw new NotFoundError('User not found');
+    throw new errorHandler.NotFoundError('User not found');
   }
   
   if (!req.file) {
-    throw new ValidationError('No file uploaded');
+    throw new errorHandler.ValidationError('No file uploaded');
   }
   
   // Delete old avatar if exists
@@ -656,7 +656,7 @@ export const uploadAvatar = catchAsync(async (req, res) => {
   user.avatarUrl = avatarUrl;
   await user.save();
   
-  sendOK(res, 'Avatar uploaded successfully', {
+  response.sendOK(res, 'Avatar uploaded successfully', {
     avatarUrl: avatarUrl,
     user: user
   });
@@ -666,18 +666,18 @@ export const uploadAvatar = catchAsync(async (req, res) => {
  * Remove user avatar
  * POST /users/profile/avatar/remove
  */
-export const removeAvatar = catchAsync(async (req, res) => {
+export const removeAvatar = errorHandler.catchAsync(async (req, res) => {
   // Get user ID from session
   const userId = req.user.id;
   
   // Fetch the actual user document from database
   const user = await User.findById(userId);
   if (!user) {
-    throw new NotFoundError('User not found');
+    throw new errorHandler.NotFoundError('User not found');
   }
   
   if (!user.avatarUrl || user.avatarUrl === '/assets/img/avatar.webp') {
-    throw new ValidationError('No avatar to remove');
+    throw new errorHandler.ValidationError('No avatar to remove');
   }
   
   // Delete avatar file
@@ -694,7 +694,7 @@ export const removeAvatar = catchAsync(async (req, res) => {
   user.avatarUrl = '/assets/img/avatar.webp';
   await user.save();
   
-  sendOK(res, 'Avatar removed successfully', {
+  response.sendOK(res, 'Avatar removed successfully', {
     avatarUrl: '/assets/img/avatar.webp',
     user: user
   });

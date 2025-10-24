@@ -1,19 +1,19 @@
 import express from 'express';
-import { sessionAuth } from '../middleware/sessionAuth.js';
-import { requireCommunityMembershipOrAdmin, requireAdmin } from '../middleware/adminAccess.js';
+import sessionAuth from '../middleware/sessionAuth.js';
+import adminAccess from '../middleware/adminAccess.js';
 import chatController from '../controllers/chatController.js';
-import { uploadSingleChatFile } from '../middleware/upload.js';
+import upload from '../middleware/upload.js';
 import CommunityMember from '../models/communityMember.js';
 
 const router = express.Router();
 
 // API Routes for chat functionality
 // Get chat messages
-router.get('/:chatId/messages', sessionAuth, chatController.getChatMessages);
+router.get('/:chatId/messages', sessionAuth.sessionAuth, chatController.getChatMessages);
 
 // Send message with file upload support
-router.post('/:chatId/messages', sessionAuth, (req, res, next) => { 
-  uploadSingleChatFile(req, res, function (err) {
+router.post('/:chatId/messages', sessionAuth.sessionAuth, (req, res, next) => { 
+  upload.uploadSingleChatFile(req, res, function (err) {
     if (err) {
       // Multer error or fileFilter rejection
       return res.status(400).json({ message: err.message || 'File upload error' });
@@ -24,26 +24,26 @@ router.post('/:chatId/messages', sessionAuth, (req, res, next) => {
 }, chatController.sendMessage);
 
 // Get private chats for current user
-router.get('/private', sessionAuth, chatController.getPrivateChats);
+router.get('/private', sessionAuth.sessionAuth, chatController.getPrivateChats);
 
 // Create new private chat
-router.post('/private', sessionAuth, chatController.createPrivateChat);
+router.post('/private', sessionAuth.sessionAuth, chatController.createPrivateChat);
 
 // Get private chat with specific user
-router.get('/private/with/:userId', sessionAuth, chatController.getPrivateChatWithUser);
+router.get('/private/with/:userId', sessionAuth.sessionAuth, chatController.getPrivateChatWithUser);
 
 // Admin routes for multi-community chat (must come before other routes to avoid conflicts)
-router.get('/admin/communities', sessionAuth, requireAdmin, chatController.getAllCommunityChats);
-router.get('/community/:communityId/messages', sessionAuth, requireAdmin, chatController.getCommunityChatMessages);
+router.get('/admin/communities', sessionAuth.sessionAuth, adminAccess.requireAdmin, chatController.getAllCommunityChats);
+router.get('/community/:communityId/messages', sessionAuth.sessionAuth, adminAccess.requireAdmin, chatController.getCommunityChatMessages);
 
 // Get community chat
-router.get('/community/:communityId', sessionAuth, chatController.getCommunityChat);
+router.get('/community/:communityId', sessionAuth.sessionAuth, chatController.getCommunityChat);
 
 // Create community chat
-router.post('/community', sessionAuth, chatController.createCommunityChat);
+router.post('/community', sessionAuth.sessionAuth, chatController.createCommunityChat);
 
 // Private chat page
-router.get('/', sessionAuth, requireCommunityMembershipOrAdmin, async (req, res) => {
+router.get('/', sessionAuth.sessionAuth, adminAccess.requireCommunityMembershipOrAdmin, async (req, res) => {
   // Check if user has joined any community or is an administrator
   const communityMembership = await CommunityMember.findOne({ user: req.user._id });
   const hasJoinedCommunity = !!communityMembership || req.user.role === 'admin';

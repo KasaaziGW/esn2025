@@ -5,7 +5,7 @@ import { sendError } from '../utils/response.js';
  * Middleware to check if user has joined a community
  * Used for routes that require community membership
  */
-export const requireCommunityMembership = async (req, res, next) => {
+const requireCommunityMembership = async (req, res, next) => {
   try {
     // Check if user is already in session
     if (!req.session || !req.session.user) {
@@ -45,7 +45,7 @@ export const requireCommunityMembership = async (req, res, next) => {
  * Middleware to check if user has completed their profile
  * Used for routes that require profile completion
  */
-export const requireProfileCompletion = async (req, res, next) => {
+const requireProfileCompletion = async (req, res, next) => {
   try {
     // Check if user is already in session
     if (!req.session || !req.session.user) {
@@ -99,4 +99,9 @@ export const requireProfileCompletion = async (req, res, next) => {
       return res.redirect('/dashboard');
     }
   }
+};
+
+export default {
+  requireCommunityMembership,
+  requireProfileCompletion
 };

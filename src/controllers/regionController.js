@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 import Region from '../models/Region.js';
 import District from '../models/District.js';
-import { catchAsync, NotFoundError, ValidationError } from '../middleware/errorHandler.js';
-import { sendOK, sendCreated } from '../utils/response.js';
+import errorHandler from '../middleware/errorHandler.js';
+import response from '../utils/response.js';
 
 /**
  * Try to find a region by slug -> publicId -> _id
@@ -29,21 +29,21 @@ async function findRegionByKey(key) {
 /**
  * GET /regions
  */
-export const getAllRegions = catchAsync(async (req, res) => {
+export const getAllRegions = errorHandler.catchAsync(async (req, res) => {
   const regions = await Region.find().sort({ name: 1 }).lean().exec();
-  sendOK(res, 'Regions retrieved successfully', { regions });
+  response.sendOK(res, 'Regions retrieved successfully', { regions });
 });
 
 /**
  * GET /regions/:key
  * optional ?includeDistricts=true
  */
-export const getRegionByKey = catchAsync(async (req, res) => {
+export const getRegionByKey = errorHandler.catchAsync(async (req, res) => {
   const { key } = req.params;
   const includeDistricts = req.query.includeDistricts === 'true';
 
   const region = await findRegionByKey(key);
-  if (!region) throw new NotFoundError('Region not found');
+  if (!region) throw new errorHandler.NotFoundError('Region not found');
 
   const payload = { region };
   if (includeDistricts) {
@@ -51,7 +51,7 @@ export const getRegionByKey = catchAsync(async (req, res) => {
     payload.districts = districts;
   }
 
-  sendOK(res, 'Region retrieved successfully', payload);
+  response.sendOK(res, 'Region retrieved successfully', payload);
 });
 
 /**

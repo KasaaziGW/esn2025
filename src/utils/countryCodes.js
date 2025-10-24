@@ -3,7 +3,7 @@
  * This utility provides country codes for phone number validation
  */
 
-export const COUNTRY_CODES = [
+const COUNTRY_CODES = [
   // North America
   '+1', // US/Canada
   
@@ -211,14 +211,14 @@ export const COUNTRY_CODES = [
  * Get country codes sorted by length (longest first)
  * This helps with more specific country codes being matched first
  */
-export const getSortedCountryCodes = () => {
+const getSortedCountryCodes = () => {
   return [...COUNTRY_CODES].sort((a, b) => b.length - a.length);
 };
 
 /**
  * Get country codes for a specific region
  */
-export const getCountryCodesByRegion = {
+const getCountryCodesByRegion = {
   europe: [
     '+44', '+33', '+49', '+39', '+34', '+31', '+32', '+45', '+46', '+47',
     '+358', '+41', '+43', '+48', '+420', '+36', '+40', '+359', '+385',
@@ -258,21 +258,21 @@ export const getCountryCodesByRegion = {
 /**
  * Get a random country code (useful for testing)
  */
-export const getRandomCountryCode = () => {
+const getRandomCountryCode = () => {
   return COUNTRY_CODES[Math.floor(Math.random() * COUNTRY_CODES.length)];
 };
 
 /**
  * Check if a country code exists in our list
  */
-export const isValidCountryCode = (code) => {
+const isValidCountryCode = (code) => {
   return COUNTRY_CODES.includes(code);
 };
 
 /**
  * Get country code info by code
  */
-export const getCountryCodeInfo = (code) => {
+const getCountryCodeInfo = (code) => {
   const codeMap = {
     '+1': { country: 'US/Canada', region: 'North America' },
     '+44': { country: 'UK', region: 'Europe' },
@@ -290,4 +290,13 @@ export const getCountryCodeInfo = (code) => {
   };
   
   return codeMap[code] || { country: 'Unknown', region: 'Unknown' };
+};
+
+export default {
+  COUNTRY_CODES,
+  getSortedCountryCodes,
+  getCountryCodesByRegion,
+  getRandomCountryCode,
+  isValidCountryCode,
+  getCountryCodeInfo
 };

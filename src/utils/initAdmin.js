@@ -8,7 +8,7 @@ import { ensureRegionsAndDistricts } from './ensureRegionsDistricts.js';
  * Find existing Central region and Kampala district
  * This function looks for existing regions and districts in the database
  */
-export const findCentralRegionAndKampalaDistrict = async () => {
+const findCentralRegionAndKampalaDistrict = async () => {
   try {
     // Find Central region (case-insensitive search)
     const centralRegion = await Region.findOne({ 
@@ -53,7 +53,7 @@ export const findCentralRegionAndKampalaDistrict = async () => {
  * Initialize the default administrator user
  * This ensures the system always has the specific ESNAdmin user as specified in the rules
  */
-export const initializeDefaultAdmin = async () => {
+const initializeDefaultAdmin = async () => {
   try {
     // Find existing Central region and Kampala district
     const { centralRegion, kampalaDistrict } = await findCentralRegionAndKampalaDistrict();
@@ -96,7 +96,7 @@ export const initializeDefaultAdmin = async () => {
 /**
  * Validate administrator count and prevent deletion of last admin
  */
-export const validateAdminCount = async (userIdToDelete = null) => {
+const validateAdminCount = async (userIdToDelete = null) => {
   try {
     let adminCount = await User.countDocuments({ 
       role: 'admin', 
@@ -125,7 +125,7 @@ export const validateAdminCount = async (userIdToDelete = null) => {
 /**
  * Get administrator statistics
  */
-export const getAdminStats = async () => {
+const getAdminStats = async () => {
   try {
     const totalAdmins = await User.countDocuments({ role: 'admin' });
     const activeAdmins = await User.countDocuments({ role: 'admin', isActive: true });
@@ -147,7 +147,7 @@ export const getAdminStats = async () => {
  * Initialize the system with default administrator
  * This should be called on application startup
  */
-export const initializeSystem = async () => {
+const initializeSystem = async () => {
   try {
     console.log('Initializing Emergency Social Network system...');
     
@@ -182,4 +182,12 @@ export const initializeSystem = async () => {
     console.error('System initialization failed:', error);
     throw error;
   }
+};
+
+export default {
+  findCentralRegionAndKampalaDistrict,
+  initializeDefaultAdmin,
+  validateAdminCount,
+  getAdminStats,
+  initializeSystem
 };

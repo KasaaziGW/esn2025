@@ -1,15 +1,15 @@
 import express from 'express';
-import { authMiddleware } from '../middleware/auth.js';
-import { sessionAuth } from '../middleware/sessionAuth.js';
+import auth from '../middleware/auth.js';
+import sessionAuth from '../middleware/sessionAuth.js';
 import * as userController from '../controllers/userController.js';
 import User from '../models/User.js';
 import CommunityMember from '../models/communityMember.js';
-import { uploadProfilePhoto } from '../middleware/upload.js';
+import upload from '../middleware/upload.js';
 
 const router = express.Router();
 
 // Admin page route (uses session authentication) - must be before authMiddleware
-router.get('/admin', sessionAuth, async (req, res) => {
+router.get('/admin', sessionAuth.sessionAuth, async (req, res) => {
   // Check if user is admin
   if (req.user.role !== 'admin') {
     return res.status(403).json({ message: 'Admin access required' });
@@ -35,7 +35,7 @@ const sessionAdminOnly = (req, res, next) => {
 };
 
 // Profile page route (session-based)
-router.get('/profile', sessionAuth, async (req, res) => {
+router.get('/profile', sessionAuth.sessionAuth, async (req, res) => {
   try {
     // Fetch complete user data from database with populated region and district
     const user = await User.findById(req.user.id)
@@ -62,25 +62,25 @@ router.get('/profile', sessionAuth, async (req, res) => {
 });
 
 // Profile update route (session-based)
-router.post('/profile', sessionAuth, userController.updateProfile);
+router.post('/profile', sessionAuth.sessionAuth, userController.updateProfile);
 
 // Avatar upload routes (session-based)
-router.post('/profile/avatar', sessionAuth, uploadProfilePhoto, userController.uploadAvatar);
-router.post('/profile/avatar/remove', sessionAuth, userController.removeAvatar);
+router.post('/profile/avatar', sessionAuth.sessionAuth, upload.uploadProfilePhoto, userController.uploadAvatar);
+router.post('/profile/avatar/remove', sessionAuth.sessionAuth, userController.removeAvatar);
 
 // Session-based admin routes (for web interface)
-router.get('/', sessionAuth, sessionAdminOnly, userController.getAllUsers);
-router.get('/stats', sessionAuth, sessionAdminOnly, userController.getUserStats);
-router.get('/export', sessionAuth, sessionAdminOnly, userController.exportUsers);
-router.post('/', sessionAuth, sessionAdminOnly, userController.createUser);
-router.get('/:id', sessionAuth, sessionAdminOnly, userController.getUserById);
-router.post('/:id/update', sessionAuth, sessionAdminOnly, userController.updateUserByAdmin);
-router.post('/:id/status', sessionAuth, sessionAdminOnly, userController.updateUserStatus);
-router.post('/:id/password', sessionAuth, sessionAdminOnly, userController.changeUserPassword);
-router.post('/:id/delete', sessionAuth, sessionAdminOnly, userController.deleteUser);
+router.get('/', sessionAuth.sessionAuth, sessionAdminOnly, userController.getAllUsers);
+router.get('/stats', sessionAuth.sessionAuth, sessionAdminOnly, userController.getUserStats);
+router.get('/export', sessionAuth.sessionAuth, sessionAdminOnly, userController.exportUsers);
+router.post('/', sessionAuth.sessionAuth, sessionAdminOnly, userController.createUser);
+router.get('/:id', sessionAuth.sessionAuth, sessionAdminOnly, userController.getUserById);
+router.post('/:id/update', sessionAuth.sessionAuth, sessionAdminOnly, userController.updateUserByAdmin);
+router.post('/:id/status', sessionAuth.sessionAuth, sessionAdminOnly, userController.updateUserStatus);
+router.post('/:id/password', sessionAuth.sessionAuth, sessionAdminOnly, userController.changeUserPassword);
+router.post('/:id/delete', sessionAuth.sessionAuth, sessionAdminOnly, userController.deleteUser);
 
 // Protected routes (JWT authentication for API)
-router.use(authMiddleware);
+router.use(auth.authMiddleware);
 
 // Current user profile
 router.get('/me', userController.getMe);

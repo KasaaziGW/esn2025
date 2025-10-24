@@ -1,13 +1,13 @@
 import express from 'express';
-import { sessionAuth } from '../middleware/sessionAuth.js';
-import { requireAdmin } from '../middleware/adminAccess.js';
+import sessionAuth from '../middleware/sessionAuth.js';
+import adminAccess from '../middleware/adminAccess.js';
 import Community from '../models/Community.js';
 import CommunityMember from '../models/communityMember.js';
 
 const router = express.Router();
 
 // Admin communities management page
-router.get('/', sessionAuth, requireAdmin, async (req, res) => {
+router.get('/', sessionAuth.sessionAuth, adminAccess.requireAdmin, async (req, res) => {
   try {
     // Get all communities with member count
     const communities = await Community.find()
@@ -44,7 +44,7 @@ router.get('/', sessionAuth, requireAdmin, async (req, res) => {
 });
 
 // Admin community selector page
-router.get('/selector', sessionAuth, requireAdmin, async (req, res) => {
+router.get('/selector', sessionAuth.sessionAuth, adminAccess.requireAdmin, async (req, res) => {
   try {
     // Get all communities with member count
     const communities = await Community.find()
@@ -82,7 +82,7 @@ router.get('/selector', sessionAuth, requireAdmin, async (req, res) => {
 });
 
 // Set active community for admin
-router.post('/selector/set-active', sessionAuth, requireAdmin, async (req, res) => {
+router.post('/selector/set-active', sessionAuth.sessionAuth, adminAccess.requireAdmin, async (req, res) => {
   try {
     const { communityId } = req.body;
     
@@ -117,7 +117,7 @@ router.post('/selector/set-active', sessionAuth, requireAdmin, async (req, res) 
 });
 
 // Get current active community
-router.get('/active', sessionAuth, requireAdmin, async (req, res) => {
+router.get('/active', sessionAuth.sessionAuth, adminAccess.requireAdmin, async (req, res) => {
   try {
     const activeCommunityId = req.session.activeCommunityId;
     
@@ -151,7 +151,7 @@ router.get('/active', sessionAuth, requireAdmin, async (req, res) => {
 });
 
 // API endpoint to get all communities for admin
-router.get('/api/communities', sessionAuth, requireAdmin, async (req, res) => {
+router.get('/api/communities', sessionAuth.sessionAuth, adminAccess.requireAdmin, async (req, res) => {
   try {
     // Get all communities with member count
     const communities = await Community.find()

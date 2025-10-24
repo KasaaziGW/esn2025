@@ -1,6 +1,5 @@
 import express from 'express';
-import { clearBrowserData } from '../middleware/noCache.js';
-import { sessionAuth } from '../middleware/sessionAuth.js';
+import noCache from '../middleware/noCache.js';
 
 const router = express.Router();
 
@@ -21,7 +20,7 @@ router.get('/register', (req, res) => {
 
 
 // Logout page route (handles logout and redirects)
-router.get('/logout', clearBrowserData, (req, res) => {
+router.get('/logout', noCache.clearBrowserData, (req, res) => {
   // If user is logged in, destroy session
   if (req.session && req.session.user) {
     req.session.destroy((err) => {

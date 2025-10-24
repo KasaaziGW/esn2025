@@ -10,7 +10,7 @@ import Message from '../models/Message.js';
  */
 let ioInstance = null;
 
-export const initSocket = (server, verifyJWT) => {
+const initSocket = (server, verifyJWT) => {
   if (ioInstance) return ioInstance; // idempotent
   const io = new Server(server, {
     cors: { origin: '*', methods: ['GET', 'POST'] }
@@ -295,38 +295,38 @@ export const initSocket = (server, verifyJWT) => {
   return io;
 };
 
-export const getIO = () => {
+const getIO = () => {
   if (!ioInstance) throw new Error('Socket.io not initialized — call initSocket first');
   return ioInstance;
 };
 
 // Real-time user management events
-export const emitUserCreated = (user) => {
+const emitUserCreated = (user) => {
   const io = getIO();
   io.to('admin-room').emit('userCreated', user);
 };
 
-export const emitUserUpdated = (user) => {
+const emitUserUpdated = (user) => {
   const io = getIO();
   io.to('admin-room').emit('userUpdated', user);
 };
 
-export const emitUserDeleted = (userId) => {
+const emitUserDeleted = (userId) => {
   const io = getIO();
   io.to('admin-room').emit('userDeleted', { userId });
 };
 
-export const emitUserStatusChanged = (user) => {
+const emitUserStatusChanged = (user) => {
   const io = getIO();
   io.to('admin-room').emit('userStatusChanged', user);
 };
 
-export const emitUserPasswordChanged = (userId) => {
+const emitUserPasswordChanged = (userId) => {
   const io = getIO();
   io.to('admin-room').emit('userPasswordChanged', { userId });
 };
 
-export const emitUserStatsUpdated = (stats) => {
+const emitUserStatsUpdated = (stats) => {
   const io = getIO();
   io.to('admin-room').emit('userStatsUpdated', stats);
 };

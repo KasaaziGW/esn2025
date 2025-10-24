@@ -1,10 +1,10 @@
 import jwt from 'jsonwebtoken';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
 import User from '../models/User.js';
-import { AppError, ValidationError, ConflictError, AuthenticationError, catchAsync } from '../middleware/errorHandler.js';
-import { sendCreated, sendOK } from '../utils/response.js';
-import { getSortedCountryCodes } from '../utils/countryCodes.js';
-import { createSession, destroySession } from '../middleware/sessionAuth.js';
+import errorHandler from '../middleware/errorHandler.js';
+import response from '../utils/response.js';
+import countryCodes from '../utils/countryCodes.js';
+import sessionAuth from '../middleware/sessionAuth.js';
 
 /**
  * Helper: sign JWT (returns token)
@@ -38,9 +38,9 @@ function normalizePhone(rawPhone) {
   const phoneStr = String(rawPhone).replace(/\D/g, ''); // Remove non-digits
   if (phoneStr.length >= 7 && phoneStr.length <= 15) {
     // Get sorted country codes (longest first for better matching)
-    const countryCodes = getSortedCountryCodes();
+    const sortedCountryCodes = countryCodes.getSortedCountryCodes();
     
-    for (const countryCode of countryCodes) {
+    for (const countryCode of sortedCountryCodes) {
       try {
         const parsed = parsePhoneNumberFromString(countryCode + phoneStr);
         if (parsed && parsed.isValid()) {
@@ -67,7 +67,7 @@ function normalizePhone(rawPhone) {
  * Optional:
  *   - displayName, firstName, lastName
  */
-export const register = catchAsync(async (req, res, next) => {
+export const register = errorHandler.catchAsync(async (req, res, next) => {
   const {
     username,
     password,
@@ -84,18 +84,18 @@ export const register = catchAsync(async (req, res, next) => {
 
   // Ensure at least one identifier present
   if (!email && !phone) {
-    throw new ValidationError('Either email or phone is required.');
+    throw new errorHandler.ValidationError('Either email or phone is required.');
   }
 
   // Basic uniqueness checks
   if (await User.findOne({ username })) {
-    throw new ConflictError('Username already taken.');
+    throw new errorHandler.ConflictError('Username already taken.');
   }
   if (email && await User.findOne({ email })) {
-    throw new ConflictError('Email already in use.');
+    throw new errorHandler.ConflictError('Email already in use.');
   }
   if (phone && await User.findOne({ phone })) {
-    throw new ConflictError('Phone already in use.');
+    throw new errorHandler.ConflictError('Phone already in use.');
   }
 
   // Create user
@@ -117,7 +117,7 @@ export const register = catchAsync(async (req, res, next) => {
   // Sign token
   const token = signToken(user);
 
-  sendCreated(res, 'Registration successful. Please update your profile with region and district to join a community.', {
+  response.sendCreated(res, 'Registration successful. Please update your profile with region and district to join a community.', {
     user: {
       id: user._id,
       username: user.username,
@@ -137,11 +137,11 @@ export const register = catchAsync(async (req, res, next) => {
  *  - identifier (username | email | phone)
  *  - password
  */
-export const login = catchAsync(async (req, res, next) => {
+export const login = errorHandler.catchAsync(async (req, res, next) => {
   const { identifier, username, email, phone, password, rememberMe } = req.body;
   
   if (!password) {
-    throw new ValidationError('Password is required.');
+    throw new errorHandler.ValidationError('Password is required.');
   }
 
   // Determine the identifier to use
@@ -156,7 +156,7 @@ export const login = catchAsync(async (req, res, next) => {
   } else if (phone) {
     normalizedIdentifier = normalizePhone(phone) || phone;
   } else {
-    throw new ValidationError('Username, email, phone, or identifier is required.');
+    throw new errorHandler.ValidationError('Username, email, phone, or identifier is required.');
   }
 
   // Normalize identifier: try phone normalization if it's not already normalized
@@ -168,17 +168,17 @@ export const login = catchAsync(async (req, res, next) => {
   // Find user by username/email/phone
   const user = await User.findByIdentifier(normalizedIdentifier);
   if (!user) {
-    throw new AuthenticationError('Invalid credentials.');
+    throw new errorHandler.AuthenticationError('Invalid credentials.');
   }
 
   // Check if account is locked
   if (typeof user.isLocked === 'function' && user.isLocked()) {
-    throw new AuthenticationError('Account locked due to too many failed login attempts. Try later.');
+    throw new errorHandler.AuthenticationError('Account locked due to too many failed login attempts. Try later.');
   }
 
   // Check if account is active
   if (!user.isActive) {
-    throw new AuthenticationError('Your account has been deactivated. Please contact an administrator for assistance.');
+    throw new errorHandler.AuthenticationError('Your account has been deactivated. Please contact an administrator for assistance.');
   }
 
   // Validate password
@@ -193,7 +193,7 @@ export const login = catchAsync(async (req, res, next) => {
       user.lockUntil = Date.now() + 1000 * 60 * 60; // 1 hour
     }
     await user.save();
-    throw new AuthenticationError('Invalid username or password.');
+    throw new errorHandler.AuthenticationError('Invalid username or password.');
   }
 
   // Successful login: reset attempts, mark online, update lastSeenAt
@@ -205,9 +205,9 @@ export const login = catchAsync(async (req, res, next) => {
   console.log(`Login: User ${user._id} (${user.username}) is now online`);
 
   // Create secure session
-  await createSession(req, user);
+  await sessionAuth.createSession(req, user);
 
-  sendOK(res, 'Login successful', {
+  response.sendOK(res, 'Login successful', {
     redirectTo: '/dashboard', // Default redirect after login
     user: {
       id: user._id,
@@ -226,7 +226,7 @@ export const login = catchAsync(async (req, res, next) => {
  * - Expects auth middleware that sets req.user (decoded JWT).
  * - For stateless JWTs the client should simply delete the token; we mark user offline here.
  */
-export const logout = catchAsync(async (req, res, next) => {
+export const logout = errorHandler.catchAsync(async (req, res, next) => {
   // Handle case where user is already logged out (idempotent operation)
   if (!req.session || !req.session.user) {
     // Set headers to prevent caching and back button access
@@ -237,7 +237,7 @@ export const logout = catchAsync(async (req, res, next) => {
       'Clear-Site-Data': '"cache", "cookies", "storage", "executionContexts"'
     });
     
-    return sendOK(res, 'Already logged out', {
+    return response.sendOK(res, 'Already logged out', {
       redirectTo: '/login'
     });
   }
@@ -268,7 +268,7 @@ export const logout = catchAsync(async (req, res, next) => {
   }
 
   // Destroy session
-  await destroySession(req);
+  await sessionAuth.destroySession(req);
   
   // Set headers to prevent caching and back button access
   res.set({
@@ -278,7 +278,7 @@ export const logout = catchAsync(async (req, res, next) => {
     'Clear-Site-Data': '"cache", "cookies", "storage", "executionContexts"'
   });
   
-  sendOK(res, 'Logged out successfully', {
+  response.sendOK(res, 'Logged out successfully', {
     redirectTo: '/login'
   });
 });
@@ -287,20 +287,20 @@ export const logout = catchAsync(async (req, res, next) => {
  * Verify Session
  * Returns user info if session is valid
  */
-export const verifySession = catchAsync(async (req, res, next) => {
+export const verifySession = errorHandler.catchAsync(async (req, res, next) => {
   if (!req.session || !req.session.user) {
-    throw new AuthenticationError('No active session.');
+    throw new errorHandler.AuthenticationError('No active session.');
   }
 
   // Verify user still exists and is active
   const user = await User.findById(req.session.user.id).select('-password');
   if (!user) {
     // User no longer exists, destroy session
-    await destroySession(req);
-    throw new AuthenticationError('User not found.');
+    await sessionAuth.destroySession(req);
+    throw new errorHandler.AuthenticationError('User not found.');
   }
 
-  sendOK(res, 'Session is valid', {
+  response.sendOK(res, 'Session is valid', {
     user: {
       id: user._id,
       username: user.username,
