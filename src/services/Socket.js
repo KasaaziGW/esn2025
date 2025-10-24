@@ -143,7 +143,7 @@ const initSocket = (server, verifyJWT) => {
         await Chat.findByIdAndUpdate(chat._id, { lastMessage: message.content, lastMessageAt: new Date() });
 
         const populated = await Message.findById(message._id)
-          .populate('sender', 'username role profile')
+          .populate('sender', 'username displayName firstName lastName role profile avatarUrl')
           .populate({ path: 'replyTo', select: 'content sender type' })
           .populate({ path: 'forwardedFrom', select: 'content sender type' });
 
@@ -196,7 +196,7 @@ const initSocket = (server, verifyJWT) => {
         await Chat.findByIdAndUpdate(chat._id, { lastMessage: message.content, lastMessageAt: new Date() });
 
         const populated = await Message.findById(message._id)
-          .populate('sender', 'username role profile')
+          .populate('sender', 'username displayName firstName lastName role profile avatarUrl')
           .populate({ path: 'replyTo', select: 'content sender type' })
           .populate({ path: 'forwardedFrom', select: 'content sender type' });
 

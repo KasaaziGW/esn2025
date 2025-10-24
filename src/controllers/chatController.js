@@ -35,7 +35,7 @@ export const getChatMessages = errorHandler.catchAsync(async (req, res) => {
   const messages = await Message.find(filter)
     .sort({ createdAt: -1 })
     .limit(parseInt(limit, 10))
-    .populate('sender', 'username role profile')
+    .populate('sender', 'username displayName firstName lastName role profile avatarUrl')
     .populate('replyTo', 'content sender type')
     .populate('forwardedFrom', 'content sender type');
 
@@ -116,7 +116,7 @@ export const sendMessage = errorHandler.catchAsync(async (req, res) => {
 
   // populate for response and emitting
   const populated = await Message.findById(saved._id)
-    .populate('sender', 'username role profile')
+    .populate('sender', 'username displayName firstName lastName role profile avatarUrl')
     .populate({ path: 'replyTo', select: 'content sender type' })
     .populate({ path: 'forwardedFrom', select: 'content sender type' });
 
@@ -395,7 +395,7 @@ export const getAllCommunityChats = errorHandler.catchAsync(async (req, res) => 
     const messages = await Message.find({ chat: chat._id })
       .sort({ createdAt: -1 })
       .limit(50)
-      .populate('sender', 'username displayName role profile avatarUrl')
+      .populate('sender', 'username displayName firstName lastName role profile avatarUrl')
       .populate('replyTo', 'content sender type')
       .populate('forwardedFrom', 'content sender type');
 
@@ -455,7 +455,7 @@ export const getCommunityChatMessages = errorHandler.catchAsync(async (req, res)
   const messages = await Message.find(filter)
     .sort({ createdAt: -1 })
     .limit(parseInt(limit, 10))
-    .populate('sender', 'username displayName role profile avatarUrl')
+    .populate('sender', 'username displayName firstName lastName role profile avatarUrl')
     .populate('replyTo', 'content sender type')
     .populate('forwardedFrom', 'content sender type');
 

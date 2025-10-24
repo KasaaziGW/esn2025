@@ -9,7 +9,6 @@
         <div class="d-flex justify-content-between align-items-center mg-b-20">
             <div>
                 <h4 class="mg-b-5">User Management</h4>
-                <p class="tx-color-03 mg-b-0">Manage user profiles, roles, and account status</p>
                 <div class="d-flex align-items-center mg-t-5">
                     <div class="badge bg-success mg-r-5" id="realtimeStatus">
                         <i data-feather="wifi"></i> Live Updates
@@ -37,14 +36,14 @@
                                 <h6 class="card-title">Total Users</h6>
                                 <h3 class="card-value" id="totalUsers">-</h3>
                             </div>
-                            <div class="card-icon bg-primary">
+                            <div class="card-icon">
                                 <i data-feather="users"></i>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-sm-6 col-lg-2">
+            <div class="col-sm-6 col-lg-3">
                 <div class="card card-dashboard-one">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
@@ -52,14 +51,14 @@
                                 <h6 class="card-title">Active Users</h6>
                                 <h3 class="card-value" id="activeUsers">-</h3>
                             </div>
-                            <div class="card-icon bg-success">
+                            <div class="card-icon">
                                 <i data-feather="user-check"></i>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-sm-6 col-lg-2">
+            <div class="col-sm-6 col-lg-3">
                 <div class="card card-dashboard-one">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
@@ -67,7 +66,7 @@
                                 <h6 class="card-title">Online Users</h6>
                                 <h3 class="card-value" id="onlineUsers">-</h3>
                             </div>
-                            <div class="card-icon bg-success">
+                            <div class="card-icon">
                                 <i data-feather="wifi"></i>
                             </div>
                         </div>
@@ -82,7 +81,7 @@
                                 <h6 class="card-title">Coordinators</h6>
                                 <h3 class="card-value" id="coordinators">-</h3>
                             </div>
-                            <div class="card-icon bg-warning">
+                            <div class="card-icon">
                                 <i data-feather="user-plus"></i>
                             </div>
                         </div>
@@ -97,7 +96,7 @@
                                 <h6 class="card-title">New Today</h6>
                                 <h3 class="card-value" id="newToday">-</h3>
                             </div>
-                            <div class="card-icon bg-info">
+                            <div class="card-icon">
                                 <i data-feather="trending-up"></i>
                             </div>
                         </div>
@@ -252,6 +251,18 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
+                                <label class="form-label">First Name</label>
+                                <input type="text" class="form-control" name="firstName">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Last Name</label>
+                                <input type="text" class="form-control" name="lastName">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
                                 <label class="form-label">Phone</label>
                                 <input type="tel" class="form-control" name="phone">
                             </div>
@@ -264,18 +275,6 @@
                                     <option value="coordinator">Coordinator</option>
                                     <option value="admin">Administrator</option>
                                 </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="form-label">First Name</label>
-                                <input type="text" class="form-control" name="firstName">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="form-label">Last Name</label>
-                                <input type="text" class="form-control" name="lastName">
                             </div>
                         </div>
                         <div class="col-md-6">

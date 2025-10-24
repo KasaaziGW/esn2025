@@ -467,6 +467,34 @@ export const createUser = errorHandler.catchAsync(async (req, res) => {
   }
 
   try {
+    // Convert region and district from string names to ObjectId references
+    let regionId = region;
+    let districtId = district;
+    
+    if (region && typeof region === 'string') {
+      // Find region by name (case-insensitive)
+      const Region = (await import('../models/Region.js')).default;
+      const regionDoc = await Region.findOne({ 
+        name: { $regex: new RegExp(`^${region}$`, 'i') } 
+      });
+      if (!regionDoc) {
+        throw new errorHandler.ValidationError(`Region "${region}" not found`);
+      }
+      regionId = regionDoc._id;
+    }
+    
+    if (district && typeof district === 'string') {
+      // Find district by name (case-insensitive)
+      const District = (await import('../models/District.js')).default;
+      const districtDoc = await District.findOne({ 
+        name: { $regex: new RegExp(`^${district}$`, 'i') } 
+      });
+      if (!districtDoc) {
+        throw new errorHandler.ValidationError(`District "${district}" not found`);
+      }
+      districtId = districtDoc._id;
+    }
+
     const user = new User({
       username,
       email,
@@ -474,8 +502,8 @@ export const createUser = errorHandler.catchAsync(async (req, res) => {
       role: role || 'citizen',
       firstName,
       lastName,
-      region,
-      district,
+      region: regionId,
+      district: districtId,
       isActive: true,
       verified: true
     });

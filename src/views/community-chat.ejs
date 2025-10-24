@@ -758,12 +758,12 @@
                 <div class="media mg-b-10">
                     <div class="avatar avatar-xs mg-r-8">
                         ${message.sender.avatarUrl ? 
-                            `<img src="${message.sender.avatarUrl}" class="rounded-circle" alt="${message.sender.displayName || message.sender.username}">` :
-                            `<span class="avatar-initial rounded-circle">${(message.sender.displayName || message.sender.username || 'U').charAt(0).toUpperCase()}</span>`
+                            `<img src="${message.sender.avatarUrl}" class="rounded-circle" alt="${getDisplayName(message.sender)}">` :
+                            `<span class="avatar-initial rounded-circle">${getDisplayName(message.sender).charAt(0).toUpperCase()}</span>`
                         }
                     </div>
                     <div class="media-body">
-                        <h6 class="mg-b-0 tx-12">${message.sender.displayName || message.sender.username}</h6>
+                        <h6 class="mg-b-0 tx-12">${getDisplayName(message.sender)}</h6>
                         <small class="d-block tx-color-04">${formatTime(message.createdAt)}</small>
                     </div>
                 </div>
@@ -823,6 +823,24 @@
                 console.error('Failed to load chat messages:', xhr);
             }
         });
+    }
+    
+    // Get display name for a user (prioritizes full name over displayName over username)
+    function getDisplayName(user) {
+        if (!user) return 'Unknown';
+        
+        // If user has firstName and lastName, use full name
+        if (user.firstName && user.lastName) {
+            return `${user.firstName} ${user.lastName}`;
+        }
+        
+        // If user has displayName, use it
+        if (user.displayName) {
+            return user.displayName;
+        }
+        
+        // Fallback to username
+        return user.username || 'Unknown';
     }
     
     // Render messages
@@ -890,7 +908,7 @@
                     <div class="media ${isOwnMessage ? 'justify-content-end' : ''}" data-message-id="${message._id}">
                         <div class="media-body ${isOwnMessage ? 'text-end' : ''}">
                             <div class="message-bubble ${isOwnMessage ? 'own-message' : 'other-message'}">
-                                ${!isOwnMessage ? `<div class="message-sender-name" style="font-size: 11px; color: #6c757d; font-style: italic; margin-bottom: 3px;">${message.sender.displayName || message.sender.username}</div>` : ''}
+                                ${!isOwnMessage ? `<div class="message-sender-name" style="font-size: 11px; color: #6c757d; font-style: italic; margin-bottom: 3px;">${getDisplayName(message.sender)}</div>` : ''}
                                 <div class="message-content">${messageContent}</div>
                                 <div class="message-time">${formatTime12Hour(message.createdAt)}</div>
                             </div>
@@ -948,7 +966,7 @@
             <div class="media ${isOwnMessage ? 'justify-content-end' : ''}" data-message-id="${message._id}">
                 <div class="media-body ${isOwnMessage ? 'text-end' : ''}">
                     <div class="message-bubble ${isOwnMessage ? 'own-message' : 'other-message'}">
-                        ${!isOwnMessage ? `<div class="message-sender-name" style="font-size: 11px; color: #6c757d; font-style: italic; margin-bottom: 3px;">${message.sender.displayName || message.sender.username}</div>` : ''}
+                        ${!isOwnMessage ? `<div class="message-sender-name" style="font-size: 11px; color: #6c757d; font-style: italic; margin-bottom: 3px;">${getDisplayName(message.sender)}</div>` : ''}
                         <div class="message-content">${messageContent}</div>
                         <div class="message-time">${formatTime12Hour(message.createdAt)}</div>
                     </div>
