@@ -89,7 +89,17 @@ export const getAnnouncements = errorHandler.catchAsync(async (req, res) => {
   } = req.query;
   
   // Base query - admin sees all, others see only their community
-  let query = user.role === 'admin' ? {} : { community: user.community };
+  let query = {};
+  if (user.role === 'admin') {
+    // Admins can see all announcements
+    query = {};
+  } else if (user.community) {
+    // Users with a community can only see their community's announcements
+    query = { community: user.community };
+  } else {
+    // Users without a community should see no announcements
+    query = { community: { $exists: false } }; // This will return no results
+  }
   
   // Add search functionality
   if (search) {
@@ -386,6 +396,110 @@ export const trackAnnouncementForward = errorHandler.catchAsync(async (req, res)
   });
 });
 
+/**
+ * Forward announcement to chat
+ * POST /announcements/forward
+ * Forwards an announcement to either public community chat or private chat
+ */
+export const forwardAnnouncement = errorHandler.catchAsync(async (req, res) => {
+  const { announcementId, chatType, targetUserId } = req.body;
+  const { _id: senderId, community: userCommunity } = req.user;
+
+  if (!announcementId || !chatType) {
+    throw new errorHandler.ValidationError('Announcement ID and chat type are required');
+  }
+
+  // Get the announcement
+  const announcement = await Announcement.findById(announcementId).populate('createdBy', 'displayName username');
+  
+  if (!announcement) {
+    throw new errorHandler.NotFoundError('Announcement not found');
+  }
+
+  // Check if user has permission to forward this announcement
+  // Users can forward announcements from their community
+  if (announcement.community.toString() !== userCommunity.toString()) {
+    throw new errorHandler.AuthorizationError('You can only forward announcements from your community');
+  }
+
+  let chatId;
+  let messageContent;
+
+  if (chatType === 'public') {
+    // Forward to public community chat
+    chatId = userCommunity;
+    messageContent = `📢 **Forwarded Announcement**\n\n**${announcement.title}**\n\n${announcement.body.substring(0, 200)}${announcement.body.length > 200 ? '...' : ''}\n\n*Originally posted by ${announcement.createdBy.displayName || announcement.createdBy.username}*\n\n[Read full announcement](http://localhost:5000/announcements)`;
+  } else if (chatType === 'private') {
+    // Forward to private chat
+    if (!targetUserId) {
+      throw new errorHandler.ValidationError('Target user ID is required for private chat');
+    }
+    
+    // Find or create private chat between sender and target user
+    const Chat = (await import('../models/Chat.js')).default;
+    let privateChat = await Chat.findOne({
+      type: 'private',
+      participants: { $all: [senderId, targetUserId] }
+    });
+
+    if (!privateChat) {
+      // Create new private chat
+      privateChat = await Chat.create({
+        type: 'private',
+        participants: [senderId, targetUserId],
+        createdBy: senderId
+      });
+    }
+
+    chatId = privateChat._id;
+    messageContent = `📢 **Forwarded Announcement**\n\n**${announcement.title}**\n\n${announcement.body.substring(0, 200)}${announcement.body.length > 200 ? '...' : ''}\n\n*Originally posted by ${announcement.createdBy.displayName || announcement.createdBy.username}*\n\n[Read full announcement](http://localhost:5000/announcements)`;
+  } else {
+    throw new errorHandler.ValidationError('Invalid chat type. Must be "public" or "private"');
+  }
+
+  // Create the forwarded message
+  const forwardedMessage = await Message.create({
+    chat: chatId,
+    sender: senderId,
+    content: messageContent,
+    type: 'text',
+    forwardedAnnouncement: announcementId,
+    originalSender: announcement.createdBy._id
+  });
+
+  // Update announcement forward count
+  if (!announcement.forwardedBy.includes(senderId)) {
+    announcement.forwardedBy.push(senderId);
+    announcement.forwardCount += 1;
+    await announcement.save();
+  }
+
+  // Emit socket event to notify users
+  const io = socketService.getIO();
+  if (chatType === 'public') {
+    io.to(`community-${userCommunity}`).emit('message:new', {
+      message: forwardedMessage,
+      chatId: chatId
+    });
+  } else {
+    // Emit to both participants in private chat
+    io.to(`user-${senderId}`).emit('message:new', {
+      message: forwardedMessage,
+      chatId: chatId
+    });
+    io.to(`user-${targetUserId}`).emit('message:new', {
+      message: forwardedMessage,
+      chatId: chatId
+    });
+  }
+
+  response.sendOK(res, 'Announcement forwarded successfully', {
+    messageId: forwardedMessage._id,
+    chatId: chatId,
+    chatType: chatType
+  });
+});
+
 export default {
   createAnnouncement,
   getAnnouncements,
@@ -394,5 +508,6 @@ export default {
   updateAnnouncementById,
   deleteAnnouncementById,
   trackAnnouncementView,
-  trackAnnouncementForward
+  trackAnnouncementForward,
+  forwardAnnouncement
 };

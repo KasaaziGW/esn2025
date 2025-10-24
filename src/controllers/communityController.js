@@ -140,7 +140,7 @@ export const getUserCommunities = errorHandler.catchAsync(async (req, res, next)
       { path: 'createdBy', select: 'displayName email' },
       { path: 'members', select: 'username displayName avatarUrl' }
     ])
-    .sort({ name: 1 });
+    .sort({ createdAt: -1 }); // Sort by creation date, newest first
 
   // Add user's current community status to each community
   const communitiesWithStatus = communities.map(community => ({

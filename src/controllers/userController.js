@@ -240,7 +240,7 @@ export const updateProfile = errorHandler.catchAsync(async (req, res) => {
   const profileComplete =
     user.region && user.district && user.firstName && user.lastName && user.phone;
 
-  const response = {
+  const responseData = {
     user,
     profileComplete,
     nextStep: profileComplete
@@ -250,11 +250,11 @@ export const updateProfile = errorHandler.catchAsync(async (req, res) => {
 
   // Add community removal notification if applicable
   if (communityRemoved) {
-    response.communityRemoved = true;
-    response.message = `You have been automatically removed from "${removedCommunityName}" community because your address changed. You can now join communities in your new location.`;
+    responseData.communityRemoved = true;
+    responseData.message = `You have been automatically removed from "${removedCommunityName}" community because your address changed. You can now join communities in your new location.`;
   }
 
-  response.sendOK(res, 'Profile updated successfully', response);
+  response.sendOK(res, 'Profile updated successfully', responseData);
 });
 
 /**

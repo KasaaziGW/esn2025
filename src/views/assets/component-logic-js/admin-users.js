@@ -690,7 +690,7 @@ function updateUserRowStatus(userId, isOnline, lastSeenAt) {
 
         $.ajax({
             url: `/users/${userId}`,
-            method: 'PUT',
+            method: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(data),
             xhrFields: {
@@ -738,7 +738,7 @@ function updateUserRowStatus(userId, isOnline, lastSeenAt) {
         
         $.ajax({
             url: `/users/${userId}/password`,
-            method: 'PUT',
+            method: 'POST',
             contentType: 'application/json',
             data: JSON.stringify({ password }),
             xhrFields: {
@@ -767,7 +767,7 @@ function updateUserRowStatus(userId, isOnline, lastSeenAt) {
         
         $.ajax({
             url: `/users/${userId}`,
-            method: 'DELETE',
+            method: 'POST',
             xhrFields: {
                 withCredentials: true
             },
@@ -806,7 +806,7 @@ function updateUserRowStatus(userId, isOnline, lastSeenAt) {
         
         $.ajax({
             url: `/users/${userId}/status`,
-            method: 'PUT',
+            method: 'POST',
             contentType: 'application/json',
             data: JSON.stringify({ isActive: !currentStatus }),
             xhrFields: {

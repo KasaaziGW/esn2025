@@ -98,7 +98,7 @@ const getAvailableCommunities = errorHandler.catchAsync(async (req, res) => {
   })
   .populate('region', 'name')
   .populate('district', 'name')
-  .sort({ name: 1 })
+  .sort({ createdAt: -1 }) // Sort by creation date, newest first
   .lean();
 
   // Add user's current community status to each community
@@ -440,7 +440,7 @@ const getUserCommunities = errorHandler.catchAsync(async (req, res) => {
       { path: 'district', select: 'name' },
       { path: 'createdBy', select: 'displayName email' }
     ])
-    .sort({ name: 1 });
+    .sort({ createdAt: -1 }) // Sort by creation date, newest first;
 
   console.log('Found communities:', communities.length);
   console.log('Communities:', communities.map(c => ({ name: c.name, id: c._id, membersCount: c.membersCount })));

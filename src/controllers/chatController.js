@@ -373,7 +373,7 @@ export const getAllCommunityChats = errorHandler.catchAsync(async (req, res) => 
   const communities = await Community.find()
     .populate('region', 'name')
     .populate('district', 'name')
-    .sort({ name: 1 });
+    .sort({ createdAt: -1 }); // Sort by creation date, newest first
 
   // Get or create community chats for each community
   const communityChats = await Promise.all(communities.map(async (community) => {

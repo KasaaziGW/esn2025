@@ -179,8 +179,8 @@ function loadCommunities() {
         $.ajax({
             url: '/communities',
             method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${window.authToken}`
+            xhrFields: {
+                withCredentials: true
             },
             success: function(response) {
                 renderCommunities(response.data.items || response.data.communities || []);
@@ -256,8 +256,8 @@ function loadRegions() {
     $.ajax({
         url: '/regions',
         method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${window.authToken}`
+        xhrFields: {
+            withCredentials: true
         },
         success: function(response) {
             renderRegions(response.data.regions);
@@ -325,8 +325,8 @@ function loadDistricts() {
     $.ajax({
         url: '/districts',
         method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${window.authToken}`
+        xhrFields: {
+            withCredentials: true
         },
         success: function(response) {
             renderDistricts(response.data.districts);
@@ -415,8 +415,8 @@ function loadRegionsForSelect() {
     $.ajax({
         url: '/regions',
         method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${window.authToken}`
+        xhrFields: {
+            withCredentials: true
         },
         success: function(response) {
 
@@ -438,8 +438,8 @@ function loadDistrictsForRegion(regionId, selectId) {
     $.ajax({
         url: `/districts?region=${regionId}`,
         method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${window.authToken}`
+        xhrFields: {
+            withCredentials: true
         },
         success: function(response) {
 
@@ -486,8 +486,8 @@ function createCommunity() {
         data: formData,
         processData: false,
         contentType: false,
-        headers: {
-            'Authorization': `Bearer ${window.authToken}`
+        xhrFields: {
+            withCredentials: true
         },
         success: function(response) {
             
@@ -517,8 +517,8 @@ function createRegion() {
         url: '/regions',
         method: 'POST',
         data: formData,
-        headers: {
-            'Authorization': `Bearer ${window.authToken}`
+        xhrFields: {
+            withCredentials: true
         },
         success: function(response) {
             
@@ -549,8 +549,8 @@ function createDistrict() {
         url: '/districts',
         method: 'POST',
         data: formData,
-        headers: {
-            'Authorization': `Bearer ${window.authToken}`
+        xhrFields: {
+            withCredentials: true
         },
         success: function(response) {
             
@@ -573,8 +573,8 @@ function editCommunity(communityId) {
     $.ajax({
         url: `/communities/${communityId}`,
         method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${window.authToken}`
+        xhrFields: {
+            withCredentials: true
         },
         success: function(response) {
             
@@ -639,8 +639,8 @@ function loadRegionsForEditSelect(selectedRegionId = null) {
     $.ajax({
         url: '/regions',
         method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${window.authToken}`
+        xhrFields: {
+            withCredentials: true
         },
         success: function(response) {
 
@@ -677,8 +677,8 @@ function loadDistrictsForEditSelect(regionId, selectedDistrictId = null) {
     $.ajax({
         url: `/districts?region=${regionId}`,
         method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${window.authToken}`
+        xhrFields: {
+            withCredentials: true
         },
         success: function(response) {
             
@@ -726,12 +726,12 @@ function updateCommunity() {
     
     $.ajax({
         url: `/communities/${communityId}`,
-        method: 'PUT',
+        method: 'POST',
         data: formData,
         processData: false,
         contentType: false,
-        headers: {
-            'Authorization': `Bearer ${window.authToken}`
+        xhrFields: {
+            withCredentials: true
         },
         success: function(response) {
             $('#editCommunityModal').modal('hide');
@@ -751,9 +751,9 @@ function deleteCommunity(communityId, communityName) {
     if (confirm(`Are you sure you want to delete "${communityName}"? This action cannot be undone.`)) {
         $.ajax({
             url: `/communities/${communityId}`,
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${window.authToken}`
+            method: 'POST',
+            xhrFields: {
+                withCredentials: true
             },
             success: function(response) {
                 showAlert('success', 'Community deleted successfully!');
@@ -775,9 +775,9 @@ function deleteRegion(regionId, regionName) {
     if (confirm(`Are you sure you want to delete "${regionName}"? This action cannot be undone.`)) {
         $.ajax({
             url: `/regions/${regionId}`,
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${window.authToken}`
+            method: 'POST',
+            xhrFields: {
+                withCredentials: true
             },
             success: function(response) {
                 showAlert('success', 'Region deleted successfully!');
@@ -800,9 +800,9 @@ function deleteDistrict(districtId, districtName) {
     if (confirm(`Are you sure you want to delete "${districtName}"? This action cannot be undone.`)) {
         $.ajax({
             url: `/districts/${districtId}`,
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${window.authToken}`
+            method: 'POST',
+            xhrFields: {
+                withCredentials: true
             },
             success: function(response) {
                 showAlert('success', 'District deleted successfully!');
@@ -821,8 +821,8 @@ function loadRegionsList() {
     $.ajax({
         url: '/regions',
         method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${window.authToken}`
+        xhrFields: {
+            withCredentials: true
         },
         success: function(response) {
             
@@ -849,8 +849,8 @@ function loadDistrictsList() {
     $.ajax({
         url: '/districts',
         method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${window.authToken}`
+        xhrFields: {
+            withCredentials: true
         },
         success: function(response) {
             

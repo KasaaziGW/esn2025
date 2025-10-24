@@ -438,7 +438,7 @@ window.saveProfile = function() {
     // Send AJAX request
     $.ajax({
         url: '/users/profile',
-        method: 'PUT',
+        method: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(formData),
         xhrFields: {
@@ -743,8 +743,8 @@ window.removeAvatar = function() {
     }
     
     $.ajax({
-        url: '/users/profile/avatar',
-        method: 'DELETE',
+        url: '/users/profile/avatar/remove',
+        method: 'POST',
         xhrFields: {
             withCredentials: true
         },

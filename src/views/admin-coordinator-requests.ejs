@@ -432,7 +432,7 @@
         
         $.ajax({
             url: `/coordinator-requests/${currentRequestId}/review`,
-            method: 'PUT',
+            method: 'POST',
             data: {
                 action: currentAction,
                 adminComments: adminComments

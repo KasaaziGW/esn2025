@@ -49,8 +49,15 @@ async function getRealDashboardData(user) {
   
   // Base query for user's community
   let communityQuery = {};
-  if (user.role !== 'admin' && user.community) {
+  if (user.role === 'admin') {
+    // Admins can see all announcements
+    communityQuery = {};
+  } else if (user.community) {
+    // Users with a community can only see their community's announcements
     communityQuery = { community: user.community };
+  } else {
+    // Users without a community should see no announcements
+    communityQuery = { community: { $exists: false } }; // This will return no results
   }
 
   // Get active emergency alerts
@@ -112,13 +119,17 @@ async function getRealDashboardData(user) {
     const myCommunityMembers = user.community ? 
       await CommunityMember.countDocuments({ community: user.community }) : 0;
     
-    roleSpecificData = {
-      myCommunityMembers,
-      myAlerts: await Announcement.countDocuments({
+    // Citizens can only see alerts if they're in a community
+    const myAlerts = user.community ? 
+      await Announcement.countDocuments({
         community: user.community,
         isEmergency: true,
         affectedUsers: user._id
-      })
+      }) : 0;
+    
+    roleSpecificData = {
+      myCommunityMembers,
+      myAlerts
     };
   } else if (user.role === 'coordinator') {
     // Coordinators see assigned incidents

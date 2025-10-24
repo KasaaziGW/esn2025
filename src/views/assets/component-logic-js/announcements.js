@@ -14,17 +14,40 @@
     $(document).ready(function() {
         console.log('=== ANNOUNCEMENTS PAGE INITIALIZED ===');
         
-        // Set current user info for permission checks
-        window.currentUser = {
-            id: '<%= typeof user !== "undefined" ? (user._id || user.id) : "" %>',
-            role: '<%= typeof user !== "undefined" ? user.role : "" %>'
-        };
-        
-        console.log('Current user set:', window.currentUser);
+        // Current user is set in the EJS template
+        console.log('Current user available:', window.currentUser);
         
         loadAnnouncements();
         loadCommunityInfo();
         loadAnnouncementStats();
+        
+        // Forward announcement modal event handlers
+        $('#forwardAnnouncementModal').on('show.bs.modal', function() {
+            populateForwardAnnouncementPreview();
+        });
+        
+        // Forward to public chat
+        $('#forwardToPublicChat').on('click', function() {
+            if (window.currentForwardingAnnouncement) {
+                forwardAnnouncementToChat('public', null);
+            }
+        });
+        
+        // Forward to private chat
+        $('#forwardToPrivateChat').on('click', function() {
+            $('#userSearchSection').show();
+            loadCommunityUsers();
+        });
+        
+        // User search functionality
+        $('#userSearchInput').on('input', function() {
+            const searchTerm = $(this).val().toLowerCase();
+            if (searchTerm.length >= 2) {
+                searchUsers(searchTerm);
+            } else {
+                $('#userSearchResults').empty();
+            }
+        });
         
         // Event listeners
         $('#searchInput').on('keypress', function(e) {
@@ -262,6 +285,9 @@
         
         grid.html(html);
         feather.replace();
+        
+        // Store announcements data for forwarding functionality
+        window.announcementsData = announcements;
         
         // Initialize Bootstrap dropdowns
         if (typeof bootstrap !== 'undefined') {
@@ -591,55 +617,165 @@
 
     // Forward announcement
     function forwardAnnouncement(announcementId) {
-        Swal.fire({
-            title: 'Share Announcement',
-            html: `
-                <div class="text-center">
-                    <p>Share this announcement with others in your community?</p>
-                    <div class="mt-3">
-                        <button class="btn btn-primary" onclick="confirmForward('${announcementId}')">
-                            <i data-feather="share-2" class="wd-12 mg-r-2"></i>Share Now
-                        </button>
-                        <button class="btn btn-secondary ml-2" onclick="Swal.close()">
-                            Cancel
-                        </button>
+        // Find the announcement data
+        const announcement = window.announcementsData?.find(ann => ann._id === announcementId);
+        if (!announcement) {
+            Swal.fire('Error', 'Announcement not found', 'error');
+            return;
+        }
+        
+        // Store the announcement data for the modal
+        window.currentForwardingAnnouncement = announcement;
+        
+        // Show the forward modal
+        $('#forwardAnnouncementModal').modal('show');
+    }
+    
+    // Populate announcement preview in forward modal
+    function populateForwardAnnouncementPreview() {
+        if (!window.currentForwardingAnnouncement) return;
+        
+        const announcement = window.currentForwardingAnnouncement;
+        const previewHtml = `
+            <div class="announcement-preview">
+                <h6 class="tx-weight-600 mg-b-10">${announcement.title}</h6>
+                <p class="tx-color-03 mg-b-10">${announcement.body.substring(0, 200)}${announcement.body.length > 200 ? '...' : ''}</p>
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <div class="avatar avatar-xs bg-primary text-white rounded-circle mg-r-5">
+                            ${(announcement.createdBy.displayName || announcement.createdBy.username).charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <small class="tx-weight-600">${announcement.createdBy.displayName || announcement.createdBy.username}</small>
+                            <br>
+                            <small class="tx-color-03">${new Date(announcement.createdAt).toLocaleDateString()}</small>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge ${announcement.isEmergency ? 'bg-danger' : 'bg-primary'} mg-r-5">
+                            ${announcement.isEmergency ? 'Emergency' : 'General'}
+                        </span>
+                        ${announcement.pinned ? '<span class="badge bg-warning">Pinned</span>' : ''}
                     </div>
                 </div>
-            `,
-            showConfirmButton: false,
-            showCloseButton: true,
-            didOpen: () => {
-                feather.replace();
+            </div>
+        `;
+        
+        $('#forwardAnnouncementPreview').html(previewHtml);
+    }
+    
+    // Load community users for private chat forwarding
+    function loadCommunityUsers() {
+        $.ajax({
+            url: '/community-access/members',
+            method: 'GET',
+            success: function(response) {
+                if (response.success && response.data && response.data.members) {
+                    window.communityUsers = response.data.members;
+                    console.log('Community users loaded:', window.communityUsers);
+                } else {
+                    console.error('Invalid response structure:', response);
+                    Swal.fire('Error', 'Failed to load community members', 'error');
+                }
+            },
+            error: function(xhr) {
+                console.error('Failed to load community users:', xhr);
+                Swal.fire('Error', 'Failed to load community members', 'error');
             }
         });
     }
-
-    // Confirm forward
-    function confirmForward(announcementId) {
-        // Track the forward
+    
+    // Search users for private chat
+    function searchUsers(searchTerm) {
+        if (!window.communityUsers) return;
+        
+        const filteredUsers = window.communityUsers.filter(user => {
+            const fullName = (user.displayName || user.username || '').toLowerCase();
+            const firstName = (user.firstName || '').toLowerCase();
+            const lastName = (user.lastName || '').toLowerCase();
+            const username = (user.username || '').toLowerCase();
+            
+            return fullName.includes(searchTerm) || 
+                   firstName.includes(searchTerm) || 
+                   lastName.includes(searchTerm) || 
+                   username.includes(searchTerm);
+        });
+        
+        displayUserSearchResults(filteredUsers);
+    }
+    
+    // Display user search results
+    function displayUserSearchResults(users) {
+        const resultsContainer = $('#userSearchResults');
+        resultsContainer.empty();
+        
+        if (users.length === 0) {
+            resultsContainer.html('<div class="list-group-item text-center text-muted">No users found</div>');
+            return;
+        }
+        
+        users.forEach(user => {
+            const userHtml = `
+                <div class="list-group-item list-group-item-action" onclick="selectUserForForwarding('${user._id}')">
+                    <div class="d-flex align-items-center">
+                        <div class="avatar avatar-sm bg-primary text-white rounded-circle mg-r-10">
+                            ${(user.displayName || user.username).charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <div class="tx-weight-600">${user.displayName || user.username}</div>
+                            <small class="tx-color-03">${user.role} • ${user.username}</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+            resultsContainer.append(userHtml);
+        });
+    }
+    
+    // Select user for forwarding
+    function selectUserForForwarding(userId) {
+        const user = window.communityUsers?.find(u => u._id === userId);
+        if (user && window.currentForwardingAnnouncement) {
+            forwardAnnouncementToChat('private', user);
+        }
+    }
+    
+    // Forward announcement to chat
+    function forwardAnnouncementToChat(chatType, targetUser) {
+        if (!window.currentForwardingAnnouncement) return;
+        
+        const announcement = window.currentForwardingAnnouncement;
+        const forwardData = {
+            announcementId: announcement._id,
+            chatType: chatType,
+            targetUserId: targetUser ? targetUser._id : null
+        };
+        
         $.ajax({
-            url: `/announcements/id/${announcementId}/forward`,
+            url: '/announcements/forward',
             method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(forwardData),
             success: function(response) {
-                Swal.fire({
-                    title: 'Shared Successfully!',
-                    text: 'The announcement has been shared and the forward count has been updated.',
-                    icon: 'success',
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-                // Refresh the announcements to show updated counts
-                setTimeout(() => {
-                    loadAnnouncements();
-                }, 1000);
+                if (response.success) {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: `Announcement forwarded to ${chatType === 'public' ? 'public chat' : targetUser.displayName + '\'s private chat'}`,
+                        icon: 'success',
+                        timer: 3000
+                    });
+                    $('#forwardAnnouncementModal').modal('hide');
+                    // Reset the modal
+                    $('#userSearchSection').hide();
+                    $('#userSearchInput').val('');
+                    $('#userSearchResults').empty();
+                } else {
+                    Swal.fire('Error', response.message || 'Failed to forward announcement', 'error');
+                }
             },
             error: function(xhr) {
-                console.error('Failed to track forward:', xhr);
-                Swal.fire({
-                    title: 'Error',
-                    text: 'Failed to track the share. Please try again.',
-                    icon: 'error'
-                });
+                console.error('Forward announcement error:', xhr);
+                Swal.fire('Error', 'Failed to forward announcement', 'error');
             }
         });
     }

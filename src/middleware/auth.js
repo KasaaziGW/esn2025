@@ -7,8 +7,12 @@ import User from '../models/User.js';
  * Usage: app.use('/api', authMiddleware, ...)
  */
 const authMiddleware = async (req, res, next) => {
+  console.log('JWT Auth middleware - Path:', req.path);
+  console.log('JWT Auth middleware - Authorization header:', req.headers.authorization);
+  
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    console.log('JWT Auth middleware - No token provided');
     return res.status(401).json({ message: 'No token provided' });
   }
 

@@ -32,6 +32,9 @@ router.post('/id/:id/view', sessionAuth.sessionAuth, adminAccess.requireCommunit
 // Track announcement forward
 router.post('/id/:id/forward', sessionAuth.sessionAuth, adminAccess.requireCommunityMembershipOrAdmin, announcementController.trackAnnouncementForward);
 
+// Forward announcement to chat
+router.post('/forward', sessionAuth.sessionAuth, adminAccess.requireCommunityMembershipOrAdmin, announcementController.forwardAnnouncement);
+
 // Citizen announcements view page
 router.get('/view', sessionAuth.sessionAuth, adminAccess.requireCommunityMembershipOrAdmin, async (req, res) => {
   // Check if user has joined any community or is admin

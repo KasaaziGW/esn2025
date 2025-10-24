@@ -34,6 +34,7 @@ const sessionAdminOnly = (req, res, next) => {
   next();
 };
 
+// All session-based routes (must be defined before JWT middleware)
 // Profile page route (session-based)
 router.get('/profile', sessionAuth.sessionAuth, async (req, res) => {
   try {
@@ -64,7 +65,7 @@ router.get('/profile', sessionAuth.sessionAuth, async (req, res) => {
 // Profile update route (session-based)
 router.post('/profile', sessionAuth.sessionAuth, userController.updateProfile);
 
-// Avatar upload routes (session-based)
+// Avatar upload routes (session-based) - must be before any other routes
 router.post('/profile/avatar', sessionAuth.sessionAuth, upload.uploadProfilePhoto, userController.uploadAvatar);
 router.post('/profile/avatar/remove', sessionAuth.sessionAuth, userController.removeAvatar);
 
@@ -79,7 +80,7 @@ router.post('/:id/status', sessionAuth.sessionAuth, sessionAdminOnly, userContro
 router.post('/:id/password', sessionAuth.sessionAuth, sessionAdminOnly, userController.changeUserPassword);
 router.post('/:id/delete', sessionAuth.sessionAuth, sessionAdminOnly, userController.deleteUser);
 
-// Protected routes (JWT authentication for API)
+// Protected routes (JWT authentication for API) - only applies to routes defined after this line
 router.use(auth.authMiddleware);
 
 // Current user profile

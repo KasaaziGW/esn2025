@@ -13,7 +13,7 @@ router.get('/', sessionAuth.sessionAuth, adminAccess.requireAdmin, async (req, r
     const communities = await Community.find()
       .populate('region', 'name')
       .populate('district', 'name')
-      .sort({ name: 1 });
+      .sort({ createdAt: -1 }) // Sort by creation date, newest first;
 
     // Get member count for each community
     const communitiesWithMemberCount = await Promise.all(communities.map(async (community) => {
@@ -50,7 +50,7 @@ router.get('/selector', sessionAuth.sessionAuth, adminAccess.requireAdmin, async
     const communities = await Community.find()
       .populate('region', 'name')
       .populate('district', 'name')
-      .sort({ name: 1 });
+      .sort({ createdAt: -1 }) // Sort by creation date, newest first;
 
     // Get member count for each community
     const communitiesWithMemberCount = await Promise.all(communities.map(async (community) => {
@@ -157,7 +157,7 @@ router.get('/api/communities', sessionAuth.sessionAuth, adminAccess.requireAdmin
     const communities = await Community.find()
       .populate('region', 'name')
       .populate('district', 'name')
-      .sort({ name: 1 });
+      .sort({ createdAt: -1 }) // Sort by creation date, newest first;
 
     // Get member count for each community
     const communitiesWithMemberCount = await Promise.all(communities.map(async (community) => {

@@ -836,7 +836,28 @@
             
             // Message content
             let messageContent = '';
-            if (message.type === 'image') {
+            if (message.forwardedAnnouncement) {
+                // Special formatting for forwarded announcements
+                messageContent = `
+                    <div class="forwarded-announcement" style="border: 1px solid #e3e6f0; border-radius: 8px; padding: 12px; background: #f8f9fc; margin: 8px 0;">
+                        <div class="d-flex align-items-center mg-b-8">
+                            <i data-feather="share-2" class="wd-16 ht-16 tx-primary mg-r-5"></i>
+                            <span class="tx-weight-600 tx-primary">Forwarded Announcement</span>
+                        </div>
+                        <div class="announcement-preview">
+                            <h6 class="tx-weight-600 mg-b-5">${escapeHtml(message.content.split('**')[1] || 'Announcement')}</h6>
+                            <p class="tx-color-03 mg-b-10">${escapeHtml(message.content.split('\n\n')[1] || message.content)}</p>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <small class="tx-color-03">${message.content.split('*Originally posted by ')[1]?.split('*')[0] || 'Unknown'}</small>
+                                <a href="http://localhost:5000/announcements" class="btn btn-sm btn-outline-primary" target="_blank">
+                                    <i data-feather="external-link" class="wd-12 mg-r-2"></i>
+                                    Read More
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (message.type === 'image') {
                 messageContent = `<img src="${message.content}" class="img-fluid rounded mg-b-10" style="max-width: 200px;" alt="Image">`;
             } else if (message.type === 'file') {
                 messageContent = `<a href="${message.content}" target="_blank" class="d-flex align-items-center"><i data-feather="file" class="mg-r-5"></i>File attachment</a>`;
@@ -888,7 +909,28 @@
         container.find('.text-center').remove();
         
         let messageContent = '';
-        if (message.type === 'image') {
+        if (message.forwardedAnnouncement) {
+            // Special formatting for forwarded announcements
+            messageContent = `
+                <div class="forwarded-announcement" style="border: 1px solid #e3e6f0; border-radius: 8px; padding: 12px; background: #f8f9fc; margin: 8px 0;">
+                    <div class="d-flex align-items-center mg-b-8">
+                        <i data-feather="share-2" class="wd-16 ht-16 tx-primary mg-r-5"></i>
+                        <span class="tx-weight-600 tx-primary">Forwarded Announcement</span>
+                    </div>
+                    <div class="announcement-preview">
+                        <h6 class="tx-weight-600 mg-b-5">${escapeHtml(message.content.split('**')[1] || 'Announcement')}</h6>
+                        <p class="tx-color-03 mg-b-10">${escapeHtml(message.content.split('\n\n')[1] || message.content)}</p>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <small class="tx-color-03">${message.content.split('*Originally posted by ')[1]?.split('*')[0] || 'Unknown'}</small>
+                            <a href="http://localhost:5000/announcements" class="btn btn-sm btn-outline-primary" target="_blank">
+                                <i data-feather="external-link" class="wd-12 mg-r-2"></i>
+                                Read More
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else if (message.type === 'image') {
             messageContent = `<img src="${message.content}" class="img-fluid rounded mg-b-10" style="max-width: 200px;" alt="Image">`;
         } else if (message.type === 'file') {
             messageContent = `<a href="${message.content}" target="_blank" class="d-flex align-items-center"><i data-feather="file" class="mg-r-5"></i>File attachment</a>`;

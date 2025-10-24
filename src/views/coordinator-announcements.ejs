@@ -372,4 +372,83 @@
     </div>
 </div>
 
+<!-- Forward Announcement Modal -->
+<div class="modal fade" id="forwardAnnouncementModal" tabindex="-1" aria-labelledby="forwardAnnouncementModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="forwardAnnouncementModalLabel">
+                    <i data-feather="share-2" class="wd-16 mg-r-5"></i>
+                    Forward Announcement
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Announcement Preview -->
+                <div class="card mg-b-20">
+                    <div class="card-header">
+                        <h6 class="mb-0">Announcement Preview</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="forwardAnnouncementPreview">
+                            <!-- Announcement preview will be populated here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Forward Options -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <i data-feather="users" class="wd-48 ht-48 tx-primary mg-b-15"></i>
+                                <h6 class="card-title">Public Community Chat</h6>
+                                <p class="card-text text-muted">Share with all members of your community</p>
+                                <button type="button" class="btn btn-primary" id="forwardToPublicChat">
+                                    <i data-feather="send" class="wd-16 mg-r-5"></i>
+                                    Forward to Public Chat
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <i data-feather="user" class="wd-48 ht-48 tx-info mg-b-15"></i>
+                                <h6 class="card-title">Private Chat</h6>
+                                <p class="card-text text-muted">Share with a specific community member</p>
+                                <button type="button" class="btn btn-info" id="forwardToPrivateChat">
+                                    <i data-feather="send" class="wd-16 mg-r-5"></i>
+                                    Forward to Private Chat
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- User Search for Private Chat -->
+                <div id="userSearchSection" class="mg-t-20" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">Select Community Member</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group mg-b-15">
+                                <label for="userSearchInput" class="form-label">Search for a user:</label>
+                                <input type="text" class="form-control" id="userSearchInput" placeholder="Type to search for users...">
+                            </div>
+                            <div id="userSearchResults" class="list-group">
+                                <!-- Search results will be displayed here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <%- include('layouts/partials/bottom-files') %>
