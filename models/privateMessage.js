@@ -4,8 +4,7 @@ const privateMessageSchema = new mongoose.Schema({
     sender: String,
     receiver: String,
     message: String,
-    sentTime: String,
-    sender_status: { type: Object, required: false }
+    sentTime: String
 });
 
 module.exports = mongoose.model("PrivateMessage", privateMessageSchema);

@@ -314,7 +314,9 @@ function scrollToBottom() { chatBox.scrollTop(chatBox.prop("scrollHeight")); }
 
 function appendMessage(msg) {
     const isOwn = msg.sender === currentUserEmail;
-    const status = msg.status || "OK";
+   const status = msg.sender_status || msg.status || "OK";
+
+
     const sc = statusClass(status);
 
     const headerHtml = `

@@ -1,0 +1,24 @@
+* [33mc9d2d60[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mgroup2[m[33m, [m[1;32mtemp-merge3[m[33m)[m Save work before switching to group2
+* [33mdb93f0a[m[33m ([m[1;31morigin/Group-2-Qn2[m[33m)[m priv chat attempt
+* [33mc582a8e[m[33m ([m[1;31morigin/Group-2[m[33m)[m search fix
+* [33m438922b[m final merge
+*   [33m54e191d[m merged
+[32m|[m[33m\[m  
+[32m|[m * [33mec6211a[m Fix private chat: prevent duplicate messages and restore input box
+[32m|[m * [33mef087ce[m merged private chat and search
+[32m|[m *   [33mb0afa98[m Merge branch 'temp-merge' into Group-2-local
+[32m|[m [34m|[m[35m\[m  
+[32m|[m [34m|[m * [33m27ecd32[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/group2[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m I have added the search feature
+[32m|[m * [35m|[m [33m9f92e6d[m Initial commit for Group-2 branch
+[32m|[m * [35m|[m [33m38dd99c[m Added private chat feature and updates to UI
+[32m|[m [35m|[m[35m/[m  
+* [35m|[m [33md77dd46[m citizen status display in chat
+* [35m|[m [33m929d14b[m status updated and display on directory
+[35m|[m[35m/[m  
+* [33m5611cc6[m Finalized all the UI harmonization and changes.
+* [33m1bd50f3[m Final class
+* [33m87b5c29[m Changed the login and register design
+* [33m3bbbf42[m implemented register and login feature
+* [33m3cb81f5[m Initializing the ESN project
+* [33m9739ca4[m Update README.md
+* [33m0aee6a7[m Initial commit

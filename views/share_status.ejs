@@ -14,24 +14,45 @@
             <p>Update your status </p>
         </div>
 
-        <select id="statusSelect" onchange="updateStatus(event)" class="status-select">
-            <option value="Undefined" <%= user?.status?.current_state === 'Undefined' ? 'selected' : '' %>>Undefined</option>
-            <option value="OK" <%= user?.status?.current_state === 'OK' ? 'selected' : '' %>>OK</option>
-            <option value="Emergency" <%= user?.status?.current_state === 'Emergency' ? 'selected' : '' %>>Emergency</option>
-            <option value="Help" <%= user?.status?.current_state === 'Help' ? 'selected' : '' %>>Help</option>
-        </select>
+       <select id="statusSelect" onchange="updateStatus(event)" class="status-select">
+    <option value="OK" <%= user?.status === 'OK' ? 'selected' : '' %>>OK</option>
+    <option value="Emergency" <%= user?.status === 'Emergency' ? 'selected' : '' %>>Emergency</option>
+    <option value="Help" <%= user?.status === 'Help' ? 'selected' : '' %>>Help</option>
+</select>
 
-        
-    </div>
+<script>
+const socket = io();
 
-      <script>
-        function updateStatus(event){
-            console.log("Status changed to: " + event.target.value);
-           $.post("/setStatus", {status: event.target.value}, function(data){
-               console.log("Status updated successfully.", data);
-           });
-        }
-    </script>
+function updateStatus(event) {
+    const newStatus = event.target.value;
+    console.log("Status changed to:", newStatus);
+
+    $.post("/updateStatus", { status: newStatus })
+        .done(() => {
+            console.log("Status updated successfully");
+        })
+        .fail(() => {
+            alert("Failed to update status");
+        });
+}
+
+// Listen for status updates from other users
+socket.on("statusUpdated", user => {
+    // Update directory / chat UI
+    const li = document.querySelector(`.user-item[data-email="${user.email}"]`);
+    if (li) {
+        const statusEl = li.querySelector(".user-status");
+        const statusLower = user.status.toLowerCase();
+        let iconHtml = '';
+        if (statusLower === 'ok') iconHtml = '<i class="fas fa-check"></i>';
+        else if (statusLower === 'help') iconHtml = '<i class="fas fa-exclamation"></i>';
+        else if (statusLower === 'emergency') iconHtml = '<i class="fas fa-plus"></i>';
+        statusEl.innerHTML = iconHtml;
+        statusEl.className = `user-status ${statusLower}`;
+        statusEl.title = user.status;
+    }
+});
+</script>
 
    
     <script src="js/navbar.js"></script>
