@@ -14,7 +14,16 @@ import response from '../utils/response.js';
  * Emits 'announcement:new' event via Socket.io
  */
 export const createAnnouncement = errorHandler.catchAsync(async (req, res) => {
-  const { title, body, community } = req.body;
+  const { 
+    title, 
+    body, 
+    community, 
+    isEmergency, 
+    emergencyType, 
+    severity, 
+    pinned 
+  } = req.body;
+  
   const attachments = req.files?.map(file => ({
     url: `/uploads/announcements/${file.filename}`,
     filename: file.originalname,
@@ -29,14 +38,25 @@ export const createAnnouncement = errorHandler.catchAsync(async (req, res) => {
 
   const communityId = role === 'admin' ? community || null : req.user.community;
 
-  // Model will handle slug generation
-  const announcement = await Announcement.create({
+  // Prepare announcement data
+  const announcementData = {
     title,
     body,
     attachments,
     createdBy: _id,
-    community: communityId
-  });
+    community: communityId,
+    isEmergency: isEmergency === 'true' || isEmergency === true,
+    severity: severity || 'medium',
+    pinned: pinned === 'true' || pinned === true
+  };
+
+  // Add emergency-specific fields if it's an emergency
+  if (announcementData.isEmergency && emergencyType) {
+    announcementData.emergencyType = emergencyType;
+  }
+
+  // Model will handle slug generation
+  const announcement = await Announcement.create(announcementData);
 
   // Emit real-time notification
   const io = socketService.getIO();

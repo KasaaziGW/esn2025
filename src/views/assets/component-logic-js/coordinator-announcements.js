@@ -10,13 +10,8 @@
     // Initialize page
     $(document).ready(function() {
         
-        // Set current user info for permission checks
-        window.currentUser = {
-            id: '<%= user._id || user.id %>',
-            role: '<%= user.role %>'
-        };
-        
-        //console.log('Current user set:', window.currentUser);
+        // Current user is set in the EJS template
+        console.log('Current user available:', window.currentUser);
         
         loadAnnouncements();
         loadCommunityUsers();
@@ -390,8 +385,16 @@
     // Check if current user can edit/delete an announcement
     function canEditAnnouncement(announcement) {
         // Get current user info from the page
-        const currentUserId = window.currentUser ? window.currentUser.id : null;
+        const currentUserId = window.currentUser ? (window.currentUser._id || window.currentUser.id) : null;
         const currentUserRole = window.currentUser ? window.currentUser.role : null;
+        
+        console.log('Permission check:', {
+            currentUserId,
+            currentUserRole,
+            announcementAuthorId: announcement.createdBy ? announcement.createdBy._id : 'no createdBy',
+            announcementAuthorIdString: announcement.createdBy ? announcement.createdBy._id?.toString() : 'no createdBy',
+            announcementAuthorIdAlt: announcement.createdBy ? announcement.createdBy.id : 'no createdBy'
+        });
         
         // Admin can edit/delete any announcement
         if (currentUserRole === 'admin') {
@@ -400,12 +403,25 @@
         }
         
         // Coordinator can only edit/delete their own announcements
-        if (currentUserRole === 'coordinator') {
-            const canEdit = announcement.createdBy._id === currentUserId || 
-                           announcement.createdBy.id === currentUserId ||
-                           announcement.createdBy._id.toString() === currentUserId ||
-                           announcement.createdBy.id.toString() === currentUserId;
-            console.log('Coordinator edit check:', canEdit);
+        if (currentUserRole === 'coordinator' && announcement.createdBy) {
+            // Safely check for author ID with multiple fallbacks
+            const authorId = announcement.createdBy._id || announcement.createdBy.id;
+            const authorIdString = authorId ? authorId.toString() : null;
+            const currentUserIdString = currentUserId ? currentUserId.toString() : null;
+            
+            const canEdit = authorId === currentUserId || 
+                           authorIdString === currentUserId ||
+                           authorIdString === currentUserIdString;
+                           
+            console.log('Coordinator edit check:', canEdit, {
+                authorId,
+                authorIdString,
+                currentUserId,
+                currentUserIdString,
+                directMatch: authorId === currentUserId,
+                stringMatch: authorIdString === currentUserId,
+                bothStringMatch: authorIdString === currentUserIdString
+            });
             return canEdit;
         }
         return false;
@@ -530,8 +546,8 @@
     function updateAnnouncement(announcementId, data) {
         //console.log('Update announcement called with ID:', announcementId, 'Data:', data);
         $.ajax({
-            url: `/announcements/id/${announcementId}`,
-            method: 'PUT',
+            url: `/announcements/id/${announcementId}/update`,
+            method: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(data),
             success: function(response) {
@@ -578,8 +594,8 @@
                     if (result.isConfirmed) {
                         // Call delete API
                         $.ajax({
-                            url: `/announcements/id/${announcementId}`,
-                            method: 'DELETE',
+                            url: `/announcements/id/${announcementId}/delete`,
+                            method: 'POST',
                             success: function(response) {
                                 Swal.fire('Deleted!', 'The announcement has been deleted.', 'success');
                                 // Reload announcements

@@ -264,6 +264,11 @@
 </div>
 <%- include('layouts/partials/footer') %>
 
+<script>
+    // Set current user data for JavaScript
+    window.currentUser = <%- JSON.stringify(user).replace(/</g, '\\u003c') %>;
+    console.log('Current user set:', window.currentUser);
+</script>
 <script src="/assets/component-logic-js/coordinator-announcements.js?v=<%= Date.now() %>"></script>
 
 <!-- Edit Announcement Modal -->
