@@ -304,8 +304,19 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group mg-b-15">
-                                <label for="editSeverity" class="form-label">Priority</label>
-                                <select id="editSeverity" class="form-control">
+                                <label for="editType" class="form-label">Type</label>
+                                <select id="editType" class="form-control">
+                                    <option value="general">General Announcement</option>
+                                    <option value="emergency">Emergency Alert</option>
+                                    <option value="event">Event Notice</option>
+                                    <option value="update">Community Update</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mg-b-15">
+                                <label for="editPriority" class="form-label">Priority</label>
+                                <select id="editPriority" class="form-control">
                                     <option value="low">Low</option>
                                     <option value="medium">Medium</option>
                                     <option value="high">High</option>
@@ -313,35 +324,43 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                    </div>
+                    
+                    <!-- Emergency Type Field (shown only when Emergency Alert is selected) -->
+                    <div class="row" id="editEmergencyTypeRow" style="display: none;">
+                        <div class="col-md-12">
                             <div class="form-group mg-b-15">
-                                <label for="editStatus" class="form-label">Status</label>
-                                <select id="editStatus" class="form-control">
-                                    <option value="active">Active</option>
-                                    <option value="resolved">Resolved</option>
-                                    <option value="cancelled">Cancelled</option>
+                                <label for="editEmergencyType" class="form-label">Emergency Type</label>
+                                <select id="editEmergencyType" class="form-control">
+                                    <option value="medical">Medical Emergency</option>
+                                    <option value="fire">Fire Emergency</option>
+                                    <option value="security">Security Alert</option>
+                                    <option value="natural_disaster">Natural Disaster</option>
+                                    <option value="infrastructure">Infrastructure Issue</option>
+                                    <option value="other">Other</option>
                                 </select>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group mg-b-15">
-                                <div class="form-check">
-                                    <input type="checkbox" id="editIsEmergency" class="form-check-input">
-                                    <label for="editIsEmergency" class="form-check-label">Emergency Announcement</label>
-                                </div>
-                            </div>
+                    <div class="form-group mg-b-15">
+                        <label for="editAttachments" class="form-label">Attachments (Optional)</label>
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" id="editAttachments" name="attachments" multiple
+                                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                            <label class="custom-file-label" for="editAttachments">Choose files...</label>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-group mg-b-15">
-                                <div class="form-check">
-                                    <input type="checkbox" id="editPinned" class="form-check-input">
-                                    <label for="editPinned" class="form-check-label">Pin to Top</label>
-                                </div>
-                            </div>
+                        <small class="form-text text-muted">You can upload multiple files (PDF, Word, or image files)</small>
+                        <div id="editCurrentAttachments" class="mt-2">
+                            <!-- Current attachments will be displayed here -->
                         </div>
+                    </div>
+                    
+                    <div class="form-check mg-b-15">
+                        <input type="checkbox" class="form-check-input" id="editPinned">
+                        <label class="form-check-label" for="editPinned">
+                            Pin this announcement to the top
+                        </label>
                     </div>
                 </form>
             </div>

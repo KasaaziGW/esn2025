@@ -24,14 +24,24 @@
             }
         });
         
+        // Handle Type field change in edit modal
+        $('#editType').on('change', function() {
+            const selectedType = $(this).val();
+            if (selectedType === 'emergency') {
+                $('#editEmergencyTypeRow').show();
+            } else {
+                $('#editEmergencyTypeRow').hide();
+            }
+        });
+        
         // Save edit changes button
         $('#saveEditChanges').on('click', function() {
             const announcementId = $('#editAnnouncementModal').data('announcement-id');
             const title = $('#editTitle').val().trim();
             const body = $('#editBody').val().trim();
-            const severity = $('#editSeverity').val();
-            const status = $('#editStatus').val();
-            const isEmergency = $('#editIsEmergency').is(':checked');
+            const type = $('#editType').val();
+            const priority = $('#editPriority').val();
+            const emergencyType = $('#editEmergencyType').val();
             const pinned = $('#editPinned').is(':checked');
             
             // Validation
@@ -48,9 +58,10 @@
             const formData = {
                 title,
                 body,
-                severity,
-                status,
-                isEmergency,
+                type,
+                priority,
+                emergencyType: type === 'emergency' ? emergencyType : null,
+                isEmergency: type === 'emergency',
                 pinned
             };
             
@@ -432,6 +443,48 @@
         $('#createAnnouncementModal').modal('show');
     }
     
+    // Display current attachments in edit modal
+    function displayCurrentAttachments(attachments) {
+        const container = $('#editCurrentAttachments');
+        container.empty();
+        
+        if (attachments && attachments.length > 0) {
+            container.append('<h6>Current Attachments:</h6>');
+            attachments.forEach((attachment, index) => {
+                const attachmentHtml = `
+                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+                        <div>
+                            <i class="fas fa-paperclip me-2"></i>
+                            <a href="${attachment.url}" target="_blank" class="text-decoration-none">
+                                ${attachment.filename || 'Attachment ' + (index + 1)}
+                            </a>
+                            <small class="text-muted ms-2">(${formatFileSize(attachment.size)})</small>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeCurrentAttachment(${index})">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+                container.append(attachmentHtml);
+            });
+        }
+    }
+    
+    // Format file size
+    function formatFileSize(bytes) {
+        if (!bytes) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    // Remove current attachment (placeholder function)
+    function removeCurrentAttachment(index) {
+        // This would need to be implemented to actually remove attachments from the server
+        console.log('Remove attachment at index:', index);
+    }
+    
     // View announcement
     function viewAnnouncement(announcementId) {
         // Find announcement in current data or fetch from server
@@ -524,10 +577,21 @@
                 // Populate the Bootstrap modal with announcement data
                 $('#editTitle').val(announcement.title);
                 $('#editBody').val(announcement.body);
-                $('#editSeverity').val(announcement.severity);
-                $('#editStatus').val(announcement.status);
-                $('#editIsEmergency').prop('checked', announcement.isEmergency);
-                $('#editPinned').prop('checked', announcement.pinned);
+                $('#editType').val(announcement.type || 'general');
+                $('#editPriority').val(announcement.priority || 'medium');
+                $('#editPinned').prop('checked', announcement.pinned || false);
+                
+                // Handle emergency type field
+                if (announcement.type === 'emergency' || announcement.isEmergency) {
+                    $('#editType').val('emergency');
+                    $('#editEmergencyTypeRow').show();
+                    $('#editEmergencyType').val(announcement.emergencyType || 'medical');
+                } else {
+                    $('#editEmergencyTypeRow').hide();
+                }
+                
+                // Display current attachments
+                displayCurrentAttachments(announcement.attachments || []);
                 
                 // Store the announcement ID for the save function
                 $('#editAnnouncementModal').data('announcement-id', announcementId);
