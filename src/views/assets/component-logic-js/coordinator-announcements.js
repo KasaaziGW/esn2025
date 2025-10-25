@@ -531,12 +531,12 @@
                     console.log('Community users loaded:', window.communityUsers);
                 } else {
                     console.error('Invalid response structure:', response);
-                    Swal.fire('Error', 'Failed to load community members', 'error');
+                    //Swal.fire('Error', 'Failed to load community members', 'error');
                 }
             },
             error: function(xhr) {
                 console.error('Failed to load community users:', xhr);
-                Swal.fire('Error', 'Failed to load community members', 'error');
+                //Swal.fire('Error', 'Failed to load community members', 'error');
             }
         });
     }
