@@ -197,9 +197,6 @@
                 <thead>
                   <tr>
                     <th>Alert</th>
-                    <th>Type</th>
-                    <th>Severity</th>
-                    <th>Status</th>
                     <th>Time</th>
                   </tr>
                 </thead>
@@ -207,18 +204,7 @@
                   <% dashboardData.recentAlerts.forEach(alert => { %>
                     <tr>
                       <td class="tx-medium">
-                        <a href="/announcements/<%= alert.id %>" class="tx-color-01"><%= alert.title %></a>
-                      </td>
-                      <td class="tx-color-03"><%= alert.type %></td>
-                      <td>
-                        <span class="badge badge-<%= alert.severity === 'critical' ? 'danger' : alert.severity === 'high' ? 'warning' : 'info' %>">
-                          <%= alert.severity %>
-                        </span>
-                      </td>
-                      <td>
-                        <span class="badge badge-<%= alert.status === 'active' ? 'danger' : 'success' %>">
-                          <%= alert.status %>
-                        </span>
+                        <a href="#" class="tx-color-01"><%= alert.title %></a>
                       </td>
                       <td class="tx-color-03"><%= alert.time %></td>
                     </tr>
