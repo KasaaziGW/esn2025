@@ -51,28 +51,28 @@ const findCentralRegionAndKampalaDistrict = async () => {
 
 /**
  * Initialize the default administrator user
- * This ensures the system always has the specific ESNAdmin user as specified in the rules
+ * This ensures the system always has the specific ESNAdmin user
  */
 const initializeDefaultAdmin = async () => {
   try {
     // Find existing Central region and Kampala district
     const { centralRegion, kampalaDistrict } = await findCentralRegionAndKampalaDistrict();
     
-    // Check if ESNAdmin specifically exists
+    // Check if ESNAdmin exists
     const esnAdmin = await User.findOne({ username: 'ESNAdmin' });
 
     if (!esnAdmin) {
-      // Create the default administrator as specified in the rules
+      // Create the default administrator
       const defaultAdmin = new User({
         username: 'ESNAdmin',
         email: 'admin@emergencysocialnetwork.com',
-        phone: '+256-000-000-000', // Default phone for admin
+        phone: '+256-788-674-000', 
         role: 'admin',
         firstName: 'Emergency',
         lastName: 'Administrator',
         displayName: 'ESN Administrator',
-        region: centralRegion._id, // Use ObjectId reference
-        district: kampalaDistrict ? kampalaDistrict._id : null, // Use ObjectId reference or null
+        region: centralRegion._id, 
+        district: kampalaDistrict ? kampalaDistrict._id : null, 
         isActive: true,
         verified: true,
         bio: 'Default system administrator for Emergency Social Network'

@@ -70,11 +70,6 @@ function loadCommunities() {
             loadMyCommunity();
         },
         error: function(xhr) {
-            console.error('=== COMMUNITIES LOAD ERROR ===');
-            console.error('Error:', xhr);
-            console.error('Status:', xhr.status);
-            console.error('Response Text:', xhr.responseText);
-            console.error('Response JSON:', xhr.responseJSON);
             
             $('#communitiesLoading').hide();
             

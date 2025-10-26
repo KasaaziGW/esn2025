@@ -1,13 +1,7 @@
 'use strict';
 
 $(document).ready(function() {
-    console.log('=== USER PROFILE PAGE INITIALIZED ===');
-    console.log('jQuery version:', $.fn.jquery);
-    console.log('Current User:', window.currentUser);
-    console.log('User data element exists:', document.getElementById('user-data') !== null);
-    console.log('Region select element exists:', $('#regionSelect').length);
-    console.log('District select element exists:', $('#districtSelect').length);
-    
+
     // Skip feather icons initialization to avoid errors
     // Feather icons will be handled by other scripts
     
@@ -19,7 +13,6 @@ $(document).ready(function() {
     
     // Ensure user data is available
     if (!window.currentUser) {
-        console.warn('User data not available, attempting to extract from DOM...');
         const userDataEl = document.getElementById('user-data');
         if (userDataEl) {
             window.currentUser = {
@@ -32,14 +25,13 @@ $(document).ready(function() {
                 location: JSON.parse(userDataEl.dataset.location || '{}'),
                 emergencyContacts: JSON.parse(userDataEl.dataset.emergencyContacts || '[]')
             };
-            console.log('User data extracted from DOM:', window.currentUser);
+            //console.log('User data extracted from DOM:', window.currentUser);
         } else {
             console.error('User data element not found!');
         }
     }
     
     // Load regions from API
-    console.log('=== CALLING loadRegions() ===');
     loadRegions();
     
     // Set up region-district dependency
@@ -53,10 +45,9 @@ $(document).ready(function() {
     
     // Force refresh districts after everything is loaded
     setTimeout(function() {
-        console.log('Force refreshing districts...');
+        //console.log('Force refreshing districts...');
         const currentRegion = $('#regionSelect').val();
         if (currentRegion) {
-            console.log('Force updating districts for region:', currentRegion);
             updateDistricts(currentRegion);
         }
     }, 500);
@@ -64,9 +55,6 @@ $(document).ready(function() {
 
 // Load regions from API and populate dropdown
 function loadRegions() {
-    console.log('=== LOADING REGIONS FROM API ===');
-    console.log('jQuery available:', typeof $ !== 'undefined');
-    console.log('Region select element found:', $('#regionSelect').length);
     
     $.ajax({
         url: `/regions`,
@@ -75,12 +63,10 @@ function loadRegions() {
             withCredentials: true
         },
         success: function(response) {
-            console.log('=== REGIONS API SUCCESS ===');
-            console.log('Regions loaded successfully:', response);
             
             const regionSelect = $('#regionSelect');
-            console.log('Region select element:', regionSelect);
-            console.log('Current options count:', regionSelect.find('option').length);
+            //console.log('Region select element:', regionSelect);
+            //console.log('Current options count:', regionSelect.find('option').length);
             
             if (response.data && response.data.regions) {
                 console.log('Found regions in response:', response.data.regions.length);
@@ -93,12 +79,9 @@ function loadRegions() {
                 response.data.regions.forEach((region, index) => {
                     const isSelected = window.currentUser.region === region.name ? 'selected' : '';
                     const optionHtml = `<option value="${region.name}" ${isSelected}>${region.name}</option>`;
-                    console.log(`Adding region ${index + 1}: ${region.name} (selected: ${isSelected})`);
+                    //console.log(`Adding region ${index + 1}: ${region.name} (selected: ${isSelected})`);
                     regionSelect.append(optionHtml);
                 });
-                
-                console.log('Regions populated in dropdown');
-                console.log('Final options count:', regionSelect.find('option').length);
                 
                 // If user has a region, load districts for it
                 if (window.currentUser.region) {
@@ -110,10 +93,6 @@ function loadRegions() {
             }
         },
         error: function(xhr) {
-            console.error('=== REGIONS API ERROR ===');
-            console.error('Error loading regions:', xhr);
-            console.error('Status:', xhr.status);
-            console.error('Response:', xhr.responseText);
             showAlert('warning', 'Failed to load regions. Please refresh the page.');
         }
     });
@@ -121,19 +100,15 @@ function loadRegions() {
 
 // Initialize form with user data
 function initializeForm() {
-    console.log('Initializing form with user data');
-    console.log('Current user region:', window.currentUser.region);
-    console.log('Current user district:', window.currentUser.district);
-    
+
     // Set district based on current region
     if (window.currentUser.region) {
-        console.log('Updating districts for region:', window.currentUser.region);
+        
         updateDistricts(window.currentUser.region);
         
         // Set the district value after a short delay to ensure DOM is ready
         setTimeout(() => {
             if (window.currentUser.district) {
-                console.log('Setting district value to:', window.currentUser.district);
                 $('#districtSelect').val(window.currentUser.district);
             }
         }, 200);
@@ -143,7 +118,6 @@ function initializeForm() {
     setTimeout(() => {
         const currentRegion = $('#regionSelect').val();
         if (currentRegion) {
-            console.log('Triggering region change for:', currentRegion);
             $('#regionSelect').trigger('change');
         }
     }, 300);

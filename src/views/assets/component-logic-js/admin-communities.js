@@ -845,7 +845,6 @@ function loadRegionsList() {
 
 // Load and display districts list
 function loadDistrictsList() {
-    console.log('=== LOADING DISTRICTS LIST ===');
     $.ajax({
         url: '/districts',
         method: 'GET',
@@ -866,8 +865,6 @@ function loadDistrictsList() {
             }
         },
         error: function(xhr) {
-            console.error('=== LOAD DISTRICTS LIST ERROR ===');
-            console.error('Error:', xhr);
             showAlert('error', 'Failed to load districts list.');
         }
     });
